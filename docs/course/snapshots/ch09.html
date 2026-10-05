@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第9章 序列标注 POS、HMM 与 NER | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+
+  table.ac.sm{font-size:16px}
+  table.ac.sm th{padding:5px 10px;font-size:16.5px}
+  table.ac.sm td{padding:4px 10px;line-height:1.32}
+  .code.sm{font-size:15.5px;line-height:1.5;padding:10px 14px;margin-top:8px}
+  .code.xs{font-size:14.5px;line-height:1.46;padding:9px 13px;margin-top:8px}
+  ul.tightlist li{font-size:17px;line-height:1.38;margin-top:4px}
+  table.ac.tiny{font-size:14.5px}
+  table.ac.tiny td{padding:3px 8px;line-height:1.28}
+  table.ac.tiny code{font-size:13.5px}
+  .card.tight{padding:12px 16px}
+  .card.tight .h{font-size:21px;margin-bottom:5px}
+  .card.tight p{font-size:18px;line-height:1.42}
+  .card.tight li{font-size:18px;line-height:1.4;margin-top:4px}
+  .grid.tight{gap:12px}
+  .grid.tight2{gap:10px}
+  .qbar.sm{font-size:19px;padding:11px 18px;margin-top:11px}
+  .lead.sm{font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Sequence Labeling: POS, HMM &amp; NER</div>
+    <div class="cn">序列标注</div>
+    <div class="rule"></div>
+    <div class="sub">第九章 · 给每个词打上一个标签</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 9 讲 / 共 16 讲　·　90 分钟（导入 10′ + 讲授 65′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">09</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 8 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card tight"><div class="h"><span class="no">1</span>结构与参数共享</div><p>hₜ = tanh(Wₓₕxₜ + Wₕₕhₜ₋₁ + b)，同一组权重在每一步复用 → 参数量与句长无关。</p></div>
+      <div class="card tight"><div class="h"><span class="no">2</span>训练与梯度病</div><p>BPTT 的连乘 ∏[diag(tanh′)·Wₕₕᵀ] → 梯度消失（沉默）/ 爆炸（响亮）；裁剪治爆炸。</p></div>
+      <div class="card tight"><div class="h"><span class="no">3</span>门控记忆</div><p>LSTM 加法主路 ∂Cₜ/∂Cₜ₋₁ ≈ diag(fₜ)：乘门值而非权重矩阵，误差能走远。</p></div>
+      <div class="card tight"><div class="h"><span class="no">4</span>双向与堆叠</div><p>BiLSTM 拼接左右状态，可以看全句——理解型任务的主力，今天就要用它。</p></div>
+    </div>
+    <div class="qbar">今天换任务：从<span class="k">“预测下一个词”</span>变成<span class="k">“给每个词贴一个标签”</span>——输出不再是一个分布，而是一条等长的标签链。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：机器读文本的第一步是贴标签</div><div class="dd">简历、合同、病历三战场；一词一标签，标签彼此牵连</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">任务定义与结构化预测</div><div class="dd">等长映射；为什么逐词独立分类必然失败；任务家族</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">词性标注 POS</div><div class="dd">开放/封闭类；PTB 与中文标签集；一词多性歧义；方法演进</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">命名实体识别 NER 与编码评估</div><div class="dd">类型体系；BIO / IOBES；非法序列；实体级 P/R/F1</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">HMM 与 Viterbi 解码</div><div class="dd">五元组与两假设；前向算法；Viterbi 逐步手算；代码实现</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">判别式、神经与 LLM 新范式</div><div class="dd">MEMM 标注偏置；CRF 全局归一化；BiLSTM-CRF；生成式抽取</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 9 讲 · 序列标注 POS / HMM / NER</span></div>
+  <div class="content">
+    <div class="lead sm">学完本讲，你将能够：<span class="tag b">导入 10′</span><span class="tag b">讲授 65′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>写出序列标注定义与等长约束</li>
+          <li>说出 PTB 常用标签与一词多性歧义</li>
+          <li>写出 HMM 五元组、两个假设与三大问题</li>
+          <li>说出 BIO/IOBES 规则与生成式/判别式差别</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能按 BIO 规则判断并修正非法序列</li>
+          <li>能手推 Viterbi 两列 δ/ψ 并回溯路径</li>
+          <li>能用实体级口径手算 P / R / F1</li>
+          <li>能用 HuggingFace pipeline 跑通 NER</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>建立“输出是整体、不是独立决策”的结构化思维</li>
+          <li>建立评估口径意识（一错两罚，不虚高汇报）</li>
+          <li>理解“标注规范质量决定效果上限”</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:10px">
+      <div class="card tight"><div class="h">本讲重点</div><p>结构化预测与标签依赖；BIO 编码与合法性；实体级 P/R/F1；HMM 两假设；Viterbi 手推。</p></div>
+      <div class="card card-warn tight"><div class="h">本讲难点</div><p>为什么逐词独立必然失败；Viterbi 的“最优子结构”；标注偏置与全局归一化的差别。</p></div>
+    </div>
+    <div class="qbar sm">暗线只有一句：<span class="k">如何在指数级的标签组合空间里，高效找到最优的那一条标签序列</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 5 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">机器要读懂文本，第一步往往是给每个词贴一个标签。</div>
+    <ul>
+      <li>三个战场：简历解析、合同抽取、病历结构化</li>
+      <li>回收第 4 讲：中文分词其实也是贴标签</li>
+      <li>核心问题：一词一标签，为什么不能各贴各的？</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">结构化抽取：从简历、合同到病历</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>简历解析（HR SaaS）</div>
+        <p>300 份 PDF 简历 → 姓名 / 学校 / 公司 / 技能自动入表。</p>
+        <p>人工一天 50 份，机器毫秒级。<b>关键就是给每段文字打上类型标签。</b></p></div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>合同要素抽取（金融科技）</div>
+        <p>借款合同 → 借款人 / 金额 / 利率 / 期限。</p>
+        <p>人工审一份 20 分钟；机器预抽 + 人复核。<b>可审计性要求高</b>。</p></div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>病历结构化（智慧健康）</div>
+        <p>出院小结 → 诊断 / 用药 / 手术 / 随访时间。</p>
+        <p>结构化之后才能做检索、统计与随访提醒。</p></div>
+    </div>
+    <div class="code sm" style="margin-top:12px">患者 <b>张伟</b> 于 <b>2023 年 5 月</b> 在 <b>北京协和医院</b> 确诊 <b>2 型糖尿病</b>
+     ↓ 打标签
+张伟/PER   2023年5月/DATE   北京协和医院/ORG   2型糖尿病/DISEASE</div>
+    <div class="qbar sm">下游立刻可用：建档、随访提醒、统计分析、合规审计——<span class="k">结构化是几乎所有上层应用的第一道工序</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">核心问题：一词一标签，但标签彼此牵连</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card tight"><div class="h">回收第 4 讲：分词就是贴标签</div>
+        <div class="code xs" style="background:#fff">南 京 市 长 江 大 桥
+B  M  E  B  M  M  E
+
+<span class="c">B = 词首　M = 词中　E = 词尾</span>
+<span class="c">切分分歧 = 标签序列分歧</span></div>
+        <p style="margin-top:8px">当年靠词典 + 最大匹配；今天用<b>序列模型</b>统一处理——把 M 换成 I，就是英文 NER 的那套编码。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">立论之本：标签之间有硬约束</div>
+        <div class="code xs" style="background:#fff">… exports to <b>Iraq</b>
+    O      O    <span style="color:#B03A36">I-LOC</span>   <span class="c">← I 前面没有 B，非法！</span>
+
+B-PER 后面合法的只有：I-PER 或新实体的 B-X
+<span style="color:#B03A36">绝不能</span>是 I-LOC</div>
+        <p style="margin-top:8px">逐词独立打分时，模型<b>根本不知道左邻标签是什么</b>——非法序列照样输出。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">两个必须整句看的问题</div>
+      <p style="font-size:19px"><b>歧义</b>：<i>Time flies like an arrow.</i>（time 是名词还是动词？flies 是动词还是名词？）——单个词拿出来没有答案。<br>
+      <b>组合</b>：20 个标签 × 30 个词 = 20³⁰ 条候选标签序列，枚举绝无可能，必须<b>结构化地</b>搜索。</p>
+    </div>
+    <div class="qbar sm">本讲全部内容都围绕这一句：<span class="k">目标不是 n 个独立决策，而是一条受约束的、整句最优的标签序列</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 8 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从任务定义出发，走完 POS → NER → HMM/Viterbi → 判别式与神经方法。</div>
+    <ul>
+      <li>定义层：等长标签序列 · 结构化预测 · 任务家族</li>
+      <li>标签层：PTB 与中文标签集 · 一词多性 · 消歧证据</li>
+      <li>实体层：类型体系 · BIO/IOBES · 实体级 P/R/F1</li>
+      <li>模型层：HMM 五元组与两假设 · 前向 · Viterbi 手算</li>
+      <li>现代层：MEMM 标注偏置 · CRF · BiLSTM-CRF · LLM 抽取</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 任务定义 + 结构化预测（合并页） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">任务定义与结构化预测</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">输入  x = ( x₁ , x₂ , … , x_T )         <span class="c">观测序列（词 / 字 / 子词）</span>
+输出  y = ( y₁ , y₂ , … , y_T )         <span class="c">标签序列，|y| = |x| ← 等长约束</span>
+目标  ŷ = <b>argmax</b><sub>y ∈ Yᵀ</sub> P( y | x )     <span class="c">整句联合最优，不是逐位最优</span></div>
+    <div class="grid g2 tight" style="margin-top:10px;flex:1">
+      <div class="card card-warn tight"><div class="h">理由一：硬约束被无视</div>
+        <div class="code xs" style="background:#fff"># 逐词独立分类（假想）：“贵”被误判为机构开头
+郭   贵   冰   入职   华为
+B-PER <span style="color:#B03A36">B-ORG</span> <span style="color:#B03A36">I-PER</span> O   B-ORG   ← 自相矛盾，非法序列</div>
+        <p style="margin-top:8px">独立分类器<b>不知道上一步标了什么</b>，所以非法序列照样输出。而标签合法性是<b>确定性规则</b>，不是概率偏好。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">理由二：标签搭配偏好被浪费</div>
+        <p>“限定词 → 名词”的概率远高于“限定词 → 动词”；“介词 → 限定词/名词”常见，“介词 → 动词”罕见。</p>
+        <p>这类<b>标签之间的转移统计</b>是极强的信号，但独立分类器用不上——它只看当前词与上下文词，看不到邻居标签。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:10px">
+      <div class="card tight"><div class="h">组合爆炸：不能枚举，但可以动态规划</div>
+        <div class="code xs" style="background:#fff">20 个标签 × 30 个词 = <b>20³⁰</b> ≈ 10³⁹ 条候选序列
+但标签只在<b>相邻两列</b>之间有依赖：
+  → 动态规划 O(T · K²)，K=20、T=30 时约 1.2 万次运算</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">这就是第 3 讲的动态规划，第三次出场</div>
+        <p>第 3 讲：编辑距离——在网格里填表求最优编辑路径。</p>
+        <p>今天：<b>Viterbi</b>——在同一类网格里填表求最优标签路径。<b>同样是“填表 + 回溯”</b>，只是格子里的语义变了。</p>
+      </div>
+    </div>
+    <div class="qbar sm" style="margin-bottom:20px">一句话：<span class="k">序列标注是结构化预测（structured prediction）在 NLP 里最基础、最典型的形态</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 任务家族 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">序列标注是一个范式：一个模板，N 个任务</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:200px">任务</th><th style="width:150px">输入粒度</th><th>标签示例</th><th style="width:250px">代表数据 / 基准</th></tr>
+      <tr><td><b>词性标注 POS</b></td><td>词</td><td>NN · VBD · JJ · RB · IN</td><td>Penn Treebank / WSJ；Universal Dependencies</td></tr>
+      <tr><td><b>命名实体识别 NER</b></td><td>词 / 字</td><td>B-PER · I-PER · B-ORG · O</td><td>CoNLL-2003；OntoNotes 5.0；MSRA</td></tr>
+      <tr><td><b>中文分词</b>（回收第 4 讲）</td><td>字</td><td>B · M · E · S</td><td>PKU / MSR（SIGHAN Bakeoff）</td></tr>
+      <tr><td>组块分析 Chunking</td><td>词</td><td>B-NP · I-NP · B-VP · O</td><td>CoNLL-2000</td></tr>
+      <tr><td>语义角色标注 SRL</td><td>词</td><td>B-ARG0 · I-ARG0 · B-V · B-ARGM-TMP</td><td>PropBank；CoNLL-2005/2012</td></tr>
+      <tr><td>事件抽取</td><td>词 / 触发词 + 论元</td><td>B-Trigger · B-Argument-时间</td><td>ACE 2005；DuEE（中文）</td></tr>
+      <tr><td>语音识别状态序列</td><td>帧</td><td>音素 / 三音素状态 ID</td><td>HMM 的传统主场（Rabiner 1989）</td></tr>
+      <tr><td>生物序列标注</td><td>碱基 / 氨基酸</td><td>内含子 / 外显子 / 跨膜区</td><td>BioNLP 系列共享任务</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">共同结构</div>
+      <p style="font-size:19px">输入是一个<b>序列</b>，输出是一个<b>等长的标签序列</b>，标签之间<b>相互依赖</b>，解码要在指数空间里<b>搜索最优路径</b>。学会一套机制，这八个任务都只是换标签集与特征。</p>
+    </div>
+    <div class="qbar sm">特别提醒：中文 NLP 里，<span class="k">分词是所有下游任务的隐性前置</span>——分词错了，后面的标签全歪（第 4 讲的伏笔在这里兑现）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 POS 定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">词性标注 POS：给每个词发一张“身份证”</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">定义与经典歧义例</div>
+        <div class="code xs" style="background:#fff">They/PRP refuse/VBP to/TO permit/VB ./.
+  <span class="c">他们拒绝发放许可证</span>
+
+The/DT refuse/NN permit/NN ./.
+  <span class="c">那张垃圾（refuse）许可证（permit）</span>
+
+<span class="c">同一串词形 refuse / permit，两句话两种结构</span>
+<span class="c">只有词性标注才能把它们区分开</span></div>
+      </div>
+      <div class="card tight"><div class="h">它的用处（为什么是地基）</div>
+        <ul>
+          <li><b>句法分析的前置</b>：知道词性才能划定短语结构</li>
+          <li><b>信息抽取</b>：实体边界往往与词性模式相关</li>
+          <li><b>语音合成</b>：多音字靠词性定读音——“行长”读 háng 还是 xíng</li>
+          <li><b>术语与语料分析</b>：统计某类词的用法分布</li>
+        </ul>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:190px">类别</th><th>成员</th><th style="width:250px">规模与增长</th><th style="width:250px">标注难度</th></tr>
+      <tr><td><b>开放类</b>（实词）</td><td>名词、动词、形容词、副词</td><td>数万到数十万词，<b>持续产生新词</b>（selfie、内卷、躺平）</td><td><b>难</b>：OOV 集中在此，要靠形态与上下文特征</td></tr>
+      <tr><td><b>封闭类</b>（虚词）</td><td>介词、连词、限定词、代词、助词、量词</td><td>几十到百余词，几十年基本不变</td><td><b>易</b>：直接查词表即可，准确率通常很高</td></tr>
+    </table>
+    <div class="qbar sm">一句话：<span class="k">POS 的难，几乎全部集中在开放类的新词与高频兼类词上</span>——这也是后面所有方法要攻克的地方。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 PTB 标签集 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Penn Treebank 标签集（约 45 个标签）</span><span class="sec">环节二 · 知识点讲解 · 需要能认出常用标签</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:130px">词族</th><th>标签与含义</th><th style="width:330px">示例</th></tr>
+      <tr><td><b>名词族</b></td><td>NN 单数/不可数 · NNS 复数 · NNP 专有单数 · NNPS 专有复数</td><td>book / books / Beijing / Americans</td></tr>
+      <tr><td><b>动词族</b></td><td>VB 原形 · VBD 过去式 · VBG 现在分词 · VBN 过去分词 · VBP 非三单现在 · VBZ 三单现在</td><td>go / went / going / gone / go / goes</td></tr>
+      <tr><td><b>形容词族</b></td><td>JJ 原级 · JJR 比较级 · JJS 最高级</td><td>big / bigger / biggest</td></tr>
+      <tr><td><b>副词族</b></td><td>RB 原级 · RBR 比较级 · RBS 最高级</td><td>quickly / sooner / soonest</td></tr>
+      <tr><td><b>限定词</b></td><td>DT</td><td>the / a / this / some</td></tr>
+      <tr><td><b>介词/连词</b></td><td>IN 介词或从属连词 · CC 并列连词</td><td>in / of / that ；and / but / or</td></tr>
+      <tr><td><b>代词</b></td><td>PRP 人称代词 · PRP$ 物主代词 · WP 疑问代词</td><td>he / his / who</td></tr>
+      <tr><td><b>其他常用</b></td><td>TO 不定式 to · MD 情态动词 · POS 所有格 's · RP 小品词 · UH 感叹词</td><td>to / can / 's / up（give up） / oh</td></tr>
+      <tr><td><b>标点符号</b></td><td>. , : `` '' -LRB- -RRB- 等十余个</td><td>. , : " " ( )</td></tr>
+    </table>
+    <div class="qbar sm">设计启示：<span class="k">标签集的粗细是一个工程取舍</span>——越细信息越多，但标注一致性越差、模型越难达到高准确率。上游标签集不统一，下游模型就无法公平比较（这正是 Universal Dependencies 的动机）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 中文标签集 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文标注集：CTB 与《人民日报》体系</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">CTB（宾州中文树库）</div>
+        <table class="ac sm">
+          <tr><th style="width:90px">标签</th><th>含义</th></tr>
+          <tr><td><b>NN</b></td><td>普通名词</td></tr>
+          <tr><td><b>VV</b></td><td>动词</td></tr>
+          <tr><td><b>NR</b></td><td>专有名词</td></tr>
+          <tr><td><b>VA / VC</b></td><td>形容词性谓词 / 系动词</td></tr>
+          <tr><td><b>DEC</b></td><td>“的”（补语标记）</td></tr>
+          <tr><td><b>AS</b></td><td>“了”（体标记）</td></tr>
+        </table>
+        <p style="margin-top:8px"><b>最大特点</b>：功能词独立成标签。中文没有屈折形态，虚词承担了语法功能，必须单独标注。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">北大《人民日报》体系 / jieba</div>
+        <table class="ac sm">
+          <tr><th style="width:90px">标签</th><th>含义</th></tr>
+          <tr><td><b>n</b></td><td>名词</td></tr>
+          <tr><td><b>v</b></td><td>动词</td></tr>
+          <tr><td><b>nr</b></td><td>人名</td></tr>
+          <tr><td><b>ns</b></td><td>地名</td></tr>
+          <tr><td><b>nt</b></td><td>机构名</td></tr>
+        </table>
+        <p style="margin-top:8px">这是中文语料处理最常用的口径之一，<b>jieba.posseg 的输出就是这套标签</b>——上机时会见到 nr / ns / nt。</p>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:12px">
+      <tr><th style="width:150px">英文类</th><th style="width:220px">PTB 标签</th><th style="width:130px">中文类</th><th>关键差异与示例</th></tr>
+      <tr><td>名词</td><td>NN / NNS / NNP / NNPS</td><td>名词</td><td>中文<b>无单复数形态</b>，靠“们/几个”表达，故不设复数标签</td></tr>
+      <tr><td>动词</td><td>VB / VBD / VBG / VBN / VBP / VBZ</td><td>动词</td><td>中文<b>无屈折</b>，时体靠“了/过/着/在”；CTB 再分 VA/VC/VE/VV</td></tr>
+    </table>
+    <div class="qbar sm">工程含义：<span class="k">跨语言迁移模型时必须先对齐标签集</span>，否则“同一个标签名”含义不同，评估结果毫无意义。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 标注歧义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">标注歧义：一个 back 的四种身份</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:330px">例句</th><th style="width:100px">词性</th><th>含义</th></tr>
+      <tr><td>He came <b>back</b> home.</td><td>RB 副词</td><td>回来</td></tr>
+      <tr><td>He will <b>back</b> the plan.</td><td>VB 动词</td><td>支持</td></tr>
+      <tr><td>the <b>back</b> door</td><td>JJ 形容词</td><td>后面的</td></tr>
+      <tr><td>He hurt his <b>back</b>.</td><td>NN 名词</td><td>背部</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h">≈ 11.5%</div>
+        <p>Brown 语料中<b>有多个词性的词型</b>比例（按 type 统计）。</p>
+        <p>看起来“大部分词不歧义”。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">≈ 40%</div>
+        <p>这些歧义词型覆盖的<b>词例</b>比例（按 token 统计）。</p>
+        <p>实际效果：每两个多词就有一个需要消歧。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">高频歧义词</div>
+        <p><b>that</b> DT / IN / WDT；<b>like</b> VB / IN / JJ；<b>back</b> NN / VB / JJ / RB；<b>up</b> IN / RP / RB。</p>
+        <p>歧义集中在<b>高频小词</b>上——所以封闭类词反而拖累整体准确率。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">课堂练习：中文一句话四个“把”</div>
+      <p style="font-size:19px">“一把 把 把 把 住” → 量词 / 介词 / 名词 / 动词。<b>人靠语感，机器靠上下文特征与标签搭配。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 消歧证据 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">怎么消歧：两类证据</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">证据 A：词内部线索（形态）</div>
+        <table class="ac sm">
+          <tr><th style="width:170px">后缀</th><th>倾向词性</th></tr>
+          <tr><td>-tion / -ment / -ness</td><td>名词（information, movement）</td></tr>
+          <tr><td>-ly</td><td>副词（quickly）——但 friendly / lovely 是<b>形容词</b>，例外要记</td></tr>
+          <tr><td>-ed</td><td>VBD 或 JJ（walked / tired）</td></tr>
+          <tr><td>-able / -ible</td><td>形容词（readable）</td></tr>
+          <tr><td>首字母大写</td><td>专有名词 NNP 的强线索</td></tr>
+        </table>
+        <p style="margin-top:8px"><b>中文没有屈折后缀</b>，对应手段是构词语素（“性、化、度”提示名词或形容词）与虚词搭配（“的”后多为名词）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">证据 B：上下文线索（搭配）</div>
+        <p style="font-size:19px"><b>① 句法位置</b><br>限定词（the / a / this）后面必然接名词：the <u>back</u> door → NN。</p>
+        <p style="font-size:19px;margin-top:8px"><b>② 前后词的词性搭配</b><br>“介词 → 限定词/名词”极常见，“介词 → 动词”罕见；情态动词（will / can）后面必是动词原形：will <u>back</u> → VB。</p>
+        <p style="font-size:19px;margin-top:8px"><b>③ 词义搭配偏好</b><br>“hurt his ___”里的词更可能是身体部位 → back 取 NN。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">这两类证据，正好对应 HMM 的两张概率表</div>
+      <p style="font-size:19px"><b>词内部线索 → 发射概率 B</b>：P(词 | 标签)——“名词这个标签发出 back 的概率有多大”。<br>
+      <b>上下文线索 → 转移概率 A</b>：P(标签 | 前一标签)——“限定词后面接名词的概率有多大”。</p>
+    </div>
+    <div class="qbar sm">所以 POS 建模的关键问题变成：<span class="k">如何把这两张概率表组合起来，选出让整句概率最大的那串标签？</span></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 POS 方法演进 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">POS 方法演进：从规则到大模型提示</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:130px">年代</th><th style="width:170px">范式</th><th>代表工作</th><th style="width:330px">解决了什么 / 代价</th></tr>
+      <tr><td>1960s–80s</td><td><b>规则与词典</b></td><td>人工语法 + 词典最常见词性</td><td>可读可控、可审计；<b>覆盖不了歧义</b>，维护成本随规模爆炸</td></tr>
+      <tr><td>1986–92</td><td><b>概率 / 生成式</b></td><td>HMM 用于 POS（Kupiec 等）；Church 的统计标注</td><td>把标签序列当语言模型 + Viterbi 解码，准确率跳到 <b>96% 量级</b>；受两假设限制</td></tr>
+      <tr><td>1992–95</td><td><b>变换学习</b></td><td>Brill 标注器（错误驱动规则学习）</td><td>机器自己写可读规则；模型小，适合移动端；规则数量需调参</td></tr>
+      <tr><td>2000 前后</td><td><b>判别式</b></td><td>MEMM（McCallum 2000）、CRF（Lafferty 2001）</td><td>特征自由（前后词、后缀、大小写、词典）；约 <b>97%</b>；需特征工程</td></tr>
+      <tr><td>2010 后</td><td><b>神经 / 预训练</b></td><td>BiLSTM-CRF、BERT 微调</td><td>自动特征、无需手工模板；<b>97–99%</b>；需要算力与数据</td></tr>
+      <tr><td>2020s</td><td><b>大模型提示 / 生成</b></td><td>零样本、少样本提示；生成式标注</td><td>零标注即可启动、标签体系随提示词变更；<b>延迟高、成本高、稳定性需约束</b></td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一条可迁移的规律</div>
+      <p style="font-size:19px">从 90% 到 97% 的进步，几乎全部来自同一件事：<b>把更多、更丰富的上下文与词形特征用进模型</b>。HMM 受两假设限制塞不进特征；CRF 解开了这个限制；神经方法则把特征工程整个自动化了。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 NER 定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">命名实体识别 NER：片段发现 + 类型分类</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">张伟 在 北京协和医院 工作
+张    伟    在    北    京    协    和    医    院    工    作
+B-PER I-PER  O   B-ORG I-ORG I-ORG I-ORG I-ORG I-ORG  O     O
+
+<span class="c">（中文按字标注，共 11 个字 → 11 个标签，|y| = |x|）</span>
+
+<span class="c">NER = ① 分段（边界在哪） + ② 分类（属于哪一类型）</span>
+<span class="c">两件事必须同时正确，才算一个正确实体 → 这直接决定了评估口径</span></div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">通用实体类型</div>
+        <p>人名 PER · 地名 LOC · 机构名 ORG · 其他 MISC。</p>
+        <p>扩展类型：时间 DATE/TIME · 金额 MONEY · 百分比 PERCENT · 数量 QUANTITY。</p>
+        <p>这是 MUC-6（1995）确立的经典三分，至今仍是英文 NER 的主口径。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">领域实体类型</div>
+        <p><b>智慧健康</b>：药品 DRUG · 疾病 DISEASE · 症状 SYMPTOM · 检查 EXAM · 手术 OPERATION。</p>
+        <p><b>金融科技</b>：股票代码 · 金融产品 · 金额 · 利率 · 公司 · 监管机构 · 违约事件。</p>
+        <p>领域类型的定义质量，直接决定抽取系统的产出上限。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">为什么它是地基</div>
+        <ul style="color:#E9F0FA">
+          <li>信息抽取与知识图谱：先抽实体，再抽关系</li>
+          <li>检索增强：实体是检索的关键词与过滤器（第 15 讲）</li>
+          <li>风控与合规：从新闻/公告里定位公司与事件</li>
+          <li>病历结构化：诊断、用药、手术的边界定位</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">关键判断：<span class="k">NER 的难点一半在“边界”，一半在“类型”</span>——而传统评估要求两者全对。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 类型体系与评测史 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">类型体系的演化：从 4 类到 18 类</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:180px">体系 / 基准</th><th style="width:130px">类数</th><th>类型构成</th><th style="width:300px">特点与坑</th></tr>
+      <tr><td><b>MUC-6 → MUC-7</b></td><td>三分七类</td><td>ENAMEX（person / organization / location）· TIMEX · NUMEX</td><td>信息抽取评测的源头，确立了统一的评估脚本文化</td></tr>
+      <tr><td><b>CoNLL-2003</b>（英文）</td><td>4</td><td>PER · LOC · ORG · MISC</td><td>MISC 是“其他”桶（国籍、赛事、产品），<b>F1 最低、最易混</b></td></tr>
+      <tr><td><b>OntoNotes 5.0</b></td><td>18</td><td>PERSON · NORP · FACILITY · ORGANIZATION · GPE · LOC · PRODUCT · EVENT · DATE · TIME · MONEY …</td><td>中英阿三语、粒度细、区分 GPE 与 LOC；<b>标注一致性更难保证</b></td></tr>
+      <tr><td><b>MSRA NER</b>（中文）</td><td>3</td><td>PER · LOC · ORG</td><td>中文最常用的基准之一，规模适中、标签简洁</td></tr>
+      <tr><td><b>CLUENER 2020</b>（中文）</td><td>10</td><td>人物 · 地址 · 公司 · 政府 · 游戏 · 书籍 · 电影 · 景点 · 组织机构 · 职位</td><td>细粒度中文基准，覆盖更贴近业务的类型</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">一个不能忽略的事实</div>
+        <p><b>类型体系决定抽取上限</b>。“课名”不在 PER/LOC/ORG 体系里，无论模型多强，它都只能标成 O。</p>
+        <p>所以业务落地的第一步永远是：<b>先定义好类型体系，再谈模型。</b></p>
+      </div>
+      <div class="card card-warn tight"><div class="h">类型越细的代价</div>
+        <p>标注员之间的一致率下降（同一段文字两个人可能给出不同类型）；模型可用的训练样本被切薄（每类样本变少）。</p>
+        <p>工程建议：<b>先粗后细</b>——先用 3–4 个粗类跑通，再按业务需要细分。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 BIO 编码 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BIO 编码：把“片段”拆成“逐 token 标签”</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="lead sm" style="margin:0 0 4px">矛盾与解法：目标是<b>片段</b>（起点 + 终点 + 类型），模型却只能<b>逐 token 打分</b> → 用一套编码把两者对接。</div>
+    <div class="code xs" style="margin-top:0">三个符号：
+  <b>B-X</b>   片段（span）的第一个 token，类型为 X
+  <b>I-X</b>   片段内部的后续 token，类型为 X
+  <b>O</b>     不属于任何实体（Outside）
+
+两个完整例子（英文按词、中文按字，各自都是等长对齐）：
+  Barack   Obama   was   born   in   Honolulu     .
+  B-PER    I-PER   O     O      O    B-LOC       O
+
+  郭    贵    冰    在    东    北    大    学
+  B-PER I-PER I-PER  O   B-ORG I-ORG I-ORG I-ORG</div>
+    <table class="ac sm" style="margin-top:8px;flex:1">
+      <tr><th style="width:100px">规则</th><th>内容</th><th style="width:310px">为什么</th></tr>
+      <tr><td><b>规则 ①</b></td><td>I-X 前面必须是 B-X 或 I-X，否则序列<b>非法</b></td><td>这就是“标签依赖”的硬约束——也是需要 Viterbi 而非逐位取最大的原因</td></tr>
+      <tr><td><b>规则 ②</b></td><td>相邻的两个同类型实体，第二个必须以 <b>B</b> 开头</td><td>“北京 上海”是两个 LOC，靠第二个 B 切开；若都用 I 就会被并成一个</td></tr>
+      <tr><td><b>规则 ③</b></td><td>单词实体就是一个 <b>B-X</b></td><td>BIO 不显式标记结尾，所以单 token 实体与多 token 实体的开头写法相同</td></tr>
+    </table>
+    <div class="qbar sm">课堂上立刻练：给“<span class="k">郭贵冰 在 东北大学软件学院 讲授 自然语言处理</span>”打 BIO 标签，并检查是否有非法序列。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 编码家族 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">编码家族：IOB1 / IOB2(BIO) / IOBES</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:170px">编码</th><th style="width:140px">标签数（T=4）</th><th>规则要点</th><th style="width:290px">取舍</th></tr>
+      <tr><td><b>IOB2 / BIO</b></td><td>2T+1 = <b>9</b></td><td>每个片段开头一律用 B；内部用 I；其余 O</td><td>最常用、最稳；<b>不显式标记片段结束</b></td></tr>
+      <tr><td><b>IOB1</b></td><td>2T+1 = 9</td><td>仅当需要区分<b>紧邻同类型</b>实体时才用 B，其余片段开头可用 I</td><td>标签利用率高；但解码与评估脚本易踩坑，互通性差</td></tr>
+      <tr><td><b>IOBES / BILOU</b></td><td>4T+1 = <b>17</b></td><td>在 BIO 基础上加 E（片段结尾）、S（单词实体）</td><td>边界信号更足，多数任务 F1 略优（约 0.5–1 点）；<b>标签数近翻倍，稀疏加重</b></td></tr>
+    </table>
+    <div class="grid g23 tight" style="margin-top:12px">
+      <div class="code sm" style="margin-top:0">同一个实体的三种写法（实体 = 郭贵冰，类型 PER）：
+
+IOB2 :  B-PER  I-PER  I-PER
+IOB1 :  I-PER  I-PER  I-PER
+IOBES:  B-PER  I-PER  <b>E-PER</b>
+
+单词实体“华为 / ORG”：
+IOBES:  <b>S-ORG</b>        <span class="c">← 一个 token 就自成片段</span>
+BIO  :  B-ORG</div>
+      <div class="card card-blue tight"><div class="h">工程建议</div>
+        <p><b>BIO 起跑，数据足再试 IOBES。</b></p>
+        <p>原因：标签数翻倍意味着每类样本变薄，小数据上反而更差；而且评估脚本与数据格式在 BIO 上生态最成熟。</p>
+        <p><b>致命坑</b>：训练用 BIO、测试用 IOBES（或反之），结果会莫名其妙掉几个点——数据格式必须全链路一致。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 非法序列 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">非法序列与转移约束：解码必须兜住的底线</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-warn tight"><div class="h">五种典型非法形态</div>
+        <div class="code xs" style="background:#fff">① 句子开头直接出现 I-PER
+   <span style="color:#B03A36">I-PER</span> Obama was born …        <span class="c">× 没有 B 开头</span>
+
+② O 之后直接出现 I-PER
+   … was  <span style="color:#B03A36">I-PER</span>                    <span class="c">× I 悬空</span>
+
+③ 类型在片段内跳变
+   B-PER <span style="color:#B03A36">I-LOC</span>                     <span class="c">× 类型必须一致</span>
+
+④ IOBES 下跳变或单词实体后继续
+   B-PER <span style="color:#B03A36">E-LOC</span> ｜ S-PER <span style="color:#B03A36">I-PER</span>   <span class="c">×</span>
+
+⑤ 片段已闭合还继续
+   E-PER <span style="color:#B03A36">I-PER</span>                     <span class="c">×</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h">解法：把规则变成转移分数</div>
+        <p style="font-size:19px">在解码时为每一种标签转移给一个分数：</p>
+        <div class="code xs" style="background:#fff">合法转移 → 正常分数（可学习）
+非法转移 → <b>−∞</b>（log 空间）
+
+结果：最优路径 <b>必然合法</b>
+      —— 规则被“焊”进了解码过程</div>
+        <p style="margin-top:8px">这就是后面 CRF 的<b>转移矩阵</b>与 Viterbi 配合做的事。</p>
+        <p><b>关键区别</b>：合法序列可以由约束事后修补（慢且可能改错），更好的做法是在<b>搜索时就排除非法路径</b>。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">BIO 合法性速查（T = 1 类型时的合法后继）</div>
+      <p style="font-size:18.5px">起始位允许：<b>B-X</b>、<b>O</b>　｜　从 B-X 出发允许：<b>I-X</b>、<b>O</b>、其他类型的 <b>B-Y</b>　｜　从 I-X 出发允许：<b>I-X</b>、<b>O</b>、其他类型的 <b>B-Y</b>　｜　<span style="color:#D9534F">任何 I-X 都不能紧跟在 O 或 B-Y(X≠Y) 之后</span></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 评估口径 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">评估的核心分歧：逐 token 还是逐实体</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="card card-warn tight" style="margin-top:0"><div class="h">一个词之差，成绩从 66.7% 掉到 0</div>
+      <p style="font-size:19px">金标准：<b>New York</b>（LOC）　预测：<b>New</b>（LOC）+ York（O）——只差一个词的边界。（按 token 计共 3 个位置：New / York / .）</p>
+    </div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:210px">口径</th><th>计算方式</th><th style="width:170px">本例得分</th><th>是否合理</th></tr>
+      <tr><td><b>逐 token 准确率</b></td><td>逐个位置比对标签，对几个算几个</td><td><b>66.7%</b>（3 个 token 对 2 个）</td><td><b>不合理</b>：把“整个片段错了”当成“只错了几个词”</td></tr>
+      <tr><td><b>逐 token F1</b></td><td>把每个 B-/I- 标签当一个类别算 F1</td><td>中等偏高</td><td>受 O 占比影响大，仍会虚高</td></tr>
+      <tr><td><b>实体级严格匹配</b>（NER 标准口径）</td><td>边界 + 类型<b>全部正确</b>才算一个 TP</td><td>F1 = <b>0</b></td><td><b>合理</b>：业务要的就是完整、正确的实体</td></tr>
+      <tr><td>实体级部分匹配</td><td>只要类型对、边界部分重叠就部分给分</td><td>中等</td><td>需要明确声明口径；学界主流仍用严格匹配</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">三个必须固化的口径</div>
+        <ul>
+          <li>以<b>实体</b>为单位，不以 token 为单位</li>
+          <li><b>边界 + 类型全对</b>才算 TP</li>
+          <li>边界错 → <b>一错两罚</b>：答案侧记 FN，预测侧记 FP</li>
+        </ul>
+      </div>
+      <div class="card card-warn tight"><div class="h">最大的虚高陷阱</div>
+        <p>语料里 O 通常占 85–95%。<b>全预测 O 的模型，token 准确率也能到 85% 以上，但实体 F1 = 0。</b></p>
+        <p>所以看到任何报告 NER token accuracy 的结果，都要追问：<b>实体级 F1 是多少？</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 P/R/F1 算例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">实体级 P / R / F1：公式与手算</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">公式（以实体为单位，严格匹配）</div>
+        <div class="code xs" style="background:#fff;line-height:1.4">TP  边界 + 类型都对
+FP  多预测 / 预测错（含边界错）
+FN  漏掉（金标准里没被正确命中）
+
+P  = TP / (TP + FP)   <span class="c">“报出来的有多少是对的”</span>
+R  = TP / (TP + FN)   <span class="c">“该找的找到了多少”</span>
+F1 = 2PR / (P + R)
+   = 2TP / (2TP + FP + FN)</div>
+      </div>
+      <div class="card tight"><div class="h">场景与标注结果</div>
+        <div class="code xs" style="background:#fff;line-height:1.4">原句：郭贵冰 / 在 / 东北大学工作，家住沈阳
+
+金标准（3 个）：
+  郭贵冰(PER) · 东北大学(ORG) · 沈阳(LOC)
+
+预测（4 个）：
+  郭贵冰(PER)             ✓
+  <span style="color:#B03A36">东北大学软件学院(ORG)</span>   ✗ 边界多抽
+  沈阳(LOC)               ✓
+  <span style="color:#B03A36">郭老师(PER)</span>            ✗ 多抽</div>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:6px;flex:1;font-size:15px">
+      <tr><th style="width:180px">统计量</th><th style="width:110px">取值</th><th>怎么来的</th></tr>
+      <tr><td><b>TP</b></td><td>2</td><td>郭贵冰、沈阳——边界与类型全对</td></tr>
+      <tr><td><b>FP</b></td><td>2</td><td>“东北大学软件学院”边界错（1）+ “郭老师”多抽（1）</td></tr>
+      <tr><td><b>FN</b></td><td>1</td><td>金标准的“东北大学”没被正确命中——<b>边界错一错两罚</b></td></tr>
+      <tr><td><b>P 精确率</b></td><td><b>0.500</b></td><td>2 / (2 + 2) = 0.50</td></tr>
+      <tr><td><b>R 召回率</b></td><td><b>0.667</b></td><td>2 / (2 + 1) = 0.667</td></tr>
+      <tr><td><b>F1</b></td><td><b>0.571</b></td><td>2 × 0.50 × 0.667 / (0.50 + 0.667) ≈ 0.571</td></tr>
+    </table>
+    <div class="qbar sm" style="margin-top:8px">最该记住的是 FN 的来源：<span class="k">边界多抽一个词，既产生一个 FP，也产生一个 FN</span>——分数掉得比直觉快得多。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 避坑与嵌套 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">评估避坑清单与嵌套实体</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">六个高频坑</div>
+        <ul>
+          <li>用 <b>token accuracy</b> 汇报 NER → 严重虚高</li>
+          <li><b>部分匹配</b>计入 TP 却不说明口径 → 结果不可比</li>
+          <li><b>混用评估脚本</b>：conlleval 与 seqeval 对连续同类片段、非法序列处理不同</li>
+          <li>忽略 <b>O 占比</b> → 全预测 O 也能拿高分</li>
+          <li>训练与测试<b>编码不一致</b>（IOB2 训、IOBES 测）</li>
+          <li>不做<b>错误分类</b>：边界错 / 类型错 / 漏抽，改进方向完全不同</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">嵌套与长难实体</div>
+        <div class="code xs" style="background:#fff">嵌套实体：
+  北京大学第一医院
+  └── ORG（最长边界）
+      └── 北京大学  ← 内层也是实体
+
+BIO <span style="color:#B03A36">一次只能标一层</span> → 内层丢失</div>
+        <p style="margin-top:8px"><b>应对方案</b>：多层 BIO 标注、span-based 枚举（把片段当候选打分）、生成式抽取（直接输出 JSON，天然支持嵌套）。</p>
+        <p><b>其他难点</b>：不连续实体（『患者出现头痛、发热症状』被逗号拆开）、超长实体、类型歧义（苹果 / 华盛顿）。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一个判断力的落点</div>
+      <p style="font-size:19px">看到任何 NER 实验结果，先问三件事：<b>实体级还是 token 级？严格匹配还是部分匹配？用的哪个评估脚本？</b>这三个问题问完，很多“看起来很厉害”的数字就现形了。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 HMM 直觉 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HMM 直觉：看得见的词，看不见的标签</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid tight" style="grid-template-columns:466px 1fr;margin-top:0;flex:1">
+      <div class="card tight" style="padding:14px 16px">
+        <div class="h">HMM 模型结构</div>
+        <div class="nn" style="display:block;margin-top:6px;padding:12px 14px;flex:1">
+          <div style="height:100%;display:flex;flex-direction:column;justify-content:space-evenly;gap:6px">
+            <div style="text-align:center;font-size:15.5px;color:#8B97A8">隐状态层 q（标签）· 看不见</div>
+            <div style="display:grid;grid-template-columns:1fr 76px 1fr 76px 1fr;align-items:center;row-gap:9px;column-gap:0">
+              <div class="node" style="min-width:0;padding:9px 10px;font-size:19px">q₁</div>
+              <span style="display:flex;align-items:center;gap:4px"><span style="flex:1;height:2.5px;background:#9CBBE6"></span><b style="font-size:16px;color:#3D7BD9">A</b><span style="flex:1;height:2.5px;background:#9CBBE6"></span><span style="width:0;height:0;border-left:8px solid #9CBBE6;border-top:5px solid transparent;border-bottom:5px solid transparent"></span></span>
+              <div class="node" style="min-width:0;padding:9px 10px;font-size:19px">q₂</div>
+              <span style="display:flex;align-items:center;gap:4px"><span style="flex:1;height:2.5px;background:#9CBBE6"></span><b style="font-size:16px;color:#3D7BD9">A</b><span style="flex:1;height:2.5px;background:#9CBBE6"></span><span style="width:0;height:0;border-left:8px solid #9CBBE6;border-top:5px solid transparent;border-bottom:5px solid transparent"></span></span>
+              <div class="node" style="min-width:0;padding:9px 10px;font-size:19px">q₃</div>
+              <div style="font-size:17px;color:#3D7BD9;text-align:center">↓ <b>B</b></div>
+              <div></div>
+              <div style="font-size:17px;color:#3D7BD9;text-align:center">↓ <b>B</b></div>
+              <div></div>
+              <div style="font-size:17px;color:#3D7BD9;text-align:center">↓ <b>B</b></div>
+              <div class="node out" style="min-width:0;padding:9px 10px;font-size:19px">w₁</div>
+              <div></div>
+              <div class="node out" style="min-width:0;padding:9px 10px;font-size:19px">w₂</div>
+              <div></div>
+              <div class="node out" style="min-width:0;padding:9px 10px;font-size:19px">w₃</div>
+            </div>
+            <div style="text-align:center;font-size:15.5px;color:#8B97A8">观测层 w（词）· 看得见</div>
+            <div style="text-align:center;font-size:15.5px;color:#4A5568"><b style="color:#0E3F8C">π</b> 初始分布　·　<b style="color:#0E3F8C">A</b> 转移概率　·　<b style="color:#0E3F8C">B</b> 发射概率</div>
+          </div>
+        </div>
+        <p style="font-size:16.5px;color:#4A5568;margin-top:9px">生成式故事：先按 <b>π</b> 掷出第一个标签，再沿 <b>A</b> 一步步转移出整条标签链，每个标签按 <b>B</b> 发射出一个词。</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card-blue tight"><div class="h">生成故事（一句话版）</div>
+          <p style="font-size:19px"><b>① 先掷一条标签链</b>：每个标签只由前一个标签决定（马尔可夫链）。<br>
+          <b>② 每个标签再发射一个词</b>：我们看见词，看不见标签。</p>
+          <p style="margin-top:8px"><b>生活类比</b>：看见同事带伞（观测）→ 推断外面下雨（隐状态）。</p>
+          <p><b>任务反演</b>：给定观测序列 w，反推最可能的标签序列 t——这就是解码。</p>
+        </div>
+        <div class="card tight" style="flex:1"><div class="h">同一骨架，四种任务</div>
+          <table class="ac">
+            <tr><th>任务</th><th>隐状态（标签）</th><th>观测</th></tr>
+            <tr><td>词性标注 POS</td><td>词性标签</td><td>词</td></tr>
+            <tr><td>中文分词</td><td>B / M / E / S</td><td>字</td></tr>
+            <tr><td>语音识别</td><td>音素 / 三音素状态</td><td>声学帧特征</td></tr>
+            <tr><td>命名实体识别</td><td>BIO 标签</td><td>词 / 字</td></tr>
+          </table>
+          <p style="margin-top:8px">HMM 源自 1970 年代语音识别，1980–90 年代成为 POS 与分词的标配。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 HMM 五元组 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HMM 五元组 λ = (N, M, π, A, B)</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:80px">符号</th><th style="width:250px">含义</th><th>POS 任务里的取值</th></tr>
+      <tr><td><b>N</b></td><td>状态集合（隐状态个数）</td><td>词性标签数（PTB 约 45 个）</td></tr>
+      <tr><td><b>M</b></td><td>观测符号集合</td><td>词表大小（数万级）</td></tr>
+      <tr><td><b>π</b></td><td>初始分布 πᵢ = P(q₁ = sᵢ)</td><td>句首是各标签的概率；句子以名词开头远比以介词开头常见</td></tr>
+      <tr><td><b>A</b></td><td>转移矩阵 aᵢⱼ = P(qₜ₊₁ = sⱼ | qₜ = sᵢ)</td><td>标签→标签，N×N 表，<b>每行和为 1</b></td></tr>
+      <tr><td><b>B</b></td><td>发射矩阵 bⱼ(k) = P(v_k | sⱼ)</td><td>标签→词，N×M 表，<b>每行和为 1</b></td></tr>
+    </table>
+    <div class="grid g23 tight" style="margin-top:12px;flex:1">
+      <div class="code sm" style="margin-top:0">三张表长什么样（教学举例：N = 3，词表也简化为 3 个词）
+
+π（初始）      N: 0.6    V: 0.2    O: 0.2
+
+A（转移，行→列）     N      V      O
+        N      0.30   0.50   0.20     ← 行和为 1
+        V      0.60   0.20   0.20
+        O      0.40   0.40   0.20
+
+B（发射）      我     爱    北京
+        N     0.50   0.10   0.40     ← 行和为 1
+        V     0.10   0.70   0.20     ← 行和为 1
+        O     0.20   0.30   0.50     ← 行和为 1</div>
+      <div class="card card-warn tight"><div class="h">三个易错点</div>
+        <p><b>① A 的每一行和为 1</b>（不是列）。行 = 当前状态，列 = 下一个状态——“从当前状态出发必须走到某个状态”。</p>
+        <p><b>② B 是 P(词 | 标签)</b>，不是 P(标签 | 词)。方向搞反，整个模型就变成另一个东西了。</p>
+        <p><b>③ B 的每一行和为 1</b>：固定一个标签，它发射出词表里所有词的概率之和为 1（未登录词需平滑）。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 两大假设 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两大假设：算法可行的前提，也是能力的上限</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">假设 ① 齐次一阶马尔可夫</div>
+        <div class="code xs" style="background:#fff">P( tᵢ | t₁ … tᵢ₋₁ )  ≈  P( tᵢ | tᵢ₋₁ )</div>
+        <p style="margin-top:8px">当前标签只看<b>前一个标签</b>——与第 7 讲的 bigram 完全同构，只是建模对象从「词」换成了「标签」。</p>
+        <p><b>代价</b>：长距离标签依赖丢失。例：These 决定后面必须是复数名词，但一阶模型看不到句首的 These。</p>
+        <p><b>缓解</b>：高阶 HMM（trigram）。参数从 N² 涨到 N³——45³ ≈ 9.1 万，稀疏更严重。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">假设 ② 观测独立</div>
+        <div class="code xs" style="background:#fff">P( wᵢ | x 全部 , y 全部 )  ≈  P( wᵢ | tᵢ )</div>
+        <p style="margin-top:8px">当前词只由<b>当前标签</b>发射，与前后词、前后标签都无关。</p>
+        <p><b>因果方向</b>：HMM 认为“标签决定词”——所以要先定标签，再由标签生成词。</p>
+        <p><b>代价</b>：词与词之间的相互影响被丢掉。而消歧最需要的恰恰是这种影响（“东北大学”后面常跟“软件学院”）。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">“假，但有用”</div>
+      <p style="font-size:19px">这两个假设在真实语言里显然不成立；但正因为它们成立，HMM 才能把指数级的路径搜索变成 O(T·N²) 的动态规划。<b>用近似换可计算性——这是统计 NLP 里反复出现的取舍。</b></p>
+    </div>
+    <div class="qbar sm">必须能背：<span class="k">一阶马尔可夫（标签只看前一个标签）+ 观测独立（词只由当前标签发射）</span>——HMM 的强与弱都由这两条决定。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 参数学习 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">参数从哪来：有监督数数，无监督 EM</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">有监督：MLE 就是数数（与第 7 讲同构）</div>
+        <div class="code xs" style="background:#fff">转移   aᵢⱼ = C( tᵢ , tⱼ ) / C( tᵢ )
+       “标签 i 后面接标签 j 的次数 / 标签 i 出现的次数”
+
+发射   bⱼ(w) = C( tⱼ , w ) / C( tⱼ )
+       “标为 j 的位置上出现词 w 的次数 / 标为 j 的次数”
+
+初始   πᵢ = C( 句首是 tᵢ ) / 句子总数</div>
+        <p style="margin-top:8px"><b>教学算例</b>：C(NN)=1000、C(NN,VB)=120 → P(VB|NN)=0.12；C(VB)=800、C(VB,苹果)=8 → P(苹果|VB)=0.01。</p>
+        <p><b>一句话</b>：HMM = 标签上的 bigram 语言模型 + 词上的发射表——两样都是第 7 讲学过的计数。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">无监督：EM 与 Baum-Welch</div>
+        <p>手上只有词序列、没有标注——这是互联网的常态。</p>
+        <p><b>E 步（期望）</b>：用当前参数，通过前向-后向算法算出每个位置属于每个状态的<b>后验概率</b>，得到期望计数。</p>
+        <div class="code xs" style="background:#fff">例：位置 3 有 0.7 的概率是 NN
+→ 给 C(NN) 加 <b>0.7</b>（计数可以是小数）</div>
+        <p><b>M 步（最大化）</b>：用期望计数重新估计 π、A、B。</p>
+        <p><b>迭代</b>：E→M→E→… 直到似然收敛。<b>只能保证局部最优</b>，需要多次随机初始化。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一个必须记住的判断</div>
+      <p style="font-size:19px">无监督 HMM 确实能「从零学出词性」——学界曾报告它自动把词聚成类似名词/动词的类。但它的准确率显著低于有监督，<b>而且聚类结果与人工标签的对应关系是任意的</b>（需要事后对齐）。所以在有标注数据的今天，它就是思想价值大于实用价值。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 三大问题 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HMM 三大问题：评估 · 解码 · 学习</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:130px">问题</th><th style="width:280px">输入 → 输出</th><th style="width:170px">算法</th><th style="width:150px">复杂度</th><th>NLP 里的用途</th></tr>
+      <tr><td><b>① 评估</b></td><td>λ, O → P(O | λ)</td><td><b>前向算法</b></td><td>O(n·N²)</td><td>模型选择、给候选句打分（语音识别里更核心）</td></tr>
+      <tr><td><b>② 解码</b></td><td>λ, O → 最优状态序列 t̂</td><td><b>Viterbi</b> + ψ 回溯</td><td>O(n·N²)</td><td><b>本讲主角</b>：POS / NER / 分词的推断</td></tr>
+      <tr><td><b>③ 学习</b></td><td>O → 参数 π, A, B</td><td>有监督 MLE；无监督 <b>Baum-Welch</b></td><td>O(n·N²) / 轮</td><td>从标注语料或无标注语料训练模型</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">前向与 Viterbi 只差一个运算符</div>
+        <table class="ac sm">
+          <tr><th></th><th>前向（评估）</th><th>Viterbi（解码）</th></tr>
+          <tr><td>聚合方式</td><td><b>Σ</b> 求和（所有路径）</td><td><b>max</b> 取最大（只留最优）</td></tr>
+          <tr><td>回答的问题</td><td>这条观测总共有多可能</td><td>哪一条标签链最可能</td></tr>
+          <tr><td>是否回溯</td><td>不需要</td><td>需要 ψ 指针表</td></tr>
+          <tr><td>复杂度</td><td>O(n·N²)</td><td>O(n·N²)</td></tr>
+        </table>
+        <p style="margin-top:8px">这个“一个运算符之别”极大压缩了要记的公式量。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">为什么必须动态规划</div>
+        <p>K 个标签、T 个位置 → <b>Kᵀ</b> 条候选路径。K=45、T=20 时约 10³³——枚举绝无可能。</p>
+        <p><b>最优子结构</b>：到某个格子 (t, j) 的最优路径，其前缀也必然是最优的。所以每个格子只需保留一个数（最优值）和一个指针（从哪来）。</p>
+        <p>于是复杂度从 Kᵀ 降到 <b>O(T·K²)</b>。</p>
+      </div>
+    </div>
+    <div class="qbar sm">这是<span class="k">第 3 讲动态规划的第三次出场</span>：编辑距离 → 拼写纠错 → Viterbi，骨架都是“填表 + 回溯”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 前向算法 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前向算法：指数级路径，多项式合并</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">思想：P(O) = Σ<sub>所有路径 y</sub> P(O, y)　—— Kᵀ 条路径枚举不起
+      但所有“第 t 个标签是 j”的路径，<b>前缀可以合并</b>
+
+定义：αₜ(j) = P( w₁ … wₜ , qₜ = sⱼ | λ )
+       = “以状态 j 结尾、生成前 t 个词”的<b>所有路径概率之和</b>
+
+三步递推：
+  ① 初始化   α₁(j) = πⱼ · bⱼ(w₁)
+  ② 递推     αₜ₊₁(j) = [ Σᵢ αₜ(i) · aᵢⱼ ] · bⱼ(wₜ₊₁)
+                         └─ 从上一列各状态汇聚 ─┘   └─ 吐出当前词 ─┘
+  ③ 终止     P(O | λ) = Σⱼ α_T(j)</div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">网格直觉</div>
+        <p>把 T 个位置画成列、K 个标签画成行，构成一个 K×T 的网格；列与列之间全连接。</p>
+        <p><b>αₜ(j) = 汇聚到该格子的所有路径概率之和</b>。每算一个新格子，只需用到上一列的 K 个数——这就是“共享前缀”的威力。</p>
+      </div>
+      <div class="card tight"><div class="h">怎么读这个公式</div>
+        <p><b>方括号</b>：从上一列所有状态各自乘上转移概率 aᵢⱼ，然后<b>相加</b>——表示“不管从哪来都算上”。</p>
+        <p><b>乘 bⱼ(wₜ₊₁)</b>：到了状态 j 之后，还要能“发出”当前这个词。</p>
+        <p><b>三段式</b>：初始化 → 逐列递推 → 收尾求和。这是所有 HMM 算法的统一骨架。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 31 前向算例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前向算例：我 爱 北京（三状态手算）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">沿用第 26 页的表：π=(N:0.6, V:0.2, O:0.2)
+A: N→N 0.30, N→V 0.50, N→O 0.20 ｜ V→N 0.60, V→V 0.20, V→O 0.20 ｜ O→N 0.40, O→V 0.40, O→O 0.20
+B: N: 我 0.50, 爱 0.10, 北京 0.40 ｜ V: 我 0.10, 爱 0.70, 北京 0.20 ｜ O: 我 0.20, 爱 0.30, 北京 0.50</div>
+    <table class="ac sm" style="margin-top:10px;flex:1">
+      <tr><th style="width:110px">列</th><th>α(N)</th><th>α(V)</th><th>α(O)</th><th style="width:150px">列和</th><th>含义</th></tr>
+      <tr><td><b>t=1 我</b></td><td>0.6 × 0.50 = <b>0.30</b></td><td>0.2 × 0.10 = <b>0.02</b></td><td>0.2 × 0.20 = <b>0.04</b></td><td>0.36</td><td>P(我)</td></tr>
+      <tr><td><b>t=2 爱</b></td><td>(0.30×0.30 + 0.02×0.60 + 0.04×0.40) × 0.10<br>= 0.118 × 0.10 = <b>0.0118</b></td><td>(0.30×0.50 + 0.02×0.20 + 0.04×0.40) × 0.70<br>= 0.170 × 0.70 = <b>0.1190</b></td><td>(0.30×0.20 + 0.02×0.20 + 0.04×0.20) × 0.30<br>= 0.072 × 0.30 = <b>0.0216</b></td><td><b>0.1524</b></td><td>P(我 爱)</td></tr>
+      <tr><td><b>t=3 北京</b></td><td>(0.0118×0.30 + 0.1190×0.60 + 0.0216×0.40) × 0.40<br>= 0.08358 × 0.40 = <b>0.03343</b></td><td>(0.0118×0.50 + 0.1190×0.20 + 0.0216×0.40) × 0.20<br>= 0.03834 × 0.20 = <b>0.00767</b></td><td>(0.0118×0.20 + 0.1190×0.20 + 0.0216×0.20) × 0.50<br>= 0.03048 × 0.50 = <b>0.01524</b></td><td><b>0.05634</b></td><td>P(我 爱 北京)</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:10px"><div class="h">最值得对比的一行数字</div>
+      <p style="font-size:19px">前向给出 α₃(N) = <b>0.0334</b>，而 Viterbi 会给出 δ₃(N) = <b>0.0252</b>。<b>前向更大</b>，因为它把“所有以 N 结尾的路径”都加起来了；Viterbi 只保留其中最优的一条。<b>求和多、取最大少——这就是评估与解码的分野。</b></p>
+    </div>
+    <div class="qbar sm">工程提示：概率连乘会下溢，实现时全程在 <span class="k">log 空间</span>做（Σ 变 logsumexp，max 不变）——第 7 讲的伏笔在这里再次兑现。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 Viterbi 递推 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Viterbi：与前向只差一个“取最大”</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">每个格子只记两件事</div>
+        <p><b>δₜ(j)</b>：到（第 t 个词，状态 j）的<b>最优</b>路径概率。</p>
+        <p><b>ψₜ(j)</b>：这条最优路径从上一列的<b>哪个状态</b>过来（回溯指针 / backpointer）。</p>
+        <p style="margin-top:8px">最后的答案由 δ 给出分数、由 ψ 给出路径——<b>一个数 + 一个指针，就够了</b>。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">为什么可以只记最优</div>
+        <p><b>最优子结构</b>：如果从起点到 (t, j) 的最优路径经过 (t−1, i)，那么它到 (t−1, i) 的那一段也必然是最优的。</p>
+        <p>否则可以用更优的那一段替换掉，得到一条更优的整路径——矛盾。</p>
+        <p>所以每个格子只需保留一个候选，不必保留所有路径。</p>
+      </div>
+    </div>
+    <div class="code sm" style="margin-top:12px">四步流程（必背）
+  ① 初始化   δ₁(j) = πⱼ · bⱼ(w₁)        ψ₁(j) = 0
+  ② 递推     δₜ₊₁(j) = <b>max</b><sub>i</sub> [ δₜ(i) · aᵢⱼ ] · bⱼ(wₜ₊₁)
+             ψₜ₊₁(j) = <b>argmax</b><sub>i</sub> [ δₜ(i) · aᵢⱼ ]        <span class="c">← 记下赢家</span>
+  ③ 终止     P* = max<sub>j</sub> δ_T(j) ;  t*_T = argmax<sub>j</sub> δ_T(j)
+  ④ 回溯     t*_{t} = ψ_{t+1}( t*_{t+1} )   <span class="c">← 从后往前一路查回去</span>
+
+复杂度 O(T · N²)；N=45、T=20 时约 4 万次运算（对比 Kᵀ ≈ 10³³）</div>
+    <div class="qbar sm">一定要分清：<span class="k">δ 是“分数”，ψ 是“父亲的编号”</span>——手算时把两者写在同一格子里，回溯时才不会乱。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 33 Viterbi 演算① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Viterbi 演算 ①：三张表与第 1 列初始化</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="code sm" style="margin-top:0">π（初始）   N: 0.60    V: 0.20    O: 0.20
+
+A（转移，行→列）      N      V      O
+        N       0.30   0.50   0.20
+        V       0.60   0.20   0.20
+        O       0.40   0.40   0.20
+
+B（发射）       我     爱    北京
+        N      0.50   0.10   0.40
+        V      0.10   0.70   0.20
+        O      0.20   0.30   0.50
+
+观测序列： 我 → 爱 → 北京</div>
+      <div class="card card-blue tight"><div class="h">第 1 列（“我”）初始化</div>
+        <div class="code xs" style="background:#fff">δ₁(N) = π(N) × B(N→我)
+      = 0.60 × 0.50 = <b>0.30</b>
+
+δ₁(V) = 0.20 × 0.10 = <b>0.02</b>
+
+δ₁(O) = 0.20 × 0.20 = <b>0.04</b>
+
+ψ₁(·) = 0   <span class="c">← 第一列没有前驱</span></div>
+        <p style="margin-top:8px">N 大幅领先（0.30 vs 0.02）。</p>
+        <p><b>但领先不等于赢到最后</b>——后面每一列都要重新比较所有候选，完全可能翻盘。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">课堂要求</div>
+      <p style="font-size:19px">请把这三张表和 K×T 的网格画在草稿纸上，每格写两个数：<b>左上角写 δ，右下角写 ψ</b>。接下来三列一起填，最后回溯。</p>
+    </div>
+    <div class="qbar sm">易错点：<span class="k">忘记乘发射概率 bⱼ(w₁)</span>——只乘初始分布 π 是最常见的失分点。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 Viterbi 演算② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Viterbi 演算 ②：第 2 列（“爱”）逐格取 max</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">规则：每个格子的分数 = <b>max( 上一列每个 δ × 对应转移概率 )</b>　×　<b>本格的发射概率</b>
+                               └──── 先取最大（记下赢家）────┘      └─ 再乘发射 ─┘</div>
+    <table class="ac sm" style="margin-top:10px;flex:1">
+      <tr><th style="width:100px">目标格</th><th>三个候选（从 N / V / O 来）</th><th style="width:140px">max 与 ψ</th><th style="width:110px">乘发射</th><th style="width:120px">δ₂</th></tr>
+      <tr><td><b>N</b></td><td>N: 0.30×0.30 = 0.090　V: 0.02×0.60 = 0.012　O: 0.04×0.40 = 0.016</td><td>max = <b>0.090</b>　ψ = <b>N</b></td><td>× 0.10</td><td><b>0.0090</b></td></tr>
+      <tr><td><b>V</b></td><td>N: 0.30×0.50 = <b>0.150</b>　V: 0.02×0.20 = 0.004　O: 0.04×0.40 = 0.016</td><td>max = <b>0.150</b>　ψ = <b>N</b></td><td>× 0.70</td><td><b>0.1050</b></td></tr>
+      <tr><td><b>O</b></td><td>N: 0.30×0.20 = 0.060　V: 0.02×0.20 = 0.004　O: 0.04×0.20 = 0.008</td><td>max = <b>0.060</b>　ψ = <b>N</b></td><td>× 0.30</td><td><b>0.0180</b></td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">以 V 格为例（全班跟算）</div>
+        <div class="code xs" style="background:#fff">候选：0.30 × 0.50 = <b>0.150</b>  ← N 来（最大）
+      0.02 × 0.20 = 0.004      ← V 来
+      0.04 × 0.40 = 0.016      ← O 来
+
+δ₂(V) = 0.150 × B(V→爱) = 0.150 × 0.70 = <b>0.1050</b>
+ψ₂(V) = <b>N</b></div>
+      </div>
+      <div class="card card-warn tight"><div class="h">三个高频错误</div>
+        <ul>
+          <li>先乘发射再取 max（顺序错了，结果不同）</li>
+          <li>只用「上一列最大」的那个状态来算（必须逐格比较全部 K 个）</li>
+          <li>把 ψ 记成“当前状态”而不是“上一列来源状态”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">注意 V 格此刻已经反超：<span class="k">δ₂(V)=0.1050 &gt; δ₂(N)=0.0090</span>——第一列领先的 N 在第二步被追上了。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 Viterbi 演算③ ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Viterbi 演算 ③：第 3 列与回溯</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:100px">目标格</th><th>三个候选（从 N / V / O 来）</th><th style="width:140px">max 与 ψ</th><th style="width:110px">乘发射</th><th style="width:120px">δ₃</th></tr>
+      <tr><td><b>N</b></td><td>N: 0.0090×0.30 = 0.0027　V: 0.1050×0.60 = <b>0.0630</b>　O: 0.0180×0.40 = 0.0072</td><td>max = <b>0.0630</b>　ψ = <b>V</b></td><td>× 0.40</td><td><b>0.0252</b></td></tr>
+      <tr><td><b>V</b></td><td>N: 0.0090×0.50 = 0.0045　V: 0.1050×0.20 = 0.0210　O: 0.0180×0.40 = 0.0072</td><td>max = <b>0.0210</b>　ψ = <b>V</b></td><td>× 0.20</td><td>0.0042</td></tr>
+      <tr><td><b>O</b></td><td>N: 0.0090×0.20 = 0.0018　V: 0.1050×0.20 = 0.0210　O: 0.0180×0.20 = 0.0036</td><td>max = <b>0.0210</b>　ψ = <b>V</b></td><td>× 0.50</td><td>0.0105</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">终止与回溯</div>
+        <div class="code xs" style="background:#fff">③ 终止：max( δ₃(N)=0.0252 , δ₃(V)=0.0042 , δ₃(O)=0.0105 )
+        → t*₃ = <b>N</b>　最优概率 P* = <b>0.0252</b>
+
+④ 回溯（从后往前查 ψ）
+   t*₃ = N
+   t*₂ = ψ₃(N) = <b>V</b>
+   t*₁ = ψ₂(V) = <b>N</b>
+
+最优标签链：  我/N　爱/V　北京/N</div>
+      </div>
+      <div class="card tight"><div class="h">结果的语言学解读</div>
+        <p>“我/N 爱/V 北京/N” = 名词 + 动词 + 名词 —— 主谓宾结构，也正是正确标注。</p>
+        <p><b>为什么不是 V 结尾？</b>即使第二步 V 分数最高（0.1050），它传给下一步时要乘转移概率：V→N 是 <b>0.60</b>，V→V 只有 0.20。再叠上发射概率——地名“北京”由 N 发出的概率（0.40）也高于由 V 发出（0.20）——N 最终以 0.0252 对 0.0042 反超。</p>
+        <p><b>这正是 Viterbi 的价值</b>：它不是每一步都选当下最好的，而是<b>整句联合最优</b>。</p>
+      </div>
+    </div>
+    <div class="qbar sm">手算验收标准：<span class="k">三列 δ 全部正确 + ψ 全部正确 + 回溯路径正确</span>。测验通常只要求前两列，但完整走过一次才真正理解。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 36 Viterbi 代码 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">15 行 Viterbi：代码与公式的逐行对应</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="code xs" style="margin-top:0;font-size:13px;line-height:1.3;padding:8px 13px"><span class="c"># 纯 Python，无依赖，直接可跑</span>
+def <b>viterbi</b>(obs, states, pi, A, B):
+    delta = {j: pi[j] * B[j][obs[0]] for j in states}   <span class="c"># ① 初始化 δ₁</span>
+    psi   = []                                  <span class="c"># ψ 指针表</span>
+    <span class="c"># ② 逐列递推</span>
+    for w in obs[1:]:
+        nd, np_ = {}, {}
+        for j in states:
+            cand = {i: delta[i] * A[i][j] for i in states}
+            i_best = max(cand, key=cand.get)    <span class="c"># argmax</span>
+            np_[j] = i_best                     <span class="c"># 记下赢家</span>
+            nd[j]  = cand[i_best] * B[j][w]     <span class="c"># × 发射</span>
+        psi.append(np_); delta = nd
+    last = max(delta, key=delta.get)            <span class="c"># ③ 终止</span>
+    path = [last]
+    for np_ in reversed(psi):                   <span class="c"># ④ 回溯</span>
+        path.append(np_[path[-1]])
+    return path[::-1], delta[last]</div>
+      <div class="card card-blue tight"><div class="h">代码与公式的对应关系</div>
+        <table class="ac sm tiny">
+          <tr><th style="width:150px">代码</th><th>公式</th></tr>
+          <tr><td><code>delta = {...}</code></td><td>δ₁(j) = πⱼ · bⱼ(w₁)</td></tr>
+          <tr><td><code>cand = {...}</code></td><td>δₜ(i) · aᵢⱼ（所有候选）</td></tr>
+          <tr><td><code>i_best = max(...)</code></td><td>ψₜ₊₁(j) = argmaxᵢ</td></tr>
+          <tr><td><code>nd[j] = ... * B[j][w]</code></td><td>δₜ₊₁(j) = max × bⱼ(wₜ₊₁)</td></tr>
+          <tr><td><code>last = max(delta)</code></td><td>P* = maxⱼ δ_T(j)</td></tr>
+          <tr><td><code>for np_ in reversed(psi)</code></td><td>t*_t = ψₜ₊₁(t*ₜ₊₁)</td></tr>
+        </table>
+        <p style="margin-top:8px"><b>运行结果</b>：path = ['N','V','N']，prob = 0.0252 —— 与手算完全一致。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:6px">
+      <div class="card card-warn tight"><div class="h">工程实现的两个要点</div>
+        <p><b>① log 空间</b>：乘法变加法，避免长序列下溢；max 不变，Σ 换成 logsumexp。</p>
+        <p><b>② 约束转移</b>：BIO 非法转移的 log 概率设为 <code>-inf</code>，最优路径必然合法（第 21 页的做法）。</p>
+      </div>
+      <div class="card tight"><div class="h">自学任务会用到</div>
+        <p>把第 33–35 页的三张表填进这段代码，验证输出与手算一致；再把 <code>max</code> 换成 <code>sum</code>，就得到前向算法——亲手体会“一个运算符之别”。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">36</span></div>
+</section>
+
+<!-- ================= 37 贪心不行 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">贪心为什么不行：局部最优 ≠ 全局最优</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="code sm" style="margin-top:0">经典算例：Time flies like an arrow.
+模型（2 状态）：
+  π: N 0.6, V 0.4
+  A: N→N 0.3, N→V 0.7 ｜ V→N 0.8, V→V 0.2
+  B: P(time|N)=0.4, P(time|V)=0.6
+     P(flies|N)=0.3, P(flies|V)=0.7</div>
+      <div class="card card-warn tight"><div class="h">做法 A：逐词独立取最大发射（贪心）</div>
+        <div class="code xs" style="background:#fff">time  → V（0.6 &gt; 0.4）
+flies → V（0.7 &gt; 0.3）
+路径 = V V
+
+整句概率 = 0.4 × 0.6 × 0.2 × 0.7 = <b>0.0336</b></div>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:160px">做法</th><th>第 1 列 δ</th><th>第 2 列 δ</th><th style="width:150px">最优路径</th><th style="width:150px">整句概率</th><th>结论</th></tr>
+      <tr><td><b>A 贪心（逐词最大发射）</b></td><td>N 0.24　V 0.24</td><td>只看发射，不看转移</td><td>V V</td><td><b>0.0336</b></td><td>局部最优，但整句不是最优</td></tr>
+      <tr><td><b>B Viterbi（整句最优）</b></td><td>N 0.24　V 0.24</td><td>N: max(0.24×0.3, 0.24×0.8)×0.3 = 0.0576（ψ=V）<br>V: max(0.24×0.7, 0.24×0.2)×0.7 = <b>0.1176</b>（ψ=N）</td><td><b>N V</b></td><td><b>0.1176</b></td><td><b>是贪心的 3.5 倍</b></td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">为什么 Viterbi 选 N V 而不是 V V</div>
+      <p style="font-size:19px">因为转移概率在起作用：<b>V→V 只有 0.2</b>，而 N→V 有 0.7。虽然“flies”作为动词的发射概率更高（0.7 vs 0.3），但从 N 走到 V 的整体代价更小。<b>整句最优会自动平衡“发射”与“转移”两笔账。</b></p>
+    </div>
+    <div class="qbar sm">这就是为什么 POS/NER 的推断必须用 <span class="k">Viterbi</span> 而不是逐位 softmax 取最大——第 8 讲的 BiLSTM-CRF 里，CRF 层做的正是这件事。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 HMM 局限 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HMM 的天花板：三条理论局限 + 一条工程难题</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">① 观测独立太狠</div>
+        <p>“在”后面地名高发、首字母大写、词长 2–4 字、词典命中……这些<b>上下文与词形特征</b>塞不进 HMM——塞了就破坏独立假设。</p>
+        <p>而消歧最需要的恰恰是这些特征。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">② 生成式绕路</div>
+        <p>任务只需要 P(y|x)，HMM 却建模联合 P(x,y)——顺带把“词是怎么生成的”也学了。</p>
+        <p>数据稀疏时，<b>两头都估不准</b>；而判别式模型可以把全部建模能力放在决策边界上。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">③ 只信前一个标签</div>
+        <p>一阶马尔可夫下，长距离标签依赖丢失。例：句首的 These 决定后面必须是复数名词 NNS，但一阶模型看不到。</p>
+        <p>缓解手段（高阶 HMM）会让参数从 N² 膨胀到 N³，稀疏问题更严重。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">④ 未登录词的工程难题</div>
+        <p>发射表要枚举词表；测试遇到训练里没见过的词，只能靠平滑（第 7 讲）或后缀启发式（-ed → VBD）。</p>
+        <p>而这正是第 5 讲词向量与第 8 讲神经方法要解决的问题。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">下一步的方向已经很清楚了</div>
+      <p style="font-size:19px">要突破这三条，必须做两件事：<b>① 把建模对象从联合分布 P(x,y) 换成条件分布 P(y|x)</b>（判别式）；<b>② 允许使用任意重叠特征</b>（不要求独立）。这正是 MEMM 与 CRF 的设计目标。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">38</span></div>
+</section>
+
+<!-- ================= 39 生成式 vs 判别式 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两大门派：生成式 vs 判别式</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:170px">维度</th><th>生成式 Generative</th><th>判别式 Discriminative</th></tr>
+      <tr><td><b>建模对象</b></td><td>联合 P(x, y) = P(x|y) · P(y)</td><td>条件 P(y | x)，直接对决策建模</td></tr>
+      <tr><td><b>类比</b></td><td>先学“怎么画猫画狗”，再分辨</td><td>只学“怎么分辨猫狗”</td></tr>
+      <tr><td><b>代表模型</b></td><td>HMM、朴素贝叶斯、N-gram 语言模型</td><td>逻辑回归、MEMM、CRF、BiLSTM-CRF、BERT</td></tr>
+      <tr><td><b>能用什么特征</b></td><td>受限：受独立假设约束，通常只有“当前词 + 当前标签”</td><td><b>任意重叠特征</b>：前后词、后缀、大小写、词典、gazetteer、词向量</td></tr>
+      <tr><td><b>数据需求</b></td><td>可用无标注数据（EM）；小数据也能估</td><td>通常需要标注数据</td></tr>
+      <tr><td><b>标注任务表现</b></td><td>约 96% 量级（POS）</td><td>约 97%–99%（CRF / 神经方法）</td></tr>
+      <tr><td><b>额外能力</b></td><td>能算 P(x)：可做异常检测、候选句打分、置信度校准</td><td>只给决策：一般不提供 P(x)</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">实践结论</div>
+        <p>在标注任务上，<b>判别式通常更好</b>——它把所有参数预算都花在决策边界上，而不是去解释“词是怎么生成的”。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">但不要因此小看生成式</div>
+        <p>① 无监督可用，低资源场景仍有一席之地；② 能算 P(x)，语音识别重排、异常检测依然需要它；③ 可解释、可证明，教学与安全性分析价值高。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">不是“谁更先进”，而是“建模什么、用什么特征、有没有标注”</span>——这是本讲培养的选型思维。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">39</span></div>
+</section>
+
+<!-- ================= 40 MEMM 与标注偏置 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">MEMM：把转移与发射换成最大熵分类器</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">定义（McCallum et al., ICML 2000）</div>
+        <div class="code xs" style="background:#fff">P( yₜ | yₜ₋₁ , x ) = (1/Z) · exp( Σₖ λₖ · fₖ( yₜ₋₁ , yₜ , x , t ) )
+
+Z(x, yₜ₋₁) = Σ<sub>y′</sub> exp( Σₖ λₖ · fₖ( yₜ₋₁ , y′ , x , t ) )
+             ↑ <b>只对当前位置归一化（局部归一化）</b></div>
+        <p style="margin-top:8px">改造思路：<b>每步一个最大熵分类器</b>（最大熵 = 多分类逻辑回归的学名），直接建模条件概率。</p>
+        <p>好处：不再管“词怎么生成”；<b>特征随便加</b>——当前词、前后词、大写、后缀、词典命中，HMM 塞不下的全能收进来。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">标注偏置（label bias）：局部归一化的代价</div>
+        <p style="font-size:18.5px"><b>机理</b>：局部归一化要求每个状态把手上的概率质量 1 分给所有后继。若某状态在训练数据里只有一个后继，<b>全部质量都流向它</b>——观测被无视。</p>
+        <div class="code xs" style="background:#fff">Lafferty 经典小例（出边数量决定命运）：
+  状态 1：出边 → 2、→ 3 各 0.5
+  状态 2：出边 → 4 被迫 = <b>1.0</b>
+
+→ 一旦走进状态 2 这条分支，概率质量“锁死”，
+  后续观测再不利也无法与其他分支比较</div>
+        <p style="margin-top:6px"><b>教学例</b>：训练语料里 ORG 都是多词 → 学到 P(I-ORG|B-ORG) ≈ 1.0；测试遇到单 token 机构名“NASA”时，会强行再切出一个词。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句话总结病理</div>
+      <p style="font-size:19px">局部归一化让每个状态“各扫门前雪”：<b>出边少的路径反而占便宜</b>——概率质量不守恒地偏向“选择少”的方向。这不是参数没学好，而是<b>目标函数的形状</b>导致的。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">40</span></div>
+</section>
+
+<!-- ================= 41 CRF ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">CRF：给整条序列打一个全局分（2001）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0;font-size:15px;line-height:1.45">P( y | x ) = exp( score( x , y ) ) / Z( x )
+             Z( x ) = Σ<sub>所有候选序列 y′</sub> exp( score( x , y′ ) )
+                      ↑ <b>全局归一化</b>：分母走过全部 y′，不再逐位置归一
+
+score( x , y ) = Σₜ [ <b>转移得分</b>( yₜ₋₁ → yₜ )  +  <b>状态得分</b>( x , yₜ ) ]
+                       └ 可学习的 K×K 转移矩阵 ┘   └ 任意特征打分 ┘</div>
+    <div class="grid g3 tight" style="margin-top:8px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 判别式</div>
+        <p>保留 MEMM 的特征自由：任意上下文、词形、词典、gazetteer 特征全都能用。</p>
+        <p>不建模 P(x)，全部能力花在 P(y|x) 上。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 全局归一化</div>
+        <p>分母 Z(x) 对所有候选序列求和，每个候选在同一把尺子下比较。</p>
+        <p><b>标注偏置从根上消失</b>：不会因为“出边少”而占便宜。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">③ 解码仍是 Viterbi</div>
+        <div class="code xs" style="background:#fff">HMM:
+  δₜ₊₁(j) = maxᵢ [ δₜ(i) · aᵢⱼ ] · bⱼ(wₜ₊₁)
+
+CRF（换成绩效相加）:
+  δₜ₊₁(j) = maxᵢ [ δₜ(i) + S(i, j, t) ]</div>
+        <p>非法转移 → 分数设 −∞，输出必然合法。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:8px">
+      <div class="card card-warn tight"><div class="h">代价要说清</div>
+        <p>训练时 Z(x) 需要对所有序列求和（用前向-后向算法），复杂度 O(T·K²)，但常数远大于 HMM；训练慢、实现复杂。</p>
+      </div>
+      <div class="card tight"><div class="h">历史地位</div>
+        <p>2001–2015 年序列标注的<b>标准 SOTA</b>：CoNLL-2003 NER 上 CRF 手工特征系统 F1 约 88–90%，长期是强基线。</p>
+        <p>今天它仍活跃在<b>解码层</b>——BiLSTM-CRF / BERT-CRF 的最后一层就是它。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">41</span></div>
+</section>
+
+<!-- ================= 42 BiLSTM-CRF ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BiLSTM-CRF：神经编码 + CRF 解码约束（2015）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid" style="grid-template-columns:390px 1fr;gap:20px;flex:1;min-height:0">
+      <div class="card tight" style="padding:14px 16px">
+        <div class="h">BiLSTM-CRF 模型结构</div>
+        <div class="nn" style="flex-direction:column;justify-content:space-evenly;gap:6px;margin-top:8px;padding:12px 14px;flex:1">
+          <div class="col"><div class="node proj">① 输入层</div><div class="lbl">词向量（+ 可选字向量）</div></div>
+          <div class="arr">↓</div>
+          <div class="col"><div class="node">② BiLSTM 编码</div><div class="lbl">正向看后文 / 反向看前文<br>拼接 [→h ; ←h]</div></div>
+          <div class="arr">↓</div>
+          <div class="col"><div class="node">③ 发射分数层</div><div class="lbl">每位置一个分数向量<br>（实数，非概率）</div></div>
+          <div class="arr">↓</div>
+          <div class="col"><div class="node out">④ CRF + Viterbi</div><div class="lbl">转移矩阵 A[K×K]<br>整句最优解码</div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+        <div class="card card-blue tight"><div class="h">① 嵌入层</div>
+          <p>第 5 讲的词向量直接复用；中文常加字向量，或把两者拼接。</p>
+          <p>预训练向量（Word2Vec/GloVe/FastText）在这里第一次真正落地到任务。</p>
+        </div>
+        <div class="card card-blue tight"><div class="h">② BiLSTM 层</div>
+          <p>每位置输出各标签的<b>发射分数</b>——“看全文的局部打分器”。</p>
+          <p>“苹果”是水果还是公司，由后面的“手机”裁决（第 8 讲的动机在这里兑现）。</p>
+        </div>
+        <div class="card card-blue tight"><div class="h">③ CRF 层</div>
+          <p>可学习的 K×K 转移矩阵：学到 B-PER→I-PER 高分、B-PER→I-LOC 负分。</p>
+          <p>推断用 <b>Viterbi</b> 取全局最优；整句分数 = Σ 发射分数 + Σ 转移分数。</p>
+        </div>
+        <div class="card card-deep tight" style="flex:1"><div class="h">为什么有效：三句话</div>
+          <p style="font-size:19px"><b>① 看全文</b>：BiLSTM 让每个位置的打分看见全句。<b>② 管合法</b>：CRF 转移矩阵把 BIO 规则焊进解码，非法序列在 Viterbi 里直接出局。<b>③ 一起学</b>：训练信号从 CRF 传回嵌入层——特征是为“整句最优”而学，不是为“单点正确”而学。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">42</span></div>
+</section>
+
+<!-- ================= 43 BERT-CRF 与成绩 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BERT-CRF：预训练编码器与子词对齐</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="code xs" style="margin-top:0">怎么接（三行伪代码）
+
+tokens = tokenizer(text)                     <span class="c"># WordPiece 子词</span>
+h      = bert(tokens).last_hidden_state      <span class="c"># 每子词一个向量</span>
+logits = linear(h)                           <span class="c"># 每子词 → 标签分数</span>
+<span class="c"># 合并到词级：取每个词第一个子词的向量</span>
+<span class="c"># （或对子词池化）→ 再送 CRF 层 → Viterbi 解码</span>
+
+<span class="c"># 也可以用 HuggingFace 一行：</span>
+AutoModelForTokenClassification.from_pretrained("bert-base-NER")</div>
+      <div class="card card-warn tight"><div class="h">子词对齐：必须处理的坑</div>
+        <p>BERT 用 WordPiece，一个词可能被切成多个子词（“playing”→“play”+“##ing”），但我们的标签是<b>词级</b>的。</p>
+        <p><b>常见做法</b>：只取第一个子词的输出作为该词的表示；或对子词的隐藏状态做平均/最大池化。</p>
+        <p>处理不当会让评估结果莫名其妙掉 1–2 个点。</p>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:330px">方法（CoNLL-2003 英文 NER）</th><th style="width:170px">Test F1</th><th>说明</th></tr>
+      <tr><td>CRF + 手工特征</td><td>约 88–90</td><td>词典、词形、前后缀、大写等人工特征工程，长期强基线</td></tr>
+      <tr><td><b>BiLSTM-CRF</b>（Huang 等 2015）</td><td>约 90.5–91.2</td><td>自动特征 + CRF 约束；预训练词向量显著加分</td></tr>
+      <tr><td>BERT-BASE 微调（Devlin 等 2019）</td><td>约 <b>92.4</b></td><td>上下文相关表示，无需手工特征与词向量</td></tr>
+      <tr><td><b>BERT-LARGE 微调</b></td><td>约 <b>92.8–93.5</b></td><td>模型更大收益变缓，但稳定提升</td></tr>
+      <tr><td>多任务 / 词典增强 / 数据增强</td><td>约 <b>94+</b></td><td>工程手段叠加；不同评测脚本与实现会略有差异</td></tr>
+    </table>
+    <div class="qbar sm">考试以<span class="k">量级与趋势</span>为准：<span class="k">手工 CRF ≈ 88–90 → BiLSTM-CRF ≈ 91 → BERT ≈ 93</span>，每代提升都来自“更多上下文 + 更少手工特征”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">43</span></div>
+</section>
+
+<!-- ================= 44 中文 NER ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文 NER：按字标，还是按词标？</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">按词标：误差传播</div>
+        <p>先分词再标注——<b>分词错了，实体边界就没了</b>。</p>
+        <div class="code xs" style="background:#fff">南京市长江大桥
+  切分 A：南京市 / 长江大桥   <span class="c">长江大桥是桥名</span>
+  切分 B：南京 / 市长 / 江大桥  <span class="c">完全走偏</span>
+
+→ 一旦切错，后面的实体标注全盘皆输</div>
+        <p style="margin-top:8px">这是第 4 讲“误差传播”的直接体现。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">按字标：主流，但丢词信息</div>
+        <p>避免误差传播，且天然处理未登录词与网络新词；中文常用基准（MSRA、CLUENER）默认就是<b>字粒度</b>。</p>
+        <p><b>代价</b>：“南京”作为<b>词</b>的整体含义，单看“南”“京”两字拿不到。</p>
+        <p><b>其他特色痛点</b>：无大写线索（英文 NNP 是白送的特征）；机构名嵌套地名；简称与全称混用（“北大”/“北京大学”）。</p>
+      </div>
+    </div>
+    <div class="grid g23 tight" style="margin-top:12px">
+      <div class="code sm" style="margin-top:0">词汇增强的思想一句话：
+  字粒度决策时，把“当前字能匹配到词典里的哪些词”注入模型
+
+  南 → 能匹配：南京、南京市、南京市长江大桥
+       候选词的存在本身就是强特征
+
+Lattice LSTM（Zhang & Yang, 2018）：
+  把词典里的词作为额外路径编入 LSTM —— 中文 NER 里程碑
+
+FLAT（2020）：
+  把词典格“拍平”成 span 序列，用 Transformer 编码 —— 更快更并行</div>
+      <div class="card card-blue tight"><div class="h">为什么词典仍然有用</div>
+        <p>神经模型擅长泛化，但对<b>领域专名</b>（药品名、金融产品名、机构简称）仍然容易漏。</p>
+        <p>词典提供的是<b>高精度的先验</b>，与模型的泛化能力互补——这也是“规则 + 模型”混合方案在工业界长期有效的原因。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">44</span></div>
+</section>
+
+<!-- ================= 45 LLM 生成式抽取 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">LLM 时代：从“贴标签”变成“直接抽”</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="code xs" style="margin-top:0;font-size:13.5px;line-height:1.3;padding:7px 12px">提示词三件套
+
+<span class="c"># ① 任务定义</span>
+从句子中抽取人名(PER)、机构(ORG)、地点(LOC)。
+
+<span class="c"># ② 输出契约</span>
+只输出 JSON 数组，字段 entity / type，
+不要任何解释，不要 markdown 代码块。
+
+<span class="c"># ③ 输入</span>
+句子：郭贵冰在东北大学工作，家住沈阳。
+
+模型输出
+[ {"entity":"郭贵冰",   "type":"PER"},
+  {"entity":"东北大学", "type":"ORG"},
+  {"entity":"沈阳",     "type":"LOC"} ]</div>
+      <div class="card card-blue tight"><div class="h">三个变化</div>
+        <p><b>① 任务形式</b>：序列标注 → 文本生成。不再需要 BIO 编码，也<b>天然支持嵌套实体</b>（BIO 需要多层标注的问题被绕开）。</p>
+        <p><b>② 标注成本</b>：标几千句训练 → <b>写一段提示词</b>。零样本 / 少样本即可起步（第 14 讲 ICL 系统展开）。</p>
+        <p><b>③ 类型变更</b>：改一行提示词 vs 重新标注 + 重新训练。对类型频繁变动的业务价值极大。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:8px;flex:1">
+      <div class="card card-warn tight"><div class="h">四个必须讲透的风险</div>
+        <ul class="tightlist">
+          <li><b>幻觉</b>：抽出原文里根本不存在的实体——必须做“字符串回查原文”校验</li>
+          <li><b>边界不精确</b>：返回的是字符串，很难精确映射回原文 offset</li>
+          <li><b>格式不稳定</b>：JSON 括号缺漏、类型名不统一——需要 schema 校验 + 重试</li>
+          <li><b>长文本召回下降</b>：文档很长时，后半部分实体容易漏——需要分块 + 合并（第 15 讲）</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">工程上的正确姿势</div>
+        <p><b>LLM 预抽 + 规则/小模型复核</b>：用 LLM 快速覆盖长尾类型，用确定性规则或小模型保证边界与格式。</p>
+        <p><b>评估不能省</b>：零样本也要在自建的 50–200 条测试集上算实体级 F1，否则无法判断提示词改动的效果。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">45</span></div>
+</section>
+
+<!-- ================= 46 选型决策 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">工程选型：先问三个问题</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="nn" style="margin-top:0">
+      <div class="col"><div class="node proj">量大吗？</div><div class="lbl">日均调用量 / QPS</div></div>
+      <div class="arr">＋</div>
+      <div class="col"><div class="node proj">类型固定吗？</div><div class="lbl">标签体系会不会变</div></div>
+      <div class="arr">＋</div>
+      <div class="col"><div class="node proj">要审计吗？</div><div class="lbl">合规 / 可追溯要求</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">选型结论</div><div class="lbl">三个“是”走微调；三个“否”走 LLM</div></div>
+    </div>
+    <table class="ac sm" style="margin-top:14px;flex:1">
+      <tr><th style="width:330px">场景</th><th style="width:230px">推荐方案</th><th>理由</th></tr>
+      <tr><td>搜索 query 实体识别（日调用亿级）</td><td><b>传统微调</b>（小模型）</td><td>延迟与成本说了算：单次 10ms 与单次 500ms 是两种产品</td></tr>
+      <tr><td>合同要素抽取（合规审计）</td><td><b>传统微调 + 规则校验</b></td><td>可审计性优先：每个判断要有稳定、可复现的依据</td></tr>
+      <tr><td>病历结构化（隐私敏感）</td><td><b>本地部署微调模型</b></td><td>数据不能出院内网；可用开源模型 + 少量标注</td></tr>
+      <tr><td>课题组探索古籍人名地名（类型边做边定）</td><td><b>LLM 抽取 + 人工抽检</b></td><td>量小、类型不稳定，重新标注的成本远高于调用成本</td></tr>
+      <tr><td>期末项目简历解析 demo（两周交付）</td><td><b>LLM 抽取起步</b>，稳定后考虑微调</td><td>先跑通端到端，再用评估数据决定是否需要换方案</td></tr>
+    </table>
+    <div class="qbar sm">三条通用原则：<span class="k">① 先看评估口径是否统一；② 先做基线再做优化（不要一上来就上最大模型）；③ 延迟与成本是硬约束，不是事后优化</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">46</span></div>
+</section>
+
+<!-- ================= 47 五代对比 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口对比：五代序列标注方法</span><span class="sec">环节二 · 知识点讲解 · 复习索引</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:150px">方法</th><th style="width:150px">建模对象</th><th style="width:200px">标签依赖 / 约束</th><th>特征来源</th><th style="width:240px">主要优点与局限</th></tr>
+      <tr><td><b>HMM</b>（生成式）</td><td>联合 P(x, y)</td><td>转移概率 A（一阶马尔可夫）</td><td>概率表：发射 B + 转移 A</td><td>训练极快、可无监督（EM）、可解释；<b>观测独立假设太强，塞不进丰富特征</b></td></tr>
+      <tr><td><b>MEMM</b>（判别式）</td><td>条件 P(y|x)，<b>局部</b>归一化</td><td>每位置一个分类器</td><td>任意重叠特征</td><td>特征自由；<b>标注偏置</b>，出边少的路径占便宜</td></tr>
+      <tr><td><b>CRF</b>（判别式）</td><td>条件 P(y|x)，<b>全局</b>归一化</td><td>转移特征 + 全局 Z(x)</td><td>任意重叠特征</td><td>标注偏置消失、解码仍用 Viterbi；<b>训练慢、实现复杂</b></td></tr>
+      <tr><td><b>BiLSTM-CRF</b></td><td>神经发射分数 + CRF</td><td>可学习 K×K 转移矩阵</td><td>自动学习的表示（+ 词向量）</td><td>无需手工特征、性能大幅提升；<b>需算力、串行</b></td></tr>
+      <tr><td><b>BERT 微调</b></td><td>预训练上下文表示</td><td>逐位置分类（+ 可选 CRF）</td><td>大规模预训练 + 少量标注</td><td>当前标准基线，F1 约 93；<b>子词对齐、算力门槛</b></td></tr>
+      <tr><td><b>LLM 生成式抽取</b></td><td>条件生成 P(JSON | 提示)</td><td>由提示词与 schema 约束</td><td>零 / 少样本上下文学习</td><td>零标注起步、支持嵌套、改类型免重训；<b>幻觉、边界、格式、成本</b></td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">把这张表读成一句话</div>
+      <p style="font-size:19px">序列标注的整部历史，就是一条<b>“每解开一个约束，性能上一个台阶”</b>的链条：解开观测独立 → CRF；解开手工特征 → BiLSTM；解开从零训练 → BERT；解开标注依赖 → LLM。<b>今天你学的不是某个模型，而是这条“约束—突破”的思路。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">47</span></div>
+</section>
+
+<!-- ================= 48 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">课后跑通 NER pipeline 与 Viterbi，课堂研讨三个机制问题。</div>
+    <ul>
+      <li>自学：pipeline 跑 NER / 手写 Viterbi / 手算实体级 F1</li>
+      <li>研讨：为什么必须整句解码 · 两假设的代价 · 选型边界（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 49 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：跑通 pipeline，亲手写一遍 Viterbi</span><span class="sec">环节三 · 实践自学（课后完成）</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>跑通 NER pipeline（必做）</div>
+        <div class="code xs" style="background:#fff;line-height:1.4"><span class="c"># 环境：pip install transformers torch（首次运行会下载模型，需联网）</span>
+from transformers import pipeline
+ner = pipeline("ner", model="dslim/bert-base-NER",
+               aggregation_strategy="simple")
+print(ner("Guo Guibing works at Northeastern University."))
+
+<span class="c"># 换 3 个自建句子，含 1 个歧义句（如“苹果发布了新手机”）</span>
+<span class="c"># 记录：边界是否正确？类型是否正确？</span></div>
+        <p>观察典型问题：缩写与数值表达（U.K.、$1 billion）常被切错边界或归入 MISC。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>手写 Viterbi 并验证（必做）</div>
+        <div class="code xs" style="background:#fff">用第 33–35 页的 π / A / B 与观测 [我, 爱, 北京]
+跑第 36 页的 viterbi()，应输出：
+   path = ['N', 'V', 'N']
+   prob = 0.0252
+
+把 max 换成 sum（logsumexp）→ 得到前向算法
+   α₃(N) = 0.0334 &gt; δ₃(N) = 0.0252
+<span class="c">解释：为什么“求和”比“取最大”大？</span></div>
+      </div>
+      <div class="card tight"><div class="h"><span class="no">3</span>手算实体级 F1（必做）</div>
+        <p>自建一个含 3 个实体的句子，故意让预测里出现 1 个边界错 + 1 个多抽，按第 23 页口径算出 TP / FP / FN 与 P / R / F1，并解释 <b>FN 是怎么来的</b>。</p>
+      </div>
+      <div class="card tight"><div class="h"><span class="no">4</span>进阶：LLM 对比（选做）</div>
+        <p>用第 45 页的提示词三件套让 LLM 抽取同一批句子，与 pipeline 结果做<b>实体级</b>对比，统计：边界错几个、类型错几个、幻觉几个、格式错误几个。</p>
+      </div>
+    </div>
+    <div class="qbar sm">验收：<span class="k">pipeline 输出截图 + Viterbi 两组数值 + F1 手算过程 + 一段分析</span>。全部 CPU 与免费 API 即可完成。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">49</span></div>
+</section>
+
+<!-- ================= 50 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个机制与选型问题（10 分钟）</span><span class="sec">环节三 · 研讨 · 答案课堂揭示</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">Q1</span>为什么必须整句联合解码？</div>
+        <p style="font-size:20px">逐词独立分类会失败的两个理由是什么？为什么 BIO 的合法性规则<b>不能靠事后修补</b>？</p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：悬空的 I-LOC 从哪来？非法转移设 −∞ 之后，最优路径一定合法吗？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q2</span>HMM 的两个假设各自付出什么代价？</div>
+        <p style="font-size:20px">写出两条假设，并各举一个<b>它处理不了的例子</b>。</p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：句首 These 决定后面必须是复数；『东北大学』后面常跟『软件学院』——这两个分别被哪条假设挡住了？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q3</span>传统微调还是 LLM 抽取？</div>
+        <p style="font-size:20px">银行合同要素抽取（日处理 10 万份、类型三年不变、需审计追溯）该选哪个方案？<b>请给出至少两条理由。</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：延迟、成本、可审计性、类型稳定性，四个维度里哪些是硬约束？</p>
+      </div>
+    </div>
+    <div class="qbar sm">讨论 5′ · 分享 3′ · 点评 2′　｜　<span class="k">每组至少给一个场景定方案并准备辩护</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">50</span></div>
+</section>
+
+<!-- ================= 52 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个任务、一条暗线、一条演进链。</div>
+    <ul>
+      <li>一个任务：等长标签序列 + 整句联合决策</li>
+      <li>一条暗线：指数级路径空间里的最优解（动态规划第三次出场）</li>
+      <li>一条演进链：HMM → MEMM → CRF → BiLSTM-CRF → BERT → LLM</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 53 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>任务与暗线</div>
+        <p><b>一词一标签 + 整句联合决策</b>。形式化是 ŷ = argmax_y P(y|x)，输出等长且有硬约束。</p>
+        <p>标签依赖（BIO 合法性）是全部模型的立论之本——也是<b>动态规划第三次出场</b>的理由：Kᵀ 条路径里找最优。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>经典方法</div>
+        <p><b>HMM</b>：五元组 π/A/B + 两假设（一阶马尔可夫、观测独立），生成式；<b>Viterbi</b> 用 max + ψ 指针解最优链。</p>
+        <p><b>MEMM → CRF</b>：沿“判别式 + 特征自由 + 全局归一化”修补；<b>标注偏置</b>是分水岭。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>实战与演进</div>
+        <p><b>NER = 边界 × 类型全对</b>，实体级 F1 一错两罚；不报 token accuracy。</p>
+        <p><b>BiLSTM-CRF</b>（看全文 + 管合法 + 一起学）→ <b>BERT</b>（约 93）→ <b>LLM 生成式抽取</b>（零标注起步、支持嵌套、需约束格式）。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句话带走</div>
+      <p style="font-size:20px">序列标注的整部历史，就是一条<b>“解开一个约束、性能上一个台阶”</b>的链条：解开观测独立 → CRF；解开手工特征 → BiLSTM；解开从零训练 → BERT；解开标注依赖 → LLM。你学的不是某个模型，而是这条思路。</p>
+    </div>
+    <div class="qbar sm">复习索引：<span class="k">公式速查（下一页）· Viterbi 手推与代码 · 实体级 P/R/F1 手算 · HMM 五元组与两假设 · BIO 合法性 · 生成式 vs 判别式 · 五代方法对比表</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">53</span></div>
+</section>
+
+<!-- ================= 54 公式速查 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">公式速查：一张纸复习本讲</span><span class="sec">环节四 · 小结 · 复习索引</span></div>
+  <div class="content">
+    <div style="font-size:15.5px;color:var(--sub);line-height:1.45;margin-bottom:6px">约定：A 是标签→标签，B 是标签→词；前向用 <b style="color:var(--navy)">Σ</b> 聚合所有路径，Viterbi 用 <b style="color:var(--navy)">max</b> 只留最优路径。</div>
+    <div class="grid g3" style="flex:1;gap:10px;grid-auto-rows:1fr">
+      <div class="card card-blue tight"><div class="h">① HMM 五元组 λ = (N, M, π, A, B)</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">N  状态集合（标签数）
+M  观测集合（词表）
+πᵢ = P(q₁ = sᵢ)
+A  aᵢⱼ = P(qₜ₊₁=sⱼ | qₜ=sᵢ)  每行和为 1
+B  bⱼ(k) = P(v_k | sⱼ)       每行和为 1</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 两假设与生成式目标</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">① 齐次一阶马尔可夫
+   P(tᵢ|t₁…tᵢ₋₁) ≈ P(tᵢ|tᵢ₋₁)
+② 观测独立
+   P(wᵢ|全部) ≈ P(wᵢ|tᵢ)
+生成式目标：
+ t̂ = argmax ∏ᵢ P(wᵢ|tᵢ)·P(tᵢ|tᵢ₋₁)
+     └─ 发射 B ─┘ └─ 转移 A ─┘</div>
+      </div>
+      <div class="card card-warn tight"><div class="h">③ 前向 vs Viterbi：只差一个运算符</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">前向  α₁(j) = πⱼ·bⱼ(w₁)
+      αₜ₊₁(j) = [Σᵢ αₜ(i)·aᵢⱼ]·bⱼ(wₜ₊₁)
+      P(O|λ) = Σⱼ α_T(j)
+Viterbi δ₁(j) = πⱼ·bⱼ(w₁)
+      δₜ₊₁(j) = maxᵢ[δₜ(i)aᵢⱼ]·bⱼ(wₜ₊₁)
+      ψₜ₊₁(j) = argmaxᵢ[δₜ(i)aᵢⱼ]
+      回溯 t*_t = ψₜ₊₁(t*ₜ₊₁)</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">④ BIO / IOBES 编码与合法性</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">B-X / I-X / O：片段首 / 片段内 / 非实体
+IOBES 另加 E-X（结尾）· S-X（单词）
+合法性：I-X 前必须是 B-X 或 I-X
+相邻同类实体：第二个必须用 B 开头
+约束：非法转移在解码时设为 −∞</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">⑤ 实体级 P / R / F1（严格匹配）</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">TP 边界+类型全对；FP 多预测/错；FN 漏掉
+P = TP/(TP+FP)；R = TP/(TP+FN)
+F1 = 2TP/(2TP+FP+FN)
+边界错 → 一错两罚（FP + FN）
+汇报 NER 用实体级 F1，不用 token 准确率</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">⑥ 五代方法与易错清单</div>
+        <div class="code sm" style="background:#fff;margin-top:0;font-size:13.5px;line-height:1.3">HMM → MEMM/CRF → BiLSTM-CRF
+→ BERT → LLM（五代）
+易错：A 是行和为 1（不是列）
+   B 是 P(词|标签)；先 max 再乘发射
+   ψ 记“上一列来源”，不是当前状态
+   训练与测试编码必须一致（BIO/IOBES）
+考点：Viterbi 手推 · 实体级 F1</div>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">54</span></div>
+</section>
+
+<!-- ================= 55 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">动手为主，下讲走向文本生成。</div>
+    <ul>
+      <li>实验：pipeline 跑 NER + 手写 Viterbi + 手算实体级 F1</li>
+      <li>书面：补完 Viterbi 第 3 列并完成回溯</li>
+      <li>预告：第 10 讲 Seq2Seq 与注意力机制</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 56 作业与预告 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业与预告</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">必做 1</span>自学任务验收</div>
+        <ul>
+          <li>pipeline 输出截图 + 三个自建句子的观察（含 1 个歧义句）</li>
+          <li>Viterbi 两组数值：<b>max → 0.0252</b>、<b>sum → 0.0334</b>，并解释差异</li>
+          <li>实体级 F1 手算四步（TP / FP / FN / F1）与 FN 来源说明</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">必做 2</span>书面手推</div>
+        <ul>
+          <li>合上课件，独立重做第 33–35 页的三列 δ/ψ 与回溯（自测，不是抄写）；再思考：观测换成 [北京, 我] 时第 1 列 δ 会变成多少</li>
+          <li>给出一个 10 个标签的序列（含 2 处非法），用第 21 页规则判断合法性、说明原因并修正</li>
+          <li>写出 HMM 两假设的公式与各自的一个反例</li>
+        </ul>
+      </div>
+      <div class="card tight"><div class="h"><span class="no">选做</span>加分实验</div>
+        <p>为自己的期末项目定义一套实体类型体系（3–10 类），标注 30 句中文语料。</p>
+        <p>用零样本 LLM 提示抽取同一批句子，按<b>实体级 F1</b> 评估，写一页报告：类型体系为什么这样定？错误集中在边界还是类型？</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">下讲预告 · 第 10 讲 Seq2Seq 与注意力机制</div>
+      <p style="font-size:19px">今天给每个词贴标签，输出长度等于输入长度。下讲我们要<b>生成一整句话</b>——编码器-解码器、教师强制、束搜索，以及把两者缝起来的注意力机制（第 8 讲 BiLSTM 的下一步）。</p>
+      <p style="font-size:18.5px;margin-top:6px">思考题：<b>编码器-解码器的“固定上下文瓶颈”是什么？为什么句子越长、翻译质量越差？</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">56</span></div>
+</section>
+
+<!-- ================= 57 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:104px">
+    <div class="cn" style="font-size:42px">参考资料与致谢</div>
+    <div class="rule" style="margin:18px 0 20px"></div>
+    <div class="meta" style="font-size:15.5px;line-height:1.8">
+      <b>教材与经典文献（原理层）</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed.) POS 与序列标注章 · NLTK 教材第 5 章（词性标注与 n-gram 标注器）<br>
+      Viterbi (1967) 动态规划解码 · Rabiner (1989) HMM 经典教程 · Church (1988) 统计词性标注<br>
+      Brill (1992/1995) 变换学习 · McCallum et al. (2000) MEMM · Lafferty et al. (2001) CRF<br>
+      Grishman &amp; Sundheim (1996) MUC-6 命名实体任务 · Tjong Kim Sang &amp; De Meulder (2003) CoNLL-2003<br>
+      Huang et al. (2015) BiLSTM-CRF · Zhang &amp; Yang (2018) Lattice LSTM · Devlin et al. (2019) BERT<br>
+      <b>课程与工具（实例层）</b><br>
+      HuggingFace Transformers 文档（Token Classification pipeline · AutoModelForTokenClassification）· spaCy 语言学特性文档<br>
+      seqeval / conlleval 评估脚本 · Lena Voita NLP Course（Sequence Labeling）
+    </div>
+    <div class="foot" style="position:static;margin-top:22px">HMM 两假设、Viterbi 递推、BIO 编码与实体级 F1 为原理层、长期稳定；模型成绩、评估脚本与框架 API 为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 56</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  /* 把 解析成结构化提示 */
+
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

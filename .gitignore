@@ -1,0 +1,21 @@
+# 本地环境与密钥；允许提交不含密钥的示例。
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+node_modules/
+dist/
+build/
+# 运行产物默认不提交。
+/outputs/*
+!/outputs/.gitkeep
+.DS_Store
+Thumbs.db
+~$*

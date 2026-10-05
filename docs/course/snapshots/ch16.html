@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第16章 智能体、前沿展望与项目答辩 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+
+  table.ac.sm{font-size:16px}
+  table.ac.sm th{padding:5px 10px;font-size:16.5px}
+  table.ac.sm td{padding:4px 10px;line-height:1.32}
+  .code.sm{font-size:15.5px;line-height:1.5;padding:10px 14px;margin-top:8px}
+  .code.xs{font-size:14.5px;line-height:1.46;padding:9px 13px;margin-top:8px}
+  .card.tight{padding:12px 16px}
+  .card.tight .h{font-size:21px;margin-bottom:5px}
+  .card.tight p{font-size:18px;line-height:1.42}
+  .card.tight li{font-size:18px;line-height:1.4;margin-top:4px}
+  .grid.tight{gap:12px}
+  .grid.tight2{gap:10px}
+  .qbar.sm{font-size:19px;padding:11px 18px;margin-top:11px}
+  .lead.sm{font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Agents, Frontiers &amp; Project Defense</div>
+    <div class="cn">智能体、前沿展望与项目答辩</div>
+    <div class="rule"></div>
+    <div class="sub">第十六章 · 从“会回答”到“会行动”</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 16 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">16</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 14–15 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1;align-content:stretch">
+      <div class="card tight"><div class="h"><span class="no">1</span>工具调用</div><p>模型只负责“决定调用什么”与“解释结果”，外部程序真正执行——安全边界在程序侧。</p></div>
+      <div class="card tight"><div class="h"><span class="no">2</span>ReAct</div><p>Thought → Action → Observation 循环，把“凭记忆作答”变成“边查边答”。</p></div>
+      <div class="card tight"><div class="h"><span class="no">3</span>RAG</div><p>六步链路；召回是上限；混合检索 + RRF + 重排；三条生成约束 + 引用校验。</p></div>
+      <div class="card tight"><div class="h"><span class="no">4</span>推理优化</div><p>prefill/decode、KV Cache、量化、投机解码——按瓶颈选手段，不要全上。</p></div>
+    </div>
+    <div class="qbar">今天把它们拼起来：<span class="k">当模型会查、会调工具、会连续行动，它就从“问答系统”变成了“智能体”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">从“会回答”到“会行动”</div><div class="dd">Agent 的定义、四大组件、一个完整例子走通</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">核心机制：规划、工具、记忆</div><div class="dd">ReAct · Reflexion · Function Calling · Toolformer · 短期与长期记忆</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">多智能体与协议</div><div class="dd">角色分工 · 级联幻觉 · MCP 工具协议 · A2A 协作协议</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">工程、风险与评估</div><div class="dd">七种失败模式 · 可观测性 · 三大基准 · 权限与成本</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">前沿巡礼</div><div class="dd">多模态 · 推理模型 · 中文开源生态 · AI4Science · 合成数据</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">课程收口与项目答辩</div><div class="dd">16 讲知识地图 · 评分细则 · 答辩要求与常见问题</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 16 讲 · 智能体、前沿展望与项目答辩</span></div>
+  <div class="content">
+    <div class="lead sm">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说出 Agent 四大组件与 ReAct 循环</li>
+          <li>解释 Reflexion、多智能体与级联幻觉</li>
+          <li>说出五种以上失败模式与应对</li>
+          <li>解释 MCP 与 A2A 各自解决什么</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能设计一个带工具与记忆的 Agent 流程</li>
+          <li>能给 Agent 加可观测性与日志</li>
+          <li>能设计最小权限与人工确认机制</li>
+          <li>能完成项目报告与答辩材料</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>理解“行动空间”带来的新风险维度</li>
+          <li>建立权限最小化与人工兜底的意识</li>
+          <li>对前沿保持判断力：分清新能力与旧概念的包装</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:10px">
+      <div class="card tight"><div class="h">本讲重点</div><p>四大组件；ReAct 与 Reflexion；工具与记忆；MCP/A2A；失败模式；可观测性与权限；项目评分与答辩。</p></div>
+      <div class="card card-warn tight"><div class="h">本讲难点</div><p>为什么 Agent 可靠性更难保证；级联幻觉；如何为不可撤销的操作设防；前沿技术的判断力。</p></div>
+    </div>
+    <div class="qbar sm">一句话主线：<span class="k">Agent 不是“更强的模型”，而是“模型 + 工具 + 记忆 + 规划 + 一套工程约束”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">会回答不等于会办事——差别在“能不能行动，以及行动之后能不能负责”。</div>
+    <ul>
+      <li>三个对比：查天气 · 订机票 · 改代码</li>
+      <li>Agent 的四大组件：模型 / 工具 / 记忆 / 规划</li>
+      <li>一个完整案例：从提问到交付</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三个对比：会回答 vs 会行动</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:120px">任务</th><th>普通 LLM（会回答）</th><th>Agent（会行动）</th><th style="width:250px">多了什么</th></tr>
+      <tr><td><b>查天气</b></td><td>凭训练数据“猜”，必然幻觉</td><td>调用天气 API，拿到真实数据再回答</td><td>一个只读的外部数据源</td></tr>
+      <tr><td><b>订机票</b></td><td>给出建议与步骤，无法知道实时票价与余票</td><td>查询航班、比价、按规则下单、反馈订单号</td><td><b>写权限 + 资金操作</b>（风险最高）</td></tr>
+      <tr><td><b>改代码</b></td><td>给出一段示例代码，看不到你的仓库</td><td>读仓库 → 定位文件 → 修改 → 跑测试 → 提交</td><td>文件系统与命令行权限</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-deep tight"><div class="h">共同的变化</div>
+        <p style="font-size:19.5px;color:#E9F0FA">模型获得了一个<b>可以作用于外部世界的动作空间</b>。它不再只是生成文本，而是能改变文件、发送请求、执行命令、下订单。</p>
+        <p style="font-size:19px;color:#E9F0FA;margin-top:6px"><b>这正是 Agent 的本质——也是它风险的来源。</b></p>
+      </div>
+      <div class="card card-warn tight"><div class="h">一句必须记住的对比</div>
+        <p>一次<b>回答</b>错了，用户可以不信、可以重问——<b>错误的成本是零</b>。</p>
+        <p>一次<b>行动</b>错了，可能已经转了钱、删了文件、发了邮件——<b>成本可能不可撤销</b>。</p>
+        <p>这条差别决定了本讲后半段的所有工程约束。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Agent 的四大组件：一个案例走通</span><span class="sec">环节一 · 课程导入 · 考点</span></div>
+  <div class="content">
+    <div class="nn" style="margin-top:0">
+      <div class="col"><div class="node proj">模型</div><div class="lbl">推理与决策</div></div>
+      <div class="arr">+</div>
+      <div class="col"><div class="node">工具</div><div class="lbl">动作空间</div></div>
+      <div class="arr">+</div>
+      <div class="col"><div class="node">记忆</div><div class="lbl">短期 + 长期</div></div>
+      <div class="arr">+</div>
+      <div class="col"><div class="node out">规划</div><div class="lbl">分解与调整</div></div>
+    </div>
+    <div class="code sm" style="margin-top:16px">案例：「分析这份销售数据并生成周报」
+
+  ① <b>规划</b>   把任务拆成：读数据 → 算指标 → 找异常 → 定结论 → 写周报
+  ② <b>工具</b>   调用数据查询接口（只读），而不是让模型“回忆”销售额
+  ③ <b>执行</b>   计算同比 / 环比、按品类与地区拆分、识别异常点
+  ④ <b>记忆</b>   把本周结论与异常原因写入长期记忆（向量库），供下周对比
+  ⑤ <b>交付</b>   生成周报，每个数字标注数据来源与查询条件，便于复核</div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">四者缺一不可</div>
+        <p><b>只有模型</b> → 会编数据；<b>只有工具</b> → 不知道该调哪个、什么时候调；<b>没有记忆</b> → 每次都从零开始；<b>没有规划</b> → 遇到多步任务就迷路。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">本讲主线</div>
+        <p style="color:#E9F0FA">先讲<b>机制</b>（规划、工具、记忆、ReAct），再讲<b>协作与协议</b>（多智能体、MCP、A2A），最后讲<b>工程与风险</b>（失败模式、可观测性、评估、权限）——最后一部分才是决定 Agent 能不能上线的关键。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">机制 → 协作 → 工程 → 前沿 → 收口。</div>
+    <ul>
+      <li>核心机制：规划 · 工具 · 记忆 · ReAct · Reflexion</li>
+      <li>协作与协议：多智能体 · 级联幻觉 · MCP · A2A</li>
+      <li>工程与风险：失败模式 · 可观测性 · 评估基准 · 权限 · 成本</li>
+      <li>前沿巡礼：多模态 · 推理模型 · 中文生态 · AI4Science · 合成数据</li>
+      <li>课程收口：16 讲知识地图 · 项目评分细则 · 答辩要求</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 Agent 定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">什么是 LLM 智能体：四个关键词</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">定义</div>
+      <p style="font-size:19px">以<b>语言模型为决策核心</b>，在环境中通过<b>调用工具采取行动</b>、<b>接收反馈</b>、并根据反馈<b>调整后续行动</b>的自主系统。</p>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">四个关键词</div>
+        <ul>
+          <li><b>决策核心</b>：模型负责判断“现在该做什么”</li>
+          <li><b>动作空间</b>：工具定义了它“能做什么”——动作空间就是能力边界，也是风险边界</li>
+          <li><b>反馈闭环</b>：行动结果（成功/失败/返回值）回注上下文，影响下一步</li>
+          <li><b>自主性</b>：能连续多步执行，而不是一问一答</li>
+        </ul>
+      </div>
+      <div class="card card-warn tight"><div class="h">与传统程序的关键差别</div>
+        <table class="ac sm">
+          <tr><th style="width:130px"></th><th>传统程序</th><th>Agent</th></tr>
+          <tr><td>控制流</td><td>由人<b>写死</b></td><td>由模型<b>运行时决定</b></td></tr>
+          <tr><td>输入</td><td>结构化参数</td><td>自然语言 + 环境反馈</td></tr>
+          <tr><td>行为</td><td>确定、可测试</td><td><b>不确定、难以穷举测试</b></td></tr>
+          <tr><td>失败方式</td><td>异常与错误码</td><td>“看起来做完但没做对”</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="qbar sm">一句话理解：<span class="k">把“调用哪个函数、传什么参数、下一步做什么”交给模型决定</span>——这就是 Agent 与普通程序最本质的区别。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 四大组件 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">四大组件：大脑、手脚、笔记本、管家</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">①</span>模型（大脑）</div>
+        <p>负责理解目标、拆解任务、决定下一步动作。</p>
+        <p>模型能力越强，Agent 上限越高，成本也越高。常见工程做法：<b>用强模型做规划，用小模型做执行</b>——既保质量又控成本。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">②</span>工具（手脚）</div>
+        <p>搜索、数据库、代码执行沙箱、业务 API、文件系统、邮件与工单系统。</p>
+        <p><b>工具的数量与描述质量直接影响模型能否选对</b>——工具太多会混淆，描述不清会误用。<b>动作空间就是风险边界。</b></p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">③</span>记忆（笔记本）</div>
+        <p><b>短期记忆</b>：当前对话与中间结果，放在上下文里（受窗口限制，需要压缩与摘要）。</p>
+        <p><b>长期记忆</b>：跨会话的知识沉淀，放在向量库里（第 15 讲）——例如用户偏好、历史结论、已办事项。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">④</span>规划（管家）</div>
+        <p>把大目标拆成可执行步骤，并在执行中根据反馈调整（可能需要重新规划、回溯或求助人工）。</p>
+        <p>规划的质量决定了 Agent 是“步步为营”还是“走一步看一步”。</p>
+      </div>
+    </div>
+    <div class="qbar sm">重要提醒：<span class="k">四者不是并列的功能模块，而是互相依赖的闭环</span>——工具返回值进记忆，记忆影响规划，规划决定下一次工具调用。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 ReAct ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">ReAct：思考与行动交替循环（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">ReAct = Reasoning（推理） + Acting（行动）
+
+  循环：
+   ┌─────────────────────────────────────────────┐
+   │  <b>Thought</b>      我现在需要做什么？还缺什么信息？   │
+   │  <b>Action</b>       调用某个工具，带上参数            │
+   │  <b>Observation</b>  工具返回的结果（可能失败！）       │
+   │  → 回到 Thought，判断：信息够了吗？要换工具吗？        │
+   └─────────────────────────────────────────────┘
+      终止条件：<b>模型判断信息足够</b> 或 <b>达到最大步数上限</b></div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">为什么必须交替</div>
+        <p>只推理不行动 → 凭记忆猜（幻觉）；只行动不推理 → 不知道该调什么、也不知道结果够不够。</p>
+        <p>交替循环让每一步都建立在<b>真实反馈</b>上，而不是模型对世界的想象上。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">三个必须设计的约束</div>
+        <ul>
+          <li><b>最大步数</b>：防止无限循环烧钱（常见 5–15 步）</li>
+          <li><b>工具失败处理</b>：返回错误时是重试、换工具还是放弃？必须显式约定</li>
+          <li><b>全程记录</b>：每步的 Thought/Action/Observation 都要落日志（第 24 页）</li>
+        </ul>
+      </div>
+      <div class="card card-deep tight"><div class="h">它的地位</div>
+        <p style="color:#E9F0FA">ReAct 是今天几乎所有 Agent 框架的<b>基础范式</b>——LangChain 的 Agent、LlamaIndex 的 Agent、各家工具调用流程，本质上都是它的实现。</p>
+        <p style="color:#E9F0FA">它的价值不在于“新”，而在于把一个模糊的“智能”变成了<b>可工程化的循环结构</b>。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 Reflexion ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Reflexion：把失败变成可复用的经验</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">① 尝试执行任务 → 失败（或结果不理想）
+          ↓
+② <b>写反思</b>：为什么失败？哪一步错了？下次应该改什么？
+          ↓
+③ 把反思<b>存入记忆</b>（作为可复用的经验）
+          ↓
+④ 带着这段经验<b>再试一次</b> → 仍然失败则继续反思（限制轮数）</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">价值在哪</div>
+        <p>它把『失败』变成了<b>可复用的经验</b>，避免在同一个坑里反复跌倒。</p>
+        <p>对于有明确成功判据的任务（代码跑测试、SQL 能查出结果、格式校验通过），这一层收益特别明显。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">它的边界（与第 14 讲呼应）</div>
+        <p>反思的有效性取决于模型能否<b>正确判断失败原因</b>。</p>
+        <p>如果判断能力不足，反思可能得出错误结论，导致下一轮越改越偏——这与第 14 讲『自我反思在缺乏判断能力时无效甚至有害』是同一件事。</p>
+        <p><b>正确做法：把外部验证器（测试、校验、检索）的结果作为反思的依据，而不是让模型空想。</b></p>
+      </div>
+      <div class="card card-deep tight"><div class="h">工程约束</div>
+        <p style="color:#E9F0FA">必须限制<b>反思轮数</b>（常见 2–3 轮），否则会陷入“反思—重试—再反思”的死循环，既烧钱又无进展。</p>
+        <p style="color:#E9F0FA">而且每一轮的反思内容都要落日志——它是排查 Agent 行为最有价值的材料。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 Toolformer 与工具学习 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Toolformer：让模型自己学会用工具</span><span class="sec">环节二 · 知识点讲解 · 概念层</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">它要解决的问题</div>
+        <p>Agent 的一个基础难题是：<b>『哪一步该用哪个工具』的训练信号从哪来？</b></p>
+        <p>人工标注成本极高；而如果只靠提示词教，模型在复杂任务上容易选错或该用不用。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">做法：用“有没有帮助”当监督信号</div>
+        <div class="code xs" style="background:#fff">① 让模型自己生成大量候选 API 调用
+② 逐个检查：加上这次调用之后，
+   模型预测后续文本的准确率<b>是否提高</b>？
+③ 只保留“确实有帮助”的调用作为训练数据
+④ 用这些数据微调模型</div>
+        <p style="margin-top:6px">结果：模型学会在需要时调用计算器、问答、搜索、翻译、日历等 API，<b>不需要人工标注“哪一步用哪个工具”</b>。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">为什么这篇工作值得在课上讲</div>
+      <p style="font-size:19.5px">它是“<b>用可验证的信号训练模型行为</b>”这一思路的早期代表——而这条思路后来在第 13 讲的 GRPO（用规则/验证器给奖励）与今天的推理模型训练里被推到了极致。<b>共同点：只要能自动判断“结果好不好”，就能用强化学习或筛选的方式塑造模型行为。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 记忆 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">记忆：短期在上下文，长期在库里</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">短期记忆（放在上下文里）</div>
+        <p>内容包括：当前对话、中间结果、工具返回值、已执行步骤。</p>
+        <p><b>受上下文窗口限制</b>，工程手段：滚动摘要（把旧的对话压缩成摘要）、关键信息抽取（只留结论与参数）、分层压缩（保留最近若干轮 + 摘要更早的）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">长期记忆（放在外部存储里）</div>
+        <p>跨会话沉淀：<b>用户偏好、历史结论、已办事项、领域知识</b>。</p>
+        <p>通常存在向量库里（第 15 讲），检索方式与 RAG 完全一致——<b>所以长期记忆可以理解为“关于用户与历史的 RAG”</b>。</p>
+      </div>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px">
+      <div class="card card-warn tight"><div class="h">设计要点 ① 写入什么</div>
+        <p>不是所有信息都值得记。要有<b>筛选规则</b>：只记长期有效、可复用、且未来会用到的信息（偏好、约束、结论），而不是全量对话流水。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">设计要点 ② 何时召回</div>
+        <p>按<b>相似度</b>（与当前任务相关）、按<b>时间</b>（最近的优先）、按<b>实体</b>（与当前提到的客户/项目相关）——三种策略常组合使用。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">设计要点 ③ 如何更新与遗忘</div>
+        <p>信息会过期（用户的偏好变了、政策更新了）。必须支持<b>覆盖与删除</b>，否则记忆里会积累错误，而且越用越错。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 多智能体 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">多智能体：角色分工与协作</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">典型角色分工（以“开发一个小功能”为例）
+
+  <b>产品经理</b>：把模糊需求写成明确规格（输入、输出、边界）
+       ↓
+  <b>架构师</b>  ：选择技术方案、拆分模块、定义接口
+       ↓
+  <b>工程师</b>  ：按接口写实现代码
+       ↓
+  <b>测试</b>    ：写测试用例、跑测试、报告失败
+       ↓
+  <b>评审</b>    ：检查是否符合规格与规范，决定是否通过</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">三种协作模式</div>
+        <ul>
+          <li><b>串行</b>（流水线）：前一个角色的输出是后一个的输入</li>
+          <li><b>并行</b>：各自独立产出，再汇总与择优</li>
+          <li><b>辩论</b>：多个角色互相质疑，多轮后收敛</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">价值在哪</div>
+        <p>① <b>分工让每个角色的提示更聚焦、上下文更短、质量更稳</b>——一个提示里塞太多目标反而都做不好。</p>
+        <p>② <b>互相检查能发现单智能体看不到的问题</b>——类似人类团队的代码评审，独立视角本身就有价值。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">风险：链条越长越危险</div>
+        <p>每个角色的输出都可能带一点错，而下游角色会把这些错当成<b>事实</b>继续加工——误差逐级放大。</p>
+        <p>所以多智能体不是“越多越好”：<b>能用一个 Agent 加几个工具解决的，就不要拆成五个角色。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 级联幻觉 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">级联幻觉：多智能体最致命的问题（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">上游角色的一个错误，会被下游当作“既定事实”继续加工
+
+  架构师：调用 <b>getUserOrdersV2()</b> 接口     <span class="c">← 这个接口其实不存在</span>
+       ↓
+  工程师：按这个接口名写了调用代码          <span class="c">← 没有质疑，直接采用</span>
+       ↓
+  测试  ：编造了一个“该接口正常返回”的测试结果  <span class="c">← 错误被进一步“合理化”</span>
+       ↓
+  评审  ：看到有接口、有测试，判为通过         <span class="c">← 验收通过</span>
+
+  最终交付：一套完整、规范、但<b>根本跑不起来</b>的代码</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">为什么它会放大</div>
+        <p>因为下游角色<b>信任上游输出</b>——这在人类协作里是效率的来源，在模型协作里却成了风险的入口。</p>
+        <p>而且每一层都会“补全”细节，把不确定的东西写得越来越确定。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">防御 ① 关键节点加外部验证</div>
+        <p>接口是否存在 → <b>查 API 文档</b>；代码能否跑通 → <b>真跑测试</b>；数据是否查得到 → <b>真查一次库</b>。</p>
+        <p>把“相信上游”换成“验证上游”，这是唯一可靠的办法。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">防御 ②③ 质疑机制与链条长度</div>
+        <p><b>② 让下游有打回机制</b>：明确告诉它“上游输出可能有错，发现不合理要质疑并退回”，而不是无条件接受。</p>
+        <p><b>③ 限制链条长度与角色数量</b>：每增加一个角色，就多一次误差放大机会。能合并就合并。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 MCP ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">MCP：把“模型 ↔ 工具”的对接标准化（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="card card-warn tight" style="margin-top:0"><div class="h">它要解决的问题：N × M 的集成爆炸</div>
+      <p style="font-size:19px">有 <b>N 个模型应用</b>、<b>M 个工具服务</b>。如果两两定制对接，就要维护 <b>N×M</b> 套适配代码——每加一个工具就要改所有应用，每换一个模型就要改所有工具。</p>
+    </div>
+    <div class="code sm" style="margin-top:12px">没有统一协议：N × M 套适配          有了统一协议：N + M 套实现
+
+  应用A ─┬─ 工具1                   应用A ──┐        ┌── 工具1
+         ├─ 工具2                             ├─ 协议 ─┤
+  应用B ─┼─ 工具1                   应用B ──┘        └── 工具2
+         └─ 工具2                       <span class="c">双方都只实现协议本身</span></div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">协议里的三个角色</div>
+        <ul>
+          <li><b>宿主应用 Host</b>：用户直接使用的 AI 应用</li>
+          <li><b>客户端 Client</b>：宿主内部负责与服务器通信的组件</li>
+          <li><b>服务器 Server</b>：暴露能力的服务，提供<b>工具、资源、提示模板</b>三类能力</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">它带来的实际好处</div>
+        <p><b>工具一次实现、多处复用</b>——同一个数据库工具可以在多个 AI 应用里直接用。</p>
+        <p><b>权限与审计可以集中管理</b>——连接层统一做鉴权、限额与日志，比在提示词里约束可靠得多。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">一句类比</div>
+        <p style="color:#E9F0FA">MCP 对 Agent 工具生态的意义，类似于 <b>USB 接口对硬件外设</b>的意义：定义了统一的插口，设备与主机才不必两两定制。</p>
+        <p style="color:#E9F0FA"><b>⚠ 协议仍在演进，具体能力以官方最新文档为准。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 A2A ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">A2A：智能体之间的协作协议（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">它要解决什么问题</div>
+        <p>不同团队、不同框架构建的智能体，<b>彼此不认识、不会协作</b>——一个负责报销的 Agent 无法把任务交给负责审批的 Agent。</p>
+        <p>A2A 让它们能<b>互相发现、互相委派任务、交换结果</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">三个核心概念</div>
+        <ul>
+          <li><b>智能体卡片（Agent Card）</b>：描述该智能体能做什么、如何调用——相当于“名片 + 接口文档”</li>
+          <li><b>任务（Task）</b>：一个可委派的工作单元及其生命周期（提交 / 进行中 / 完成 / 失败）</li>
+          <li><b>消息与产物（Message / Artifact）</b>：协作过程中的沟通内容与最终交付物</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:14px"><div class="h">MCP 与 A2A 的分工（一句话记住）</div>
+      <p style="font-size:20px;color:#E9F0FA"><b>MCP 管“我要用工具”，A2A 管“我要找同事帮忙”。</b></p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px">前者是<b>纵向</b>的能力扩展（接入更多外部能力），后者是<b>横向</b>的协作扩展（把任务交给更专业的智能体）。<b>两者是互补而不是竞争关系。</b></p>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">什么时候需要 A2A</div>
+        <p>当一个任务的完成需要跨越<b>组织边界或系统边界</b>——例如企业内部不同部门的系统、不同厂商的服务。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">什么时候不需要</div>
+        <p>如果所有能力都在自己的代码里，<b>用 MCP 或直接写函数调用就够了</b>——引入跨智能体协议只会增加复杂度。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">⚠ 实例层提醒</div>
+        <p>这类协议仍处在快速演进阶段，名称与规范可能变化。</p>
+        <p>考试只要求说清<b>『各解决什么问题、二者如何分工』</b>，不要求记具体字段。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 失败模式 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Agent 的七种典型失败模式（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:220px">失败模式</th><th style="width:300px">表现</th><th>修复手段</th></tr>
+      <tr><td><b>① 无限循环</b></td><td>反复调用同一个工具，或反复失败重试，烧钱无进展</td><td><b>最大步数</b> + 循环检测（相同调用重复出现即中止）</td></tr>
+      <tr><td><b>② 工具误用</b></td><td>选错工具、传错参数、参数格式不对</td><td>精简工具集、写清工具描述、<b>参数 schema 校验</b></td></tr>
+      <tr><td><b>③ 目标漂移</b></td><td>执行几步后偏离了原始目标（去解决一个子问题忘了主线）</td><td>把目标与约束<b>固定在系统提示</b>里，每步回看</td></tr>
+      <tr><td><b>④ 过早收敛</b></td><td>信息明显不足就给答案（只查了一次就下结论）</td><td>显式定义“<b>信息充分的判据</b>”（必须查到 X 与 Y 才能回答）</td></tr>
+      <tr><td><b>⑤ 上下文爆炸</b></td><td>工具返回的内容太长，把窗口塞满、丢掉前面的关键约束</td><td>截断、摘要、只保留必要字段</td></tr>
+      <tr><td><b>⑥ 把返回值当真理</b></td><td>工具本身返回了错误或空结果，模型照样据此作答</td><td><b>校验返回值</b>与异常处理（空结果要显式处理）</td></tr>
+      <tr><td><b>⑦ 不可撤销操作无确认</b></td><td>直接下单、发邮件、删文件、退款</td><td><b>二次确认 + 沙箱 + 额度限制</b>（第 23 页）</td></tr>
+    </table>
+    <div class="qbar sm">排查建议：<span class="k">把每步的 Thought / Action / Observation 全部记下来再看</span>——Agent 的问题几乎都能在轨迹里找到，看不到轨迹就只能猜。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 可观测性 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">可观测性：Agent 迭代的基础设施（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">要记录六项</div>
+        <ol style="list-style:none">
+          <li>① 模型版本与<b>提示版本</b></li>
+          <li>② 每一步的 Thought / Action / <b>参数</b></li>
+          <li>③ Observation（工具返回的<b>原始内容</b>）</li>
+          <li>④ <b>耗时与 token 消耗</b>（定位成本热点）</li>
+          <li>⑤ 错误与重试</li>
+          <li>⑥ 最终输出与用户反馈</li>
+        </ol>
+      </div>
+      <div class="card card-blue tight"><div class="h">三项能力</div>
+        <ul>
+          <li><b>轨迹（Trace）</b>：把一次完整任务的全过程串起来看——哪一步开始跑偏一目了然</li>
+          <li><b>回放（Replay）</b>：用同样的输入重跑，判断问题是偶发还是稳定复现</li>
+          <li><b>聚合分析</b>：统计哪类工具最容易失败、哪一步最耗时、失败集中在什么类型的任务上</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">为什么它对 Agent 尤其重要</div>
+      <p style="font-size:19.5px;color:#E9F0FA">单次 LLM 调用输入输出都很短，看一眼就知道问题在哪；而 Agent 一次任务可能有 10–50 步、几十次工具调用、上万 token 的中间内容——<b>没有轨迹，你连“它在哪一步错了”都无法回答，更不用说改进。</b></p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px">所以：<b>先有可观测性，再谈优化。这是 Agent 工程的第一条纪律。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 评估基准 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Agent 评估：三大基准（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:170px">基准</th><th style="width:240px">测什么</th><th>形式</th><th style="width:250px">它暴露了什么</th></tr>
+      <tr><td><b>AgentBench</b>（2023）</td><td>多环境下的推理与决策能力</td><td>8 个交互环境：操作系统、数据库、知识图谱、卡牌游戏、网购、网页浏览等</td><td>当时的顶尖模型在复杂环境中的成功率<b>仍然很低</b></td></tr>
+      <tr><td><b>WebArena</b>（2023）</td><td>真实网页任务</td><td>可复现的真实网站环境（电商、论坛、代码托管），用自然语言下任务</td><td>比简化的合成环境更接近真实场景；<b>长程任务的失败率极高</b></td></tr>
+      <tr><td><b>SWE-bench</b>（2023/2024）</td><td><b>真实软件工程能力</b></td><td>真实 GitHub 仓库的 issue + PR：读懂仓库 → 定位问题 → 改代码 → 让测试通过</td><td>最能反映“真实工程能力”的基准之一；也是软件工程专业最该关注的</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">共同启示</div>
+        <p>Agent 基准<b>普遍比选择题难得多，分数也低得多</b>——这恰恰说明它们更接近真实价值。</p>
+        <p>在 MMLU 上 90 分与 85 分的差别可能不显著，但在 SWE-bench 上 20 分与 30 分的差别意味着能解决完全不同比例的真实问题。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">对课程项目的启示</div>
+        <p>你的项目也应该建一个类似的<b>真实任务测试集</b>：不是“问几个问题看回答好不好”，而是<b>一批带明确成功判据的任务</b>（能否跑通、能否查出正确结果、能否生成合规格式）。</p>
+        <p>然后统计<b>端到端成功率</b>与<b>平均步数</b>——这两个数字最能说明 Agent 系统的实际水平。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 安全与权限 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">安全与权限：Agent 的四条底线（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-deep tight"><div class="h"><span class="no">①</span>最小权限</div>
+        <p style="color:#E9F0FA">只给完成任务<b>必需的最小权限</b>——查天气不需要读邮件，写周报不需要转账权限。</p>
+        <p style="color:#E9F0FA"><b>危害的上限由权限决定，而不是由提示决定</b>（第 14 讲的结论在 Agent 上更加成立，因为 Agent 真的能动手）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">②</span>读写分离</div>
+        <p><b>默认只读</b>；写操作必须显式授权。</p>
+        <p>写操作优先在<b>沙箱或预发环境</b>执行，确认无误后再作用于生产环境。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">③</span>不可撤销操作二次确认</div>
+        <p>下单、退款、转账、发邮件、删数据——必须经<b>人工确认或走审批流程</b>。</p>
+        <p>并设置<b>额度限制</b>（金额上限、数量上限、频率上限），把“最坏损失”控制在一个可接受的范围。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">④</span>全量审计</div>
+        <p>每一次工具调用都记录<b>参数、结果、时间与发起者</b>，可追溯、可回放。</p>
+        <p><b>补充：写操作要有幂等设计</b>——避免重试造成重复下单、重复发信。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句总结：<span class="k">Agent 的安全不是“让它不做坏事”，而是“让它即使被误导也做不成坏事”</span>——这是系统设计问题，不是提示词问题。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 成本与延迟 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">成本与延迟控制：步数 × 每步成本</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">Agent 成本的基本公式</div>
+      <p style="font-size:20px;text-align:center;margin-top:6px">总成本 ≈ <b>步数 × 每步成本</b>　（每步成本 ≈ 输入 token + 输出 token + 工具调用费用）</p>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">路线 ① 减少步数</div>
+        <ul>
+          <li>把<b>目标与判据写清楚</b>——减少无效试错（对应失败模式④）</li>
+          <li><b>精简工具集</b>——工具越多越容易选错、越容易多试几轮</li>
+          <li><b>用更强的模型做规划</b>——一次规划对，胜过反复试错</li>
+          <li>把确定性任务改写成<b>代码流程</b>，不让模型决定</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">路线 ② 降低每步成本</div>
+        <ul>
+          <li><b>分级用模型</b>：简单步骤（生成工具参数、摘要结果）交给小模型</li>
+          <li><b>控制上下文长度</b>：截断与摘要工具返回（对应失败模式⑤）</li>
+          <li><b>缓存</b>重复的查询结果（语义缓存，第 15 讲）</li>
+          <li>用<b>量化或小模型</b>做本地步骤（第 15 讲）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-warn tight"><div class="h">延迟的特点</div>
+        <p>Agent 的延迟是<b>各步之和</b>，所以『<b>并行化无依赖的步骤</b>』是最有效的优化（如同时查三个数据源）。</p>
+        <p>同时要给<b>过程反馈</b>（“正在查询…已完成 3/5 步”），否则长等待会被用户认为是卡死。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">一条务实的原则</div>
+        <p style="font-size:19px;color:#E9F0FA"><b>能用确定性代码做对的事，就不要交给模型决定。</b></p>
+        <p style="font-size:18.5px;color:#E9F0FA">把模型用在真正需要判断的地方（理解意图、选择工具、处理异常），其余部分用普通程序实现——<b>这是把 Agent 做稳、做便宜最有效的一招。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 Agent 检查清单 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Agent 上线前的工程检查清单</span><span class="sec">环节二 · 知识点讲解 · 复习索引</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">机制侧（决定它能不能做对）</div>
+        <ul>
+          <li>目标与约束是否<b>固定在系统提示</b>里？（防目标漂移）</li>
+          <li>工具描述是否清晰？<b>工具集是否精简</b>？（防误用）</li>
+          <li>是否设定了<b>最大步数</b>与循环检测？（防无限循环）</li>
+          <li>是否有『<b>信息充分</b>』的明确判据？（防过早收敛）</li>
+          <li>是否定义了<b>工具失败</b>时的处理策略（重试 / 换工具 / 放弃）？</li>
+          <li>是否校验工具返回值？（防把错误结果当真理）</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">工程侧（决定它能不能被改进）</div>
+        <ul>
+          <li>是否记录了<b>完整轨迹</b>（模型版本 / 提示版本 / 每步动作与返回值 / 耗时与 token）？</li>
+          <li>是否有<b>回放</b>能力（同输入重跑）？</li>
+          <li>是否统计了<b>端到端成功率</b>与<b>平均步数</b>？</li>
+          <li>是否有失败任务的<b>归类分析</b>（哪类任务、哪一步、哪类工具）？</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-warn tight"><div class="h">安全侧（决定它敢不敢上线）</div>
+        <p>权限是否<b>最小化</b>？写操作是否<b>二次确认</b>？是否有<b>额度限制</b>与<b>幂等设计</b>？是否有<b>全量审计日志</b>？外部内容是否被当作“资料”而非“指令”（防注入）？</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">成本侧（决定它能不能规模化）</div>
+        <p>是否<b>分级用模型</b>（强模型规划、小模型执行）？是否<b>控制了上下文长度</b>？是否<b>缓存了重复查询</b>？是否把确定性任务<b>改写成代码</b>？</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 前沿① 多模态 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前沿 ①：多模态大模型</span><span class="sec">环节二 · 知识点讲解 · 前沿巡礼</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">核心思想：把不同模态都变成“词”</div>
+        <div class="code xs" style="background:#fff">图像 → 切成固定大小的块（patch）
+     → 每块当作一个“词”送进 Transformer
+
+文本 → 分词成 token 序列
+
+两者用<b>同一个注意力机制</b>交互
+→ “生成某个词时看图像的哪个区域”成为可学习的</div>
+        <p style="margin-top:6px"><b>关键洞察</b>：只要能把一种模态变成向量序列，就能复用已经成熟的 Transformer 架构——<b>架构不必改，只需要换“怎么把输入变成序列”。</b></p>
+      </div>
+      <div class="card card-blue tight"><div class="h">三个关键点与典型能力</div>
+        <ul>
+          <li><b>统一表示</b>：不同模态最终都变成向量序列</li>
+          <li><b>跨模态对齐</b>：注意力负责建立模态之间的对应关系（第 10 讲的软对齐又一次出现）</li>
+          <li><b>典型能力</b>：图像描述、视觉问答、图文检索、文档理解（OCR + 版面分析）、视频理解</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">对学院方向的意义</div>
+      <p style="font-size:19.5px;color:#E9F0FA"><b>智慧健康</b>：医学影像 + 报告文本的联合理解（“这张片子对应的报告怎么说”）；<b>金融科技</b>：图表 + 研报文字的联合分析（“这个图表支撑了文中哪个结论”）。</p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px">这些都是<b>跨模态对齐</b>的直接应用场景——而它背后的机制，就是第 10、11 讲学的注意力。<b>所以本课程的地基知识在这里依然成立。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 前沿② 推理模型 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前沿 ②：推理模型与长思维链</span><span class="sec">环节二 · 知识点讲解 · 前沿巡礼</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">核心变化</div>
+      <p style="font-size:19.5px">在回答前进行<b>更长的思考</b>——把思维链从『提示触发的技巧』变成『模型训练出来的默认行为』。</p>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">两条技术路径</div>
+        <p><b>① 用强化学习激励推理</b>：在答案可自动验证的任务（数学、代码）上用 GRPO 等算法训练，让模型<b>自己探索出更长的解题链</b>（第 13 讲）。</p>
+        <p><b>② 在推理阶段投入更多计算</b>（test-time compute）：采样多个候选、搜索、自我验证、投票（第 14 讲）。</p>
+        <p>两者可以叠加：训练时让它学会想，推理时让它多想。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">三条必须说清的边界</div>
+        <ul>
+          <li><b>成本与延迟显著上升</b>——思考的 token 也要付费与等待</li>
+          <li><b>简单任务上收益很小甚至为负</b>——想太多反而出错，且浪费成本</li>
+          <li><b>长思考链依然不忠实</b>——第 14 讲的判断依然成立，仍需要外部验证</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一个实用判断</div>
+      <p style="font-size:19.5px;color:#E9F0FA">不要对所有任务都用“最高推理档位”。<b>按任务难度分流</b>：简单问答、格式转换、抽取类任务用普通模式（快而便宜）；数学、复杂推理、代码调试用深度思考模式（慢而准）。</p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px"><b>这与第 14 讲『CoT 的收益高度依赖任务类型』是同一个判断，只是现在这个判断从提示工程层上升到了模型选择层。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 前沿③ 中文开源生态 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前沿 ③：中文开源模型生态</span><span class="sec">环节二 · 知识点讲解 · 素养目标 A4</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">三个积极变化</div>
+        <ul>
+          <li><b>能力已进入第一梯队</b>：多个国产开源模型在通用能力、中文理解、代码等维度与国际前沿模型可比</li>
+          <li><b>开源权重 + 完整工具链</b>：让高校与企业可以在本地或私有云部署</li>
+          <li><b>中文数据与评测逐步完善</b>：中文语料、中文基准（C-Eval / CMMLU）、中文对齐数据</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">对本课程与行业的直接价值</div>
+        <p><b>数据不出域</b>：医疗与金融场景可以用本地部署的开源模型（第 15 讲的隐私要求）。</p>
+        <p><b>算力友好</b>：小尺寸开源模型 + 量化（第 15 讲）可以在 CPU 或单卡上跑通完整应用——<b>这正是本课程所有实验都能零 GPU 门槛完成的原因。</b></p>
+        <p><b>可研究</b>：权重开放意味着可以分析注意力、做消融、复现论文——这是教学与科研的前提。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">也要客观看待</div>
+        <p>不盲目自满：<b>超长上下文的稳定性、复杂工具调用的可靠性与生态工具成熟度</b>方面仍有提升空间。</p>
+        <p>同时要警惕“跑分高就等于好用”——回到第 14 讲的判断：<b>榜单分数与真实任务表现之间存在差距</b>，必须用自己的场景集验证。</p>
+        <p><b>⚠ 具体模型名称、版本与排名以开课当年公开信息为准。</b></p>
+      </div>
+    </div>
+    <div class="qbar sm">课程思政落点：<span class="k">技术自主是产业安全的基础</span>，而开源生态让教学、科研与创业都获得了更低的门槛——这是这一代学生的机会。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 前沿④ AI4Science 与行业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前沿 ④：AI4Science 与行业深化</span><span class="sec">环节二 · 知识点讲解 · 前沿巡礼</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">① 科学领域（AI4Science）</div>
+        <ul>
+          <li><b>蛋白质结构预测</b>：从氨基酸序列预测三维结构——近十年最受瞩目的科学突破之一</li>
+          <li><b>分子与材料设计</b>：在巨大的候选空间里搜索有希望的结构</li>
+          <li><b>天气与气候预测</b>：用学习方法替代部分数值模拟</li>
+          <li><b>数学定理辅助证明</b>：生成候选证明步骤，交给验证器检查</li>
+        </ul>
+        <p><b>共同点</b>：把搜索空间巨大的科学问题，转化为可学习的模式识别问题。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 行业深化（从问答到流程）</div>
+        <p><b>金融</b>：从“问答助手”走向<b>流程自动化</b>——自动生成合规报告、自动对账、异常交易分析、监管报送初稿。</p>
+        <p><b>医疗</b>：从“问答”走向<b>辅助决策与流程优化</b>——病历质控、随访自动化、影像初筛、出院小结生成。</p>
+        <p><b>共同趋势</b>：从『单点工具』走向『端到端流程』，从『辅助人做』走向『<b>替人做完再复核</b>』。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一个必须点明的判断</div>
+      <p style="font-size:19.5px;color:#E9F0FA">行业价值的实现程度，<b>往往取决于流程改造而非模型能力</b>。同一个模型，接在一个“需要人工来回切换五个系统”的流程里，与接在一个“端到端自动化 + 关键节点复核”的流程里，创造的价值可能差一个数量级。</p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px"><b>这也是软件工程专业学生的机会所在</b>——模型能力是共同的，而流程设计与工程落地是你们的主场。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 前沿⑤ 合成数据 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前沿 ⑤：合成数据与自我改进（考点）</span><span class="sec">环节二 · 知识点讲解 · 前沿巡礼</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">三种用法</div>
+        <p><b>① 生成指令数据</b>：用强模型批量生成指令-回答对，再人工或自动筛选（第 12 讲 self-instruct 的思路）。</p>
+        <p><b>② 生成推理过程</b>：为数学题生成解题链，用于训练推理能力（第 13 讲）。</p>
+        <p><b>③ 自我博弈与自我改进</b>：模型生成候选 → 验证器筛选 → 用筛选结果训练自己。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">三个必须讲清的风险</div>
+        <ul>
+          <li><b>模型退化</b>：反复用自己生成的数据训自己，分布尾部逐渐丢失，多样性与质量一起下降</li>
+          <li><b>偏差放大</b>：教师模型的错误与偏见被固化进下一代模型</li>
+          <li><b>评测污染</b>：生成的评测数据可能无意中与真实评测集高度相似，导致分数虚高</li>
+        </ul>
+      </div>
+      <div class="card card-deep tight"><div class="h">工程上的稳健做法</div>
+        <p style="color:#E9F0FA">① <b>保留人类数据作为锚点</b>——完全脱离人类数据的自我循环风险最高；<br>
+        ② <b>用验证器筛掉低质样本</b>（可执行结果、规则校验、另一模型打分）；<br>
+        ③ <b>监控多样性指标</b>而不只看分数——分数上升但输出越来越同质，是退化的早期信号。</p>
+        <p style="color:#E9F0FA;margin-top:6px">一句话：<b>合成数据是放大器，不是替代品。</b></p>
+      </div>
+    </div>
+    <div class="qbar sm">呼应第 13 讲的『数据墙』：<span class="k">当人类文本不够用，合成数据是必然方向，但它的第一原则是“别把模型喂退化”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 课程知识地图 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课程知识地图：16 讲全景</span><span class="sec">课程收口 · 复习索引</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0"><b>模块一 · 文本处理基础（第 1–4 讲，8 学时）</b>
+  1 NLP 全景与 AI 时代学习路线　2 文本清洗与正则表达式
+  3 编辑距离与拼写纠错　　　　　4 分词与子词表示（BPE / WordPiece）
+
+<b>模块二 · 词表示与语言模型（第 5–8 讲，8 学时）</b>
+  5 词向量与语义表示（共现 / PPMI / Word2Vec / GloVe / FastText / ELMo）
+  6 神经网络基础（神经元 / MLP / 反向传播 / 优化 / 正则）
+  7 统计语言模型 N-gram（链式法则 / 平滑 / 困惑度）
+  8 神经语言模型 RNN / LSTM / GRU（BPTT / 门控 / 生成）
+
+<b>模块三 · 序列建模与 Transformer（第 9–11 讲，6 学时）</b>
+  9  序列标注 POS / HMM / NER（Viterbi / BIO / 实体级 F1）
+ 10  Seq2Seq 与注意力机制（编码器-解码器 / 对齐 / BLEU）
+ 11  Transformer 原理精讲（自注意力 / 多头 / 位置编码 / 残差）
+
+<b>模块四 · 大模型原理与工程（第 12–16 讲，10 学时）</b>
+ 12 预训练语言模型 GPT 与 BERT　13 大模型训练、微调与对齐
+ 14 提示工程与 LLM 评估　　　　 15 推理优化、RAG 与向量数据库
+ 16 智能体、前沿展望与项目答辩</div>
+    <div class="qbar sm">读这张图的正确姿势：<span class="k">前三个模块回答“大模型为什么会 work”，第四个模块回答“怎么把它用起来、用得好、用得负责”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 31 四条主线 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">四条主线：比按章节记更有效</span><span class="sec">课程收口 · 复习索引</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">①</span>表示：文本如何变成机器能算的东西</div>
+        <p>one-hot → <b>词向量</b>（第 5 讲）→ <b>上下文化表示</b>（第 6、12 讲）→ <b>子词</b>（第 4 讲）→ <b>向量检索</b>（第 15 讲）。</p>
+        <p>核心问题始终是：<b>怎么让语义相近的东西在数值上也相近。</b></p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">②</span>建模：如何在变长序列上做预测</div>
+        <p>规则 → <b>计数</b>（N-gram，第 7 讲）→ <b>循环</b>（RNN/LSTM，第 8 讲）→ <b>注意力</b>（第 10–11 讲）→ <b>预训练 + 微调</b>（第 12–13 讲）。</p>
+        <p>每一代都在解决上一代的具体缺陷：稀疏、长程、串行、标注依赖。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">③</span>评估：怎么知道做得好不好</div>
+        <p>准确率 / 精确率召回率 → <b>困惑度</b>（第 7 讲）→ <b>BLEU</b>（第 10 讲）→ <b>实体级 F1</b>（第 9 讲）→ <b>多指标 + AI 评委 + 人工校准</b>（第 14–15 讲）。</p>
+        <p>贯穿始终的两条纪律：<b>指标要匹配任务；口径要写清、要可复现。</b></p>
+      </div>
+      <div class="card card-deep tight"><div class="h"><span class="no">④</span>工程：怎么把它做成可用的系统</div>
+        <p style="color:#E9F0FA">成本与延迟（第 13、15 讲）· 可靠性与可观测性（第 16 讲）· 权限与合规（第 14、16 讲）· 评估与迭代（第 14、15 讲）。</p>
+        <p style="color:#E9F0FA"><b>这条主线在期末考试里占比不高，但在你的职业生涯里占比最高。</b></p>
+      </div>
+    </div>
+    <div class="qbar sm">建议：<span class="k">复习时按四条主线各梳理一遍，比按 16 讲逐章背更有效</span>——因为主线才是可迁移的能力。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 项目评分细则 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">期末项目评分细则（共 45%）</span><span class="sec">课程收口 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:190px">评分项</th><th style="width:90px">占比</th><th>评什么</th><th style="width:290px">拿分要点</th></tr>
+      <tr><td><b>① 提案</b></td><td>5%</td><td>选题价值、技术路线、分工与里程碑</td><td>问题定义清楚、技术路线有依据、分工到人、里程碑可检查</td></tr>
+      <tr><td><b>② 中期检查</b></td><td>5%</td><td>进度、demo 截图、风险与对策</td><td>有可演示的最小版本；<b>风险要写出来并给出对策</b></td></tr>
+      <tr><td><b>③ 实现与报告</b></td><td><b>25%</b></td><td>代码质量、功能完整度、<b>技术深度</b>、报告规范性、<b>可复现性</b></td><td>能跑通；有评估数据；有参数对比实验；报告含环境说明与种子；有 AI 使用声明</td></tr>
+      <tr><td><b>④ 答辩</b></td><td>10%</td><td>表达清晰、回答追问、说明取舍与不足</td><td>讲清“为什么这么设计”；<b>能说出哪里没做好、下一步怎么改</b></td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-warn tight"><div class="h">两条硬门槛</div>
+        <p><b>① 可运行</b>——不能跑通的系统，写得再好也不及格。<b>答辩前务必在一台“干净”的机器上验证一次。</b></p>
+        <p><b>② 可复现</b>——环境说明、随机种子、超参记录、评估脚本、提示版本、模型版本，缺一不可。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">技术深度从哪体现</div>
+      <p style="font-size:19px;color:#E9F0FA">不是“用了多大的模型”，而是：<b>① 做了参数对比实验并给出结论；② 定位了瓶颈并解释原因；③ 对失败做了归类分析；④ 说清了技术选型的取舍理由。</b></p>
+      <p style="font-size:18.5px;color:#E9F0FA;margin-top:6px">一个用 7B 模型 + 完整评估 + 诚实分析的项目，得分会高于一个用 70B 模型但只有一个分数的项目。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 33 报告与材料要求 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">期末报告的建议结构（八节）</span><span class="sec">课程收口 · 写作指南</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">前四节：说清“做了什么”</div>
+        <p>① <b>问题定义与背景</b>：解决什么问题？给谁用？<b>成功判据是什么？</b></p>
+        <p>② <b>相关工作与方案选型</b>：为什么选这个方案？对比了哪些替代方案？</p>
+        <p>③ <b>系统设计</b>：架构图、模块划分、数据流。</p>
+        <p>④ <b>实现细节</b>：关键技术点、遇到的具体问题与解决方式——<b>这部分最能体现工作量</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">后四节：说清“做得怎么样、边界在哪”</div>
+        <p>⑤ <b>评估</b>：指标、测试集、结果表、<b>与基线的对比</b>。</p>
+        <p>⑥ <b>错误分析与局限</b>：哪类样本失败？为什么？下一步怎么改？</p>
+        <p>⑦ <b>工程与伦理</b>：成本、延迟、权限、隐私、<b>AI 使用声明</b>。</p>
+        <p>⑧ <b>分工与贡献</b>：每人具体做了什么（避免“大家都做了一点”）。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">拉开分差的地方</div>
+      <p style="font-size:20px;color:#E9F0FA"><b>第⑤、⑥两节。</b>只有结果表、没有错误分析与局限讨论的报告，通常拿不到高分——因为老师无法判断你是“真的理解了系统”还是“碰巧跑出了一个数字”。<b>而一个能说清“我的系统在什么情况下会失败、为什么”的团队，显然对技术有更深的掌握。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 答辩要求 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">答辩要求与常见追问</span><span class="sec">课程收口 · 8 分钟陈述 + 5 分钟提问</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">陈述的四段结构（8 分钟）</div>
+        <p>① <b>问题与目标</b>（1′）：解决什么问题、给谁用、<b>成功判据</b>是什么。</p>
+        <p>② <b>系统演示</b>（3′）：现场跑一遍<b>真实用例</b>，并展示至少一个「<b>难例</b>」。</p>
+        <p>③ <b>技术与评估</b>（2.5′）：架构选择的理由、评估结果、与基线的对比。</p>
+        <p>④ <b>局限与下一步</b>（1.5′）：坦诚说出不足与改进方向。</p>
+        <p style="margin-top:6px"><b>演示不要只放截图</b>——现场跑通比任何幻灯片都有说服力；同时准备<b>录屏兜底</b>（网络、限流、数据都可能出问题）。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">四类常见追问</div>
+        <ul>
+          <li><b>为什么不用微调 / 为什么不用 RAG？</b>（考察选型依据）</li>
+          <li><b>评估集怎么建的？有没有和训练数据重叠？</b>（考察评测严谨性）</li>
+          <li><b>失败最多的是哪类样本？为什么？</b>（考察是否有真正的错误分析）</li>
+          <li><b>成本与延迟是多少？</b>（考察工程意识）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">两个加分点与一个减分点</div>
+      <p style="font-size:19px;color:#E9F0FA"><b>加分</b>：① 主动说出局限与失败案例——这说明你真的测过、想过；② 展示参数对比实验与瓶颈定位过程。</p>
+      <p style="font-size:19px;color:#E9F0FA;margin-top:6px"><b>减分</b>：把功劳都归给“我们用了某某大模型”，却说不出为什么选它、它在哪里失败、成本是多少——<b>这会被判定为缺少工程判断力。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 学院视角 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">学院视角：两个方向上的 Agent 应用</span><span class="sec">课程收口 · 素养与行业</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">① 金融科技</div>
+        <ul>
+          <li><b>合规审查助手</b>：读合同 → 对比内部制度与监管要求 → 标出风险条款 → 生成审查意见初稿；<b>关键判断必须人工确认</b></li>
+          <li><b>投研助手</b>：自动收集公告与研报 → 生成摘要与要点 → 更新跟踪表 → 异常事件提醒</li>
+          <li><b>对账助手</b>：找出差异记录 → 生成差异说明 → <b>提交人工复核</b>（不自动调账）</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 智慧健康</div>
+        <ul>
+          <li><b>病历质控助手</b>：检查完整性、前后矛盾、必填项缺失 → 生成质控清单交医生修改</li>
+          <li><b>随访助手</b>：按计划自动发起随访 → 记录回复 → <b>异常情况立即转人工</b></li>
+          <li><b>检查报告初筛</b>：标出需要优先关注的报告 → 医生复核（<b>不输出诊断结论</b>）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">三个共同特征</div>
+      <p style="font-size:19.5px;color:#E9F0FA"><b>① 动作空间必须严格限定</b>——以只读为主，写操作走审批或人工确认。<b>② 每个结论都要可追溯</b>——引用来源、版本、时间，便于审计。<b>③ 异常与不确定必须转人工</b>——Agent 的价值是<b>把人从重复劳动中解放出来，而不是替代人的判断</b>。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">最后一次课：项目冲刺与答辩准备。</div>
+    <ul>
+      <li>自学：完成实现、评估、报告与答辩材料</li>
+      <li>研讨：Agent 可靠性 · 最小权限 · 答辩展示什么（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 37 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">项目冲刺：最后一次课的收口清单</span><span class="sec">环节三 · 实践自学（课后完成）</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>实现收口（硬门槛）</div>
+        <ul>
+          <li>在一台<b>干净机器</b>上从头跑通一次（不是在你的开发机上）</li>
+          <li>补上 <b>requirements / 环境说明</b>与依赖版本</li>
+          <li>把 chunk_size / top-k / 模型名 / 提示模板等参数<b>外置成配置</b></li>
+          <li>确认<b>随机种子</b>固定，两次运行结果一致</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>评估补齐（拉分项）</div>
+        <ul>
+          <li>测试集是否包含<b>难例</b>与<b>无答案问题</b>？</li>
+          <li>是否有<b>指标结果表</b>与<b>与基线的对比</b>？</li>
+          <li>是否做了<b>错误样本归类</b>（哪类任务、哪一步、哪类输入失败）？</li>
+          <li>是否有<b>参数对比实验</b>（至少一组）？</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>报告与答辩</div>
+        <p><b>报告</b>按八节结构写，重点补强第⑤⑥节（评估与错误分析）。</p>
+        <p><b>答辩</b>准备：8 分钟四段结构陈述、<b>现场演示脚本</b>、<b>录屏兜底</b>、四类常见追问的答案。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">4</span>AI 使用声明（必填）</div>
+        <p>写清：用了哪些 AI 工具？用在哪一步（写代码 / 调试 / 写作 / 评估）？<b>如何验证 AI 给出的内容？</b></p>
+        <p><b>会用 AI 是能力，掩盖使用是失信</b>——声明本身也是评分项。</p>
+        <p>还有时间的话，优先补<b>可复现性</b>与<b>错误分析</b>——投入产出比最高。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">把你做的事情讲清楚、测明白、能复现</span>——这比追求一个漂亮数字重要得多。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个问题（10 分钟）</span><span class="sec">环节三 · 研讨 · 答案课堂揭示</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">Q1</span>为什么 Agent 的可靠性更难保证？</div>
+        <p style="font-size:20px">一次 LLM 调用错了可以重试，为什么 Agent 错了可能无法挽回？<b>请从“动作空间”说起。</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：多步串联的误差累积；行动不可撤销；行为不确定、失败难以穷举测试。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q2</span>为什么“最小权限”是安全底线？</div>
+        <p style="font-size:20px">提示注入的防御为什么不能只靠“写好提示词”？<b>“危害的上限由什么决定？”</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：即使模型被误导，它能造成的最大破坏由什么决定？只读与写权限的差别有多大？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q3</span>答辩时应该主动展示什么？</div>
+        <p style="font-size:20px">同样的系统，两支队伍的答辩得分可能差别很大。<b>哪些内容能体现真正的工程判断力？</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：局限与失败案例；选型依据；参数对比实验；成本与延迟。</p>
+      </div>
+    </div>
+    <div class="qbar sm">讨论 5′ · 分享 3′ · 点评 2′　｜　<span class="k">每组至少给一问定出结论并准备辩护</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">38</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个定义、一条纪律、一条底线。</div>
+    <ul>
+      <li>一个定义：Agent = 模型 + 工具 + 记忆 + 规划</li>
+      <li>一条纪律：先有可观测性，再谈优化</li>
+      <li>一条底线：危害的上限由权限决定，而不是由提示决定</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 41 课程总结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课程总结：从文本到智能</span><span class="sec">课程收口</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">十六讲的主线</div>
+      <p style="font-size:19.5px;text-align:center;margin-top:6px"><b>表示</b>（让机器能算）→ <b>建模</b>（让机器会预测）→ <b>架构</b>（让机器并行看全句）→ <b>预训练</b>（让机器吃掉互联网）→ <b>对齐</b>（让机器听懂人话）→ <b>工程</b>（跑得便宜 · 答得准 · 用得负责）</p>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">你真正学到的</div>
+        <p>不是模型名字，而是<b>四条可迁移的主线</b>：</p>
+        <p><b>① 表示</b>：怎么让语义相近的东西在数值上也相近。<br>
+        <b>② 建模</b>：怎么在变长序列上做预测。<br>
+        <b>③ 评估</b>：怎么用合适的指标判断好坏。<br>
+        <b>④ 工程</b>：怎么把方法做成可用的系统。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">给学生的三点建议</div>
+        <p><b>① 遇到新模型先问三件事</b>：它属于哪一条路线？训练目标是什么？上下文多长？——这能过滤掉大部分营销噪音。</p>
+        <p><b>② 任何结论都要有评估支撑</b>，包括你自己的实验——“我觉得效果变好了”不是结论，“准确率从 78% 提到 84%，测试集 100 条”才是。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">最重要的一条职业素养</div>
+        <p style="font-size:19px;color:#E9F0FA"><b>永远对模型输出保持验证意识。</b></p>
+        <p style="font-size:18.5px;color:#E9F0FA;margin-top:6px">因为<b>流畅不等于正确</b>，<b>自信不等于可靠</b>，<b>引用不等于支持</b>。</p>
+        <p style="font-size:18.5px;color:#E9F0FA;margin-top:6px">这门课教你的技术会过时，但这条判断力会一直有用——尤其当你要为别人的决策负责时。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">41</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与后续安排</div>
+    <div class="ds">项目冲刺与答辩时间线。</div>
+    <ul>
+      <li>本周内：提交报告与代码（含环境说明与 AI 使用声明）</li>
+      <li>下次课：现场答辩（8′ 陈述 + 5′ 提问，含现场演示）</li>
+      <li>答辩后一周内：按答辩意见提交修改稿</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 43 项目冲刺与后续 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">项目时间线与最后叮嘱</span><span class="sec">课程收口 · 作业与后续</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:180px">时间</th><th style="width:230px">要交什么</th><th>注意</th></tr>
+      <tr><td><b>本周内</b></td><td>报告 + 代码</td><td>含环境说明、可复现性清单（六项）、<b>AI 使用声明</b></td></tr>
+      <tr><td><b>下次课</b></td><td>现场答辩</td><td>每队 <b>8′ 陈述 + 5′ 提问</b>，必须现场演示；<b>准备录屏兜底</b></td></tr>
+      <tr><td><b>答辩后一周内</b></td><td>修改稿</td><td>按答辩意见修改，并说明改了哪里</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-warn tight"><div class="h">叮嘱 ① 不要删失败案例</div>
+        <p>不要为了“好看”而删掉不成功的实验。<b>诚实的错误分析是加分项</b>——它证明你测过、想过、理解边界在哪。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">叮嘱 ② 提前验证可复现性</div>
+        <p>不要在最后一天才去干净机器上跑一遍。环境与依赖问题是答辩当天<b>最常见的翻车原因</b>。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">叮嘱 ③ 把没做完的写进计划</div>
+        <p style="color:#E9F0FA">如果还有想做的事没做完，把它写进『下一步计划』，而不是硬塞进系统。<b>说清边界比假装完备更专业。</b></p>
+      </div>
+    </div>
+    <div class="qbar sm">最后一句：<span class="k">这门课结束时，你们手里的不只是几份作业，而是一套可以继续演进的能力，和一个属于你们自己的项目</span>。祝答辩顺利。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">43</span></div>
+</section>
+
+<!-- ================= 44 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:94px">
+    <div class="cn" style="font-size:42px">参考资料与致谢</div>
+    <div class="rule" style="margin:18px 0 20px"></div>
+    <div class="meta" style="font-size:15px;line-height:1.68">
+      <b>Agent 机制（原理层）</b><br>
+      Yao et al. (2023) ReAct · Shinn et al. (2023) Reflexion · Schick et al. (2023) Toolformer<br>
+      Park et al. (2023) 生成式智能体 · Hong et al. (2024) MetaGPT 与级联幻觉 · Xi et al. (2023) / Wang et al. (2024) Agent 综述<br>
+      <b>Agent 评估（基准层）</b><br>
+      Liu et al. (2023) AgentBench · Zhou et al. (2023) WebArena · Jimenez et al. (2024) SWE-bench · Yang et al. (2023) SWE-agent<br>
+      <b>协议与工程（实例层）</b><br>
+      Model Context Protocol（MCP）官方规范 · Agent2Agent（A2A）协议说明 · 主流 Agent 框架文档（工具调用、轨迹记录、评估）<br>
+      <b>前沿（拓展层）</b><br>
+      Dosovitskiy et al. (2021) ViT · Jumper et al. (2021) 蛋白质结构预测 · DeepSeek-AI (2025) 推理模型与 GRPO
+    </div>
+    <div class="foot" style="position:static;margin-top:12px">Agent 的定义、四大组件、ReAct 循环、失败模式与安全底线为原理层、长期稳定；协议规范、模型名称与基准分数为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 43</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

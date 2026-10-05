@@ -1,0 +1,11 @@
+# 自动识别文本，并使跨平台协作时的仓库换行保持一致。
+* text=auto
+*.md text eol=lf
+*.txt text eol=lf
+*.html text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf

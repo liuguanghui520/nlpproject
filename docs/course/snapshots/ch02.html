@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第2章 文本清洗与正则表达式 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+
+  /* ---------- 舞台缩放 ---------- */
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+
+  /* ---------- 页眉 / 页脚（A3 模式） ---------- */
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+
+  /* ---------- 通用组件 ---------- */
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+
+  /* 时间轴 */
+  .tl{display:flex;flex:1;align-items:stretch;gap:0;position:relative;padding-top:8px}
+  .tl::before{content:"";position:absolute;top:19px;left:6%;right:6%;height:3px;background:var(--line)}
+  .tl .step{flex:1;text-align:center;position:relative;padding:0 8px}
+  .tl .dot{width:22px;height:22px;border-radius:50%;background:var(--blue);border:4px solid #fff;
+    box-shadow:0 0 0 3px var(--blue);margin:0 auto 12px;position:relative;z-index:1}
+  .tl .yr{font-size:17px;font-weight:700;color:var(--navy)}
+  .tl .nm{font-size:22px;font-weight:700;color:var(--text);margin-top:3px}
+  .tl .ds{font-size:16.5px;color:var(--sub);margin-top:6px;line-height:1.42}
+  .tl .tag{margin-top:9px}
+
+  /* 表格 */
+  table.ac{width:100%;border-collapse:collapse;font-size:18.5px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:10px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:9px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17.5px}
+
+  /* 代码块 */
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:18px;
+    line-height:1.6;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+
+  /* 金句条 / 结论条 */
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+
+  /* 封面 */
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:76px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+
+  /* 目录 */
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+
+  /* 章节扉页 */
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+
+  /* 控件 */
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Text Cleaning &amp; Regular Expressions</div>
+    <div class="cn">文本清洗与正则表达式</div>
+    <div class="rule"></div>
+    <div class="sub">第二章 · 文本清洗与正则表达式</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 2 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-10</div>
+  <div class="num">02</div>
+</section>
+
+<!-- ================= 1.5 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 1 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>NLP 与任务地图</div><p>NLP = 理解（NLU）+ 生成（NLG）；一切应用都可拆成“理解·生成·检索·决策”四个动作。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>五代演进</div><p>规则 → 统计 → 神经 → 预训练 → 大模型；主线是“用更少的人工、更多的数据”。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>2026 生态</div><p>闭源第一梯队 GPT-5.x / Gemini / Claude；开源主力 DeepSeek V4 / Qwen3.8 / Kimi K3。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>课程结构与考核</div><p>16 讲三模块；考核：20% 测验 1 + 35% 测验 2 + 45% 期末项目。</p></div>
+    </div>
+    <div class="qbar">上节课给了“<span class="k">地图</span>”，今天学第一件工具——把脏文本变成<span class="k">干净、可计算</span>的输入。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 2 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：为什么第一步是“清洗”</div><div class="dd">真实文本有多脏；大模型的数据流水线同样离不开清洗</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">正则表达式语法五件套</div><div class="dd">字符类 · 量词 · 锚点 · 分组 · 速记符与转义</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">Python re 与提取实战</div><div class="dd">六大函数、邮箱/电话提取、网页文本清洗三件套</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">误报漏报与精确率召回率</div><div class="dd">正则没有“对错”，只有 FP/FN 与可度量的质量</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">规范化与中文预处理</div><div class="dd">大小写折叠、词形还原/词干、全半角与隐私脱敏</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">上机练习、小结与作业</div><div class="dd">两个快速任务、一次研讨、作业 1 与下讲预告</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 2 讲 · 文本清洗与正则表达式</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>掌握正则五件套：字符类、量词、锚点、分组、速记符</li>
+          <li>掌握 Python re 六大函数与常用标志位</li>
+          <li>理解误报/漏报与精确率/召回率的对应关系</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能用正则完成检索、提取、替换与切分</li>
+          <li>能实现文本清洗函数并计算 P/R 评估质量</li>
+          <li>能判断“该用正则还是该用大模型”</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>建立“数据质量决定模型上限”的工程意识</li>
+          <li>清洗时注意个人信息脱敏与数据合规</li>
+          <li>养成“先定目标、再写模式”的习惯</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>正则核心语法与 Python re 实战：今天就要写出能跑的正则，并说出它的 FP/FN。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>精确率与召回率的权衡；贪婪匹配陷阱；中文全半角与分词边界。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">先看真实文本有多脏，再看大模型的数据流水线为什么离不开清洗。</div>
+    <ul>
+      <li>真实文本的六类噪声</li>
+      <li>GPT-3 / C4 / FineWeb 的过滤与清洗</li>
+      <li>抛出本讲核心问题：如何高效、可评估地清洗文本</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 5 真实文本有多脏 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">这段文本有多脏？现场找噪声</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">下面是从网页/日志里抓来的“原始文本”，请找出所有会让机器出错的地方：</div>
+    <div class="code">【重磅】NLP 入门教程🔥🔥 网址：https://example.com/nlp?id=123456 转发@AI学院 #NLP#
+&lt;p&gt;联系电话：138-1234-5678 / +86 13800138000，邮箱 Contact@NLP-Edu.cn&lt;/p&gt;
+地址：北京市海淀区　中关村大街１号　邮编100080　日期:2026/9/10 👍👍👍
+&amp;nbsp;&amp;nbsp;锟斤拷烫烫烫 ← 编码错误产生的乱码</div>
+    <div class="grid g3" style="flex:1;align-content:stretch;margin-top:14px">
+      <div class="card card-warn"><div class="h">明显噪声</div><p>HTML 标签与 &amp;nbsp; 实体、URL 链接、重复标点、多余空白与换行。</p></div>
+      <div class="card card-warn"><div class="h">隐性噪声</div><p>emoji、@提及、话题标签、全角/半角混用、大小写不一致、乱码。</p></div>
+      <div class="card"><div class="h">信息噪声</div><p>电话、邮箱等“非正文”内容——去还是留，<b>由任务决定</b>。</p></div>
+    </div>
+    <div class="qbar">不清洗会怎样：同一邮箱被当成两个、分词器切错、模型把标签当内容学——<span class="k">垃圾进，垃圾出（GIGO）</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">05</span></div>
+</section>
+
+<!-- ================= 6 大模型也离不开清洗 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">大模型的数据流水线，同样离不开清洗</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">三个来自论文的真实数字——预训练数据在“喂给模型”之前都经历了大规模过滤：</div>
+    <div class="kpis">
+      <div class="kpi"><div class="n">45TB <small>→ 570GB</small></div><div class="l">GPT-3 的 Common Crawl 数据</div><div class="d">过滤前明文 45TB，过滤后 570GB（约 4000 亿 token）</div></div>
+      <div class="kpi"><div class="n">806GB <small>→ 750GB</small></div><div class="l">C4 数据集</div><div class="d">2019 年 4 月 Common Crawl 经启发式过滤得到</div></div>
+      <div class="kpi"><div class="n">15<small>T tokens</small></div><div class="l">FineWeb 数据集</div><div class="d">96 个快照、44TB，靠过滤启发式与去重“蒸馏”而成</div></div>
+      <div class="kpi"><div class="n">+6.6<small>pp</small></div><div class="l">过滤升级的收益（DCLM）</div><div class="d">同模型同算力，仅升级数据过滤策略带来的准确率提升</div></div>
+    </div>
+    <div class="src"><b>来源：</b>Brown et al., GPT-3（2020）；Raffel et al., C4（2020）；Penedo et al., FineWeb（2024, arXiv:2406.17557）；Li et al., DCLM（2024, arXiv:2406.11794）。</div>
+    <div class="qbar">模型的上限由数据决定——<span class="k">清洗这步的“手艺”，正是正则表达式</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从流水线全景出发，讲清语法五件套、Python 实战与质量评估。</div>
+    <ul>
+      <li>文本处理流水线与正则的定义</li>
+      <li>字符类 / 量词 / 锚点 / 分组 / 速记符</li>
+      <li>Python re、提取实例、误报漏报与 P/R、规范化与易错点</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 8 流水线 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">文本处理流水线：本讲的位置</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">任何 NLP 系统都要先回答“文本如何变成机器能算的东西”，一共五步：</div>
+    <div class="tl" style="flex:1">
+      <div class="step"><div class="dot"></div><div class="yr">第 1 步</div><div class="nm">采集</div><div class="ds">网页、文档、数据库、API 获取原始文本</div><span class="tag b">Input</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">第 2 步</div><div class="nm">清洗</div><div class="ds">去标签、去噪声、纠编码——本讲重点</div><span class="tag y">本讲</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">第 3 步</div><div class="nm">规范化</div><div class="ds">大小写、词形、全半角、繁简——本讲</div><span class="tag y">本讲</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">第 4 步</div><div class="nm">分词</div><div class="ds">Token/Type 与子词 BPE——第 4 讲</div><span class="tag b">第 4 讲</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">第 5 步</div><div class="nm">表示与建模</div><div class="ds">词向量、语言模型、Transformer——第 5–11 讲</div><span class="tag b">后续</span></div>
+    </div>
+    <div class="qbar">前两步做不好，<span class="k">错误会一路放大到模型</span>——清洗的质量就是系统的下限。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 9 正则是什么 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则表达式是什么？</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h">定义</div><p>一种用“模式（pattern）”描述一类字符串的形式语言：把“想找什么”写成机器可执行的规则。</p></div>
+      <div class="card"><div class="h">五种用途</div><p>检索（有没有）、提取（找出来）、校验（合不合法）、替换（改掉）、切分（断开）。</p></div>
+      <div class="card"><div class="h">一个类比</div><p>文本世界的“寻人启事”——不必说出具体是谁，只凭特征就能把一类人找出来。</p></div>
+    </div>
+    <div class="code">想找 <b>woodchuck</b> 与 <b>woodchucks</b> 两种写法 → 一条模式搞定：
+<b>woodchucks?</b>   <span class="c"># s? 表示 s 可有可无</span></div>
+    <div class="qbar">正则不是“查字典”，而是<span class="k">描述一类字符串的语言</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 六个真实战场 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则的六个真实战场</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">它不只是课程练习，而是你每天都会撞上的生产工具：</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>日志排障</div><p>从百万行服务器日志里精准捞出 ERROR 与异常堆栈。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>表单校验</div><p>注册页的手机号、邮箱、密码强度检查——你每天都在被正则“拦截”。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>爬虫与抽取</div><p>从网页源码批量抓取价格、日期、链接等结构化字段。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>隐私脱敏</div><p>语料入库前把身份证、手机号替换为占位符——法规合规刚需。</p></div>
+      <div class="card"><div class="h"><span class="no">5</span>语料规则过滤</div><p>大模型预训练的启发式过滤器，本质是一组正则 + 计数规则。</p></div>
+      <div class="card"><div class="h"><span class="no">6</span>代码搜索替换</div><p>IDE 里的正则全局搜索替换，重构代码的利器。</p></div>
+    </div>
+    <div class="qbar">为什么不让大模型干这些活？<span class="k">秒级、零成本、结果确定</span>——规则明确的场景不需要“智能”，这是工程选型。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 字符类 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五件套①：字符类与取反</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:26%">模式</th><th style="width:30%">含义</th><th style="width:44%">例子</th></tr>
+      <tr><td><code>[wW]oodchuck</code></td><td>方括号：其中任意一个字符</td><td>匹配 <b>Woodchuck</b> 与 <b>woodchuck</b></td></tr>
+      <tr><td><code>[a-z]</code></td><td>范围：一个连续区间</td><td>匹配任意一个小写字母</td></tr>
+      <tr><td><code>[0-9]</code></td><td>范围：数字</td><td>“Chapter 1” 中的 <b>1</b></td></tr>
+      <tr><td><code>[A-Za-z0-9_]</code></td><td>多个区间可合并</td><td>Python 变量名允许的字符</td></tr>
+      <tr><td><code>[^Ss]</code></td><td>取反：不是 S 也不是 s</td><td>“I have no exquisite reason” 中的其他字符</td></tr>
+      <tr><td><code>[^e^]</code></td><td>^ 只在最前表示取反</td><td>匹配除 e 与 ^ 之外的字符</td></tr>
+    </table>
+    <div class="qbar">一句话：<span class="k">[] 表示“任意一个”，^ 放最前表示“除这些之外”</span>；中文常用 <span class="k">[\u4e00-\u9fff]</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 量词 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五件套②：量词</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">模式</th><th style="width:32%">量词含义</th><th style="width:48%">能匹配</th></tr>
+      <tr><td><code>colou?r</code></td><td><b>?</b>：0 或 1 次</td><td>color、colour</td></tr>
+      <tr><td><code>oo*h!</code></td><td><b>*</b>：0 次及以上</td><td>oh!、ooh!、oooh!、ooooh!</td></tr>
+      <tr><td><code>o+h!</code></td><td><b>+</b>：1 次及以上</td><td>ooh!、oooh!（<b>不含</b> oh!）</td></tr>
+      <tr><td><code>baa{3}</code></td><td><b>{n}</b>：恰好 n 次</td><td>baaa（b 后跟 3 个 a）</td></tr>
+      <tr><td><code>ba{2,4}</code></td><td><b>{n,m}</b>：n 到 m 次</td><td>baa、baaa、baaaa</td></tr>
+    </table>
+    <div class="qbar">默认<span class="k">贪婪</span>：能多匹配就不少匹配；在量词后加 <span class="k">?</span> 可改为懒惰——第 13 页展开。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 锚点 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五件套③：锚点与边界</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:16%">模式</th><th style="width:28%">含义</th><th style="width:56%">例子</th></tr>
+      <tr><td><code>^</code></td><td>行首</td><td><code>^[A-Z]</code>：以大写字母开头的行</td></tr>
+      <tr><td><code>$</code></td><td>行尾</td><td><code>\.$</code>：以句号结尾的行</td></tr>
+      <tr><td><code>\b</code></td><td>词边界</td><td><code>\bwood\b</code> 只匹配独立的 wood，不匹配 hardwood</td></tr>
+      <tr><td><code>\B</code></td><td>非词边界</td><td><code>\Bwood</code> 匹配 hardwood 中的 wood</td></tr>
+    </table>
+    <div class="code">re.findall(<b>r'\bwood\b'</b>, 'hardwood wood wooden')
+<span class="c"># → ['wood']  ← 边界把误报挡在门外</span></div>
+    <div class="qbar">锚点匹配的是<span class="k">位置</span>而非字符——它让模式的“落点”更准。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 分组与贪婪 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五件套④：分组、或与贪婪</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>或与捕获组</div>
+        <ul>
+          <li><code>groundhog|woodchuck</code>：二选一</li>
+          <li><code>(wood)?chucks</code>：整体可选</li>
+          <li>捕获组会“记下”内容，用 <code>m.group(1)</code> 取出</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>非捕获与回引</div>
+        <ul>
+          <li><code>(?:...)</code>：只分组、不捕获</li>
+          <li><code>(\w+)\s+\1</code>：找连续重复词（the the）</li>
+          <li>回引是文本质检的经典手段</li>
+        </ul>
+      </div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>贪婪 vs 懒惰</div>
+        <ul>
+          <li><code>&lt;b&gt;.*&lt;/b&gt;</code>：贪婪，整段吞掉</li>
+          <li><code>&lt;b&gt;.*?&lt;/b&gt;</code>：懒惰，逐段匹配</li>
+          <li>一对多标签的场合，懒惰几乎总是对的</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">分组让正则从“匹配”升级为<span class="k">结构化提取</span>——这是正则与业务结合的关键一步。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 速记符 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五件套⑤：速记符与转义</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:24%">模式</th><th style="width:34%">含义</th><th style="width:42%">等价写法 / 注意</th></tr>
+      <tr><td><code>\d</code></td><td>任意数字</td><td><code>[0-9]</code></td></tr>
+      <tr><td><code>\w</code></td><td>词字符</td><td><b>Python 3 默认匹配 Unicode 词字符（含中文）</b>，加 <code>re.ASCII</code> 才回到 <code>[A-Za-z0-9_]</code></td></tr>
+      <tr><td><code>\s</code></td><td>空白字符</td><td>空格、Tab、换行等</td></tr>
+      <tr><td><code>\D \W \S</code></td><td>取反</td><td>非数字 / 非词字符 / 非空白</td></tr>
+      <tr><td><code>\. \\ \+ \*</code></td><td>转义特殊字符</td><td>匹配真正的句号、反斜杠等</td></tr>
+      <tr><td><code>[\u4e00-\u9fff]</code></td><td>中文范围</td><td>匹配一个汉字（中文文本最高频）</td></tr>
+    </table>
+    <div class="qbar">注意版本差异：<span class="k">Python 3 的 \w 默认含中文</span>——精确控制请显式写 <span class="k">[\u4e00-\u9fff]</span> 或加 re.ASCII。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 14b 零宽断言 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">零宽断言：只判断位置，不消耗字符</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">模式</th><th style="width:30%">含义</th><th style="width:50%">例子</th></tr>
+      <tr><td><code>(?=...)</code></td><td>前瞻：后面必须跟…</td><td><code>Windows(?=95|98)</code> 只匹配后接 95/98 的 Windows</td></tr>
+      <tr><td><code>(?!...)</code></td><td>负前瞻：后面不能跟…</td><td><code>foo(?!bar)</code> 匹配后面不是 bar 的 foo</td></tr>
+      <tr><td><code>(?&lt;=...)</code></td><td>后顾：前面必须是…</td><td><code>(?&lt;=\$)\d+</code> 只取 $ 后面的数字（$ 不参与匹配）</td></tr>
+      <tr><td><code>(?&lt;!...)</code></td><td>负后顾：前面不能是…</td><td><code>(?&lt;!\d)\d{11}(?!\d)</code> 电话前后不粘连数字</td></tr>
+    </table>
+    <div class="qbar">断言匹配的是“<span class="k">位置</span>”而不是字符——密码校验与边界控制的两大利器。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 15 Python re ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Python re 模块：六大函数</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1">
+      <table class="ac">
+        <tr><th style="width:34%">函数</th><th>作用</th></tr>
+        <tr><td><code>re.search(p, s)</code></td><td>返回第一个匹配对象</td></tr>
+        <tr><td><code>re.match(p, s)</code></td><td>只从<b>开头</b>匹配</td></tr>
+        <tr><td><code>re.findall(p, s)</code></td><td>返回所有匹配的列表</td></tr>
+        <tr><td><code>re.finditer(p, s)</code></td><td>返回迭代器（省内存）</td></tr>
+        <tr><td><code>re.sub(p, r, s)</code></td><td>替换所有匹配</td></tr>
+        <tr><td><code>re.split(p, s)</code></td><td>按模式切分</td></tr>
+        <tr><td><code>re.compile(p)</code></td><td>预编译，复用更高效</td></tr>
+      </table>
+      <div class="card card-blue"><div class="h">写法要点</div>
+        <ul>
+          <li>模式统一写进 <b>r'' 原始字符串</b>，反斜杠不打架</li>
+          <li>标志位：<code>re.I</code> 忽略大小写、<code>re.M</code> 多行、<code>re.S</code> 点号匹配换行</li>
+          <li>有分组时 <code>findall</code> 返回元组列表</li>
+        </ul>
+      </div>
+    </div>
+    <div class="code">re.findall(<b>r'\d+'</b>, '电话 207-587-3290')   <span class="c"># → ['207', '587', '3290']</span></div>
+    <div class="qbar">复杂模式先 <span class="k">compile</span> 再复用；想替换时 <span class="k">sub</span> 最趁手。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 15b 方言差异 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则的“方言”差异</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:22%">语法点</th><th style="width:26%">Python</th><th style="width:26%">JavaScript</th><th style="width:26%">Java</th></tr>
+      <tr><td><b>命名分组</b></td><td><code>(?P&lt;name&gt;...)</code></td><td><code>(?&lt;name&gt;...)</code></td><td><code>(?&lt;name&gt;...)</code></td></tr>
+      <tr><td><b>后顾 lookbehind</b></td><td>支持，要求<b>定长</b></td><td>旧引擎不支持，新引擎有限支持</td><td>支持有限定长</td></tr>
+      <tr><td><b>\w 的 Unicode</b></td><td>默认含中文（可 re.ASCII）</td><td>默认 ASCII</td><td>需 UNICODE_CHARACTER_CLASS</td></tr>
+      <tr><td><b>全局替换</b></td><td><code>re.sub</code> 默认全替换</td><td>需 /g 标志</td><td><code>replaceAll</code></td></tr>
+    </table>
+    <div class="qbar">跨语言移植先选对引擎验证——<span class="k">写一次，处处跑</span>是理想，读文档才是现实。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 16 实例1 邮箱 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">实战①：提取邮箱地址</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code"><span class="c"># 第一步：基础可用版本</span>
+pattern = <b>r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'</b>
+re.findall(pattern, text)</div>
+    <div class="grid g3" style="flex:1;align-content:stretch;margin-top:16px">
+      <div class="card"><div class="h">它做对了什么</div><p>能抓住绝大多数常规邮箱：<b>guogb@swc.neu.edu.cn</b>、<b>a.b+c@example.com</b>。</p></div>
+      <div class="card card-warn"><div class="h">会误报（FP）</div><p>句尾句号会被吞进去：<b>mail@x.com.</b> 多带一个点；连续符号也可能放行。</p></div>
+      <div class="card card-warn"><div class="h">会漏报（FN）</div><p>新顶级域 <b>.ai/.io</b> 可能漏；中文邮箱、Unicode 域名也不在模式内。</p></div>
+    </div>
+    <div class="qbar">一个“完美”邮箱正则可能有上百字符——工程上<span class="k">先定精度目标，再写模式</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 实例2 电话 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">实战②：提取电话号码</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">同一条信息三种写法：<b>207-587-3290</b>　<b>5583446854</b>　<b>(207) 107-929</b>——模式要能都接住。</div>
+    <div class="code"><span class="c"># 括号可选 → 分隔符可选（- . 或空格）→ 三段数字</span>
+pattern = <b>r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'</b>
+<span class="c"># 用分组统一格式：207-587-3290 → (207) 587-3290</span>
+re.sub(<b>r'(\d{3})-(\d{3})-(\d{4})'</b>, <b>r'(\1) \2-\3'</b>, s)</div>
+    <div class="grid g2" style="flex:1;align-content:stretch;margin-top:14px">
+      <div class="card"><div class="h">渐进式写法</div><p>先写只支持“-”的最简版，再逐项加 <code>?</code> 兼容括号与空格，边加边测。</p></div>
+      <div class="card card-blue"><div class="h">工程价值</div><p>很多清洗任务的目标不是“提取”，而是<b>统一格式</b>——为后续入库、检索服务。</p></div>
+    </div>
+    <div class="qbar">先枚举格式、再统一格式——<span class="k">“统一”比“完美提取”更实用</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17b 日志解析 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">案例：日志解析实战</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;flex:1;font-size:15px;line-height:1.5">
+line = '192.168.1.10 - - [10/Sep/2026:14:02:11 +0800] "GET /index.html HTTP/1.1" 200 1024'
+pat = re.compile(<b>r'(?P&lt;ip&gt;[\d.]+) .* \[(?P&lt;time&gt;[^\]]+)\] '
+                r'"(?P&lt;method&gt;\w+) (?P&lt;path&gt;\S+)[^"]*" '
+                r'(?P&lt;status&gt;\d{3}) (?P&lt;size&gt;\d+)'</b>)
+m = pat.search(line)
+m.groupdict()
+<span class="c"># {'ip':'192.168.1.10','time':'10/Sep/2026:14:02:11 +0800',
+#  'method':'GET','path':'/index.html','status':'200','size':'1024'}</span></div>
+    <div class="qbar">命名分组让解析结果<span class="k">可读可维护</span>——百万行日志再配预编译，速度与可读性兼得。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 18 实例3 网页清洗 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">实战③：网页文本清洗三件套</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">从“源码”到“干净正文”，三步、三行正则：</div>
+    <div class="code">import re, html
+clean = re.sub(<b>r'&lt;[^&gt;]+&gt;'</b>, '', raw)            <span class="c"># ① 去标签</span>
+clean = html.unescape(clean)                      <span class="c"># ② 解实体 &amp;nbsp; → 空格</span>
+clean = re.sub(<b>r'\s+'</b>, ' ', clean).strip()   <span class="c"># ③ 压缩空白</span></div>
+    <div class="grid g3" style="flex:1;align-content:stretch;margin-top:16px">
+      <div class="card"><div class="h">为什么这样写</div><p><code>[^&gt;]+</code> 避免 .*? 的嵌套问题；每步只解决一类噪声，可单测。</p></div>
+      <div class="card card-blue"><div class="h">还能再加</div><p>删脚本样式：<code>&lt;script&gt;.*?&lt;/script&gt;</code>（配 <code>re.S</code>）；去掉多余空行。</p></div>
+      <div class="card"><div class="h">与大模型分工</div><p>规则确定的结构噪声交给正则；语义模糊的改写润色交给大模型（第 14 讲）。</p></div>
+    </div>
+    <div class="qbar">清洗三件套：<span class="k">去标签 → 解实体 → 压空白</span>——每步一条正则，可测试、可复用。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 18b 脱敏综合 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">案例：敏感信息脱敏</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+text = "张三 210101199001011234 13812345678 6222021234567890"
+text = re.sub(<b>r'\d{17}[\dXx]'</b>, '[ID]', text)     <span class="c"># 身份证</span>
+text = re.sub(<b>r'1[3-9]\d{9}'</b>, '[PHONE]', text)  <span class="c"># 手机号</span>
+text = re.sub(<b>r'\d{16,19}'</b>, '[CARD]', text)     <span class="c"># 银行卡</span>
+<span class="c"># → 张三 [ID] [PHONE] [CARD]</span></div>
+      <div class="card card-warn">
+        <div class="h">三个要点</div>
+        <ul>
+          <li>① <b>先规范化再脱敏</b>：全角数字先 NFKC 归一，否则漏脱</li>
+          <li>② 保留格式线索（如 138****5678）比整段删除更利于分析</li>
+          <li>③ 日志与语料入库前必须过这一关——合规红线</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">脱敏不是“抹掉”，而是<span class="k">在合规与可用之间留好线索</span>——先规范化、再替换。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 18c 日期归一化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">案例：日期时间归一化</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+text = "会议：2026/9/10 与 2026-09-10 及 2026年9月10日"
+pat = re.compile(<b>r'(\d{4})[/年-](\d{1,2})[/月-](\d{1,2})日?'</b>)
+def norm(m):
+    return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+pat.sub(norm, text)
+<span class="c"># → 会议：2026-09-10 与 2026-09-10 及 2026-09-10</span></div>
+      <div class="card card-blue">
+        <div class="h">标准套路</div>
+        <ul>
+          <li>分组捕获年 / 月 / 日 → <b>回引重组</b>统一格式</li>
+          <li>日期、电话、编号、价格通用同一套路</li>
+          <li>正则管<b>形状</b>，范围校验管<b>合法性</b>（月 1–12、日 1–31）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">“统一格式”比“完美提取”更实用——<span class="k">分组捕获 + 回引重组</span>是归一化的标准套路。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 19 误报漏报 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">误报与漏报：正则的质量观</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">FP</span>误报（False Positive）</div><p>匹配了不该匹配的——邮箱模式把句尾句号也吞了进来；统计上对应 <b>Type I 错误</b>。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">FN</span>漏报（False Negative）</div><p>该匹配的没匹配——<b>+86 139…</b> 这种带区号的号码被漏掉；对应 <b>Type II 错误</b>。</p></div>
+      <div class="card"><div class="h">先问代价</div><p>二者往往此消彼长：放宽模式 → 漏报降、误报升。动手前先想清楚<b>哪个代价更大</b>。</p></div>
+    </div>
+    <div class="qbar">正则没有“对错”，只有<span class="k">误报与漏报</span>——写完模式先自问：我会错抓什么？会漏什么？</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 P/R ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">精确率与召回率：把质量变成数字</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h"><span class="no">P</span>精确率 Precision</div>
+        <ul>
+          <li><b>P = TP ÷ (TP + FP)</b></li>
+          <li>问题：抓到的里面，有多少是对的？</li>
+          <li>高精确场景：<b>表单校验</b>——宁可放过，别误伤合法用户</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">R</span>召回率 Recall</div>
+        <ul>
+          <li><b>R = TP ÷ (TP + FN)</b></li>
+          <li>问题：该抓的，抓到了多少？</li>
+          <li>高召回场景：<b>PII 脱敏</b>——宁可误杀，不可放过一个身份证号</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h">算一遍 + F1</div>
+        <ul>
+          <li>找出 20 个“手机号”：18 真 2 假，另有 5 个真号漏抓</li>
+          <li>P = 18/20 = <b>90%</b>；R = 18/23 ≈ <b>78%</b></li>
+          <li>F1 = 2·P·R ÷ (P+R)：调和平均，综合评价两端</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">精确率与召回率是贯穿全课程的评估语言——<span class="k">第 10 讲 BLEU、第 15 讲 RAG 评估与此同源</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 大小写折叠 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">规范化①：大小写折叠</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h">为什么折叠</div><p>把 Apple / apple / APPLE 归并为同一表示，减小词表、提高统计覆盖——这是检索系统的经典第一步。</p></div>
+      <div class="card"><div class="h">怎么做</div><p><code>"HELLO".lower() → "hello"</code>；先判断任务：情感、专名、缩写的场景可能要<b>保留原样</b>。</p></div>
+      <div class="card card-warn"><div class="h">语言坑</div><p>德语 <b>ß → ss</b>；土耳其语 <b>ı</b> 与 <b>i</b> 不是一回事；简单 lower 并不“通用”。</p></div>
+    </div>
+    <div class="qbar">折叠前先问任务：<span class="k">归并是为了算得动，不是无脑变小写</span>——全大写 APPLE 可能自带情绪。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 词形与词干 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">规范化②：词形还原 vs 词干提取</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">维度</th><th style="width:40%">词形还原（Lemma）</th><th style="width:40%">词干提取（Stem）</th></tr>
+      <tr><td><b>做法</b></td><td>词典 + 词性，还原到规范词形</td><td>规则砍后缀，不看词典</td></tr>
+      <tr><td><b>输出</b></td><td>一定是真词：running→run、better→good、was→be</td><td>不一定真词：ponies→poni、relational→relat</td></tr>
+      <tr><td><b>速度/依赖</b></td><td>慢，需要词性与词典</td><td>快，规则简单（如 Porter Stemmer）</td></tr>
+      <tr><td><b>适用</b></td><td>语义分析、规范输出</td><td>检索匹配、追求吞吐</td></tr>
+    </table>
+    <div class="qbar">两种归一化的取舍 = <span class="k">规范 vs 速度</span>；大模型时代子词分词（第 4 讲）已部分取代它。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 中文预处理 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文文本预处理</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>全半角统一（NFKC）</div><p>１２３ → 123，￥ → ¥；一行 <code>unicodedata.normalize('NFKC', s)</code> 即可归一全半角与兼容字符。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>繁简转换</div><p>繁体 → 简体，常用 <b>OpenCC</b>；语料来源混合时先统一再统计。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>噪声清洗</div><p>去表情/颜文字、URL、@用户、连续标点；正则按字符范围写 <code>[\u4e00-\u9fff]</code>。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>词的边界</div><p>中文没有空格，“词”要靠分词确定——这是第 4 讲《分词与子词》的主角。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">5</span>隐私脱敏</div><p>身份证、手机号、病历等敏感信息必须先脱敏再处理，遵守个人信息保护要求。</p></div>
+      <div class="card"><div class="h"><span class="no">6</span>编码统一</div><p>统一 UTF-8、读写显式 <code>encoding='utf-8'</code>；“锟斤拷”多为 GBK/UTF-8 混用，乱码可用 <b>ftfy</b> 修复。</p></div>
+    </div>
+    <div class="qbar">中文没有空格：<span class="k">清洗与分词往往一起做</span>——这是第 4 讲的伏笔，也是国产模型中文数据的起点。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 23b 编码详解 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">字符集与编码：乱码的正解</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:18%">编码</th><th style="width:30%">特点</th><th style="width:30%">例子</th><th style="width:22%">现状</th></tr>
+      <tr><td><b>ASCII</b></td><td>7 位，仅 128 个字符</td><td>'A' → 0x41</td><td>子集，兼容保留</td></tr>
+      <tr><td><b>GBK</b></td><td>中文双字节，兼容 ASCII</td><td>'中' → 0xD6D0</td><td>历史中文系统常见</td></tr>
+      <tr><td><b>UTF-8</b></td><td><b>变长</b>：英文 1、中文 3 字节</td><td>'中' → 0xE4B8AD</td><td>事实标准，首选</td></tr>
+      <tr><td><b>UTF-16</b></td><td>2 或 4 字节，有大小端与 BOM</td><td>BOM 0xFFFE</td><td>Windows 内部常用</td></tr>
+    </table>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card card-warn"><div class="h">乱码成因</div><p>GBK 字节流被当 UTF-8 读 → <b>锟斤拷 / 烫烫烫</b>。</p></div>
+      <div class="card card-blue"><div class="h">对策三条</div><p>读写显式 <code>encoding='utf-8'</code>；不确定用 <b>chardet</b> 探测；留意 BOM。</p></div>
+    </div>
+    <div class="qbar">90% 的乱码来自<span class="k">编码不统一</span>——读写文件永远显式指定编码。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 24 常用模式速查 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">常用模式速查表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <table class="ac">
+        <tr><th style="width:36%">目标</th><th>工程常用模式</th></tr>
+        <tr><td>中国手机号</td><td><code>1[3-9]\d{9}</code></td></tr>
+        <tr><td>邮箱</td><td><code>[\w.+-]+@[\w-]+\.[\w.-]+</code></td></tr>
+        <tr><td>日期 yyyy-mm-dd</td><td><code>\d{4}-\d{2}-\d{2}</code></td></tr>
+        <tr><td>URL</td><td><code>https?://[^\s]+</code></td></tr>
+        <tr><td>身份证（18 位）</td><td><code>\d{17}[\dXx]</code></td></tr>
+        <tr><td>IP 地址（粗检）</td><td><code>(\d{1,3}\.){3}\d{1,3}</code></td></tr>
+      </table>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="card card-warn" style="flex:1"><div class="h">格式 ≠ 真实</div><p>手机号模式拦不住 <b>13800000000</b> 这样的假号——正则只管“长什么样”，不管“是不是真的”。</p></div>
+        <div class="card" style="flex:1"><div class="h">没有“完美正则”</div><p>RFC 5322 的邮箱标准模式长达数百字符；工程上“够用 + 可迭代”即可。</p></div>
+      </div>
+    </div>
+    <div class="qbar">先把常用模式存进工具箱，再在真实数据上<span class="k">迭代评估</span>——别追求一次写对。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 易错点 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">四个高频易错点</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">1</span>贪婪陷阱</div><p><code>.*</code> 会把一对多标签整段吞掉；优先用 <code>.*?</code> 或 <code>[^...]*</code> 把匹配限制在段内。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">2</span>match vs search</div><p><code>re.match</code> 只从<b>字符串开头</b>匹配，“明明有却找不到”多半是这个原因。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>忘记转义</div><p><code>.</code> 匹配任意字符；真正的句号要写 <code>\.</code>；正则里的“原样字符”常需要反斜杠。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">4</span>正则过拟合</div><p>为样例写出的巨长模式，换一批文本就全失效——先定义任务与边界，再写模式。</p></div>
+    </div>
+    <div class="qbar">能解释自己正则<span class="k">会错抓什么、会漏什么</span>，才算真正会写。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 25b 正则边界 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则的边界：什么时候不该用</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:30%">场合</th><th style="width:36%">为什么不用正则</th><th style="width:34%">交给谁</th></tr>
+      <tr><td><b>解析 HTML / XML</b></td><td>嵌套结构，正则等价有限自动机做不了递归</td><td>BeautifulSoup / lxml</td></tr>
+      <tr><td><b>解析 JSON / CSV</b></td><td>转义与嵌套规则复杂，手写易错</td><td>json / csv 标准库</td></tr>
+      <tr><td><b>分词与语义抽取</b></td><td>需要上下文与语义，正则只认形状</td><td>jieba / 大模型</td></tr>
+      <tr><td><b>复杂格式校验</b></td><td>邮箱/IP 合法性有标准实现，别重造轮子</td><td>email-validator / ipaddress</td></tr>
+    </table>
+    <div class="qbar">判断标准三问：<span class="k">结构固定？无嵌套？不需语义？</span>——三问全“否”才轮到正则。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 22 工程化写法 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则的工程化写法</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">三个维护性技巧</div>
+        <ul>
+          <li><b>re.X 详细模式</b>：忽略空白、支持 # 注释，长模式拆成多行</li>
+          <li><b>命名分组</b>：<code>(?P&lt;name&gt;...)</code> 用 <code>m.group('name')</code> 取值，不靠数字编号</li>
+          <li><b>预编译</b>：<code>re.compile</code> 一次解析，循环里反复复用</li>
+        </ul>
+      </div>
+      <div class="code" style="margin-top:0">pat = re.compile(<b>r"""
+  (?P&lt;area&gt;\(?\d{3}\)?)   <span class="c"># 区号，括号可选</span>
+  (?P&lt;sep&gt;[-.\s]?)         <span class="c"># 分隔符可选</span>
+  (?P&lt;num&gt;\d{3}[-.\s]?\d{4}) <span class="c"># 号码主体</span>
+"""</b>, re.X)
+for line in texts:
+    m = pat.search(line)
+    if m: print(m.group(<b>'area'</b>), m.group(<b>'num'</b>))</div>
+    </div>
+    <div class="qbar">单次匹配无所谓，批量处理时<span class="k">可读性 + 预编译</span>就是性能与可维护性本身。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 ReDoS ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则安全：ReDoS 灾难性回溯</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">灾难现场</div>
+        <ul>
+          <li>模式 <code>(a+)+$</code> 匹配 <b>aaaaaaaaaaX</b>：内外量词组合方式指数爆炸</li>
+          <li>30 个 a 加一个 X，就可能让一次匹配耗尽 CPU</li>
+          <li>被用于拒绝服务攻击，就叫 <b>ReDoS</b>——生产事故级风险</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">防御三招</div>
+        <ul>
+          <li>① 消灭<b>嵌套量词</b>：<code>(a+)+</code> 这类写法直接重写</li>
+          <li>② 原子组 <code>(?&gt;...)</code> / 占有量词 <code>++</code>：禁止回溯</li>
+          <li>③ 限制输入长度 + 设置匹配<b>超时</b>（re 第三方实现 / regex 模块）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">正则不是安全无害的——<span class="k">写进生产代码前，先问这个模式会不会被恶意输入拖垮</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 23b 占有量词 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">性能：预编译与占有量词</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">三种量词逐字对比</div>
+        <ul>
+          <li><b>贪婪</b> <code>.*</code>：先吞多、必要时吐回</li>
+          <li><b>懒惰</b> <code>.*?</code>：先吞少、不行再加</li>
+          <li><b>占有</b> <code>.*+</code>：吞了不吐，<b>禁止回溯</b>；原子组 <code>(?&gt;...)</code> 同效</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">两条性能铁律</div>
+        <ul>
+          <li>① 循环里用 <code>compile</code>，解析只做一次</li>
+          <li>② 能用字符类限定范围（<code>[^&gt;]*</code>）就别用 <code>.*</code></li>
+          <li>例：<code>(a|ab)c</code> 匹配 abc 需回溯，<code>(?&gt;a|ab)c</code> 不回头</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">性能第一原则：<span class="k">少回溯</span>——占有量词与原子组是 ReDoS 防御的第一道闸。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 24 混合流水线 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则 + 大模型：混合抽取流水线</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">分工：规则粗筛 + 模型精判</div>
+        <ul>
+          <li>正则：先扫出电话 / 邮箱 / 日期等<b>高确定性</b>字段，秒级、零成本</li>
+          <li>LLM：对疑似片段做归属判断与规范化，处理格式变体</li>
+          <li>正则再校验 LLM 输出的 <b>JSON 结构</b>——两头都用它</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">案例：简历信息抽取</div>
+        <ul>
+          <li>① 正则粗筛：邮箱、手机号、年份全部命中</li>
+          <li>② LLM 精判：哪段经历属于哪家公司、时间与职位对齐</li>
+          <li>③ 输出 JSON，正则校验字段齐全后入库</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">不是二选一，而是<span class="k">分工</span>：规则层兜底、模型层提精度——第 15/16 讲 RAG / Agent 里还会再见。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">上机任务为线下自学，课堂保留研讨环节。</div>
+    <ul>
+      <li>任务一 / 任务二：线下自学（验收标准见任务页）</li>
+      <li>研讨：正则的边界与“大模型时代还学它吗”（课堂 10′）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 25 上机任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：提取与清洗（课后完成）</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>提取邮箱与电话（5′）</div>
+        <ul>
+          <li>对给定文本用 <code>findall</code> + 捕获组提取全部邮箱与电话</li>
+          <li>文本里埋了两个坑：句尾句号、+86 区号</li>
+          <li>验收：跑出结果，能说出一个 FP 或 FN 来源</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">2</span>清洗三件套 + 脱敏（5′）</div>
+        <ul>
+          <li>用三件套清洗一段含标签、&amp;nbsp;、空行的文本</li>
+          <li>再把手机号替换为 <code>[PHONE]</code>——体会“先规范化、再脱敏”</li>
+          <li>验收：无标签残留、无连续空白、脱敏生效</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">本页为<span class="k">线下自学</span>内容：按验收标准课后完成，P/R 自评并入作业 1，课堂上不再占用时间。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 27 小组讨论 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：正则的边界（10 分钟）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h">Q1 灵魂之问</div><p>大模型能直接“读懂”脏文本并帮你抽取，为什么还要手写正则？给出一个“必须用正则”的场景。</p></div>
+      <div class="card card-blue"><div class="h">Q2 什么时候不该用</div><p>解析 HTML 该用正则还是 BeautifulSoup？分词与语义抽取能用正则吗？你的判断标准是什么？</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">把 90 分钟装进三句话：语法五件套、六个函数、清洗三件套。</div>
+    <ul>
+      <li>字符类 · 量词 · 锚点 · 分组 · 速记符</li>
+      <li>findall / sub 最常用，提取后必做 P/R</li>
+      <li>去标签 → 解实体 → 压空白；中文注意全半角与脱敏</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 29 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>语法五件套</div><p>字符类、量词、锚点、分组、速记符——组合起来就是描述任意文本模式的“小语言”。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>六函数 + 评估</div><p><code>findall</code> / <code>sub</code> 最常用；任何提取都要用 P/R 量化，先问 FP 与 FN 的代价。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>三件套 + 规范</div><p>去标签 → 解实体 → 压空白；大小写/词形/全半角规范化，中文先脱敏再处理。</p></div>
+    </div>
+    <div class="qbar">用模式把脏文本变干净，用 P/R 把“干净”变成<span class="k">可度量的指标</span>——这是文本处理的第一课。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">一个综合小作业：提取、清洗、评估三合一；下讲进入字符串比较。</div>
+    <ul>
+      <li>作业 1：正则提取与文本清洗</li>
+      <li>交付：一个 .py + 300 字设计说明</li>
+      <li>下讲预告：编辑距离与拼写纠错</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 31 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>作业 1：正则提取与文本清洗</div>
+        <ul>
+          <li><b>Part A 抽取</b>：给定 500 行日志文本，提取全部邮箱、手机号、URL 与日期并统计数量</li>
+          <li><b>Part B 清洗</b>：写 <code>clean_pipeline(text)</code>：NFKC 归一、空白折叠、去标签、手机号/邮箱脱敏，配 10 条测试样例</li>
+          <li><b>加分</b>：中文繁转简 + 去停用词；对 Part A 做 P/R 自评并说明改进</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>交付与评分</div>
+        <ul>
+          <li>交付：一个 <code>.py</code> + 一页 README（设计思路 + 误报/漏报分析）</li>
+          <li>评分三看：功能正确 40% + P/R 分析 40% + 流水线合理性 20%</li>
+          <li>AI 辅助须声明；抽查须能现场解释代码；个人信息脱敏后使用</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 3 讲 编辑距离与拼写纠错</span>：从“找字符串”到“比字符串”，动态规划第一次登场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:17px;line-height:1.9">
+      <b>数据与论文</b><br>
+      Brown et al., <i>Language Models are Few-Shot Learners</i>（GPT-3, 2020）· Raffel et al., <i>Exploring the Limits of Transfer Learning</i>（C4, 2020）<br>
+      Penedo et al., <i>The FineWeb Datasets</i>（2024, arXiv:2406.17557）· Li et al., <i>DataComp-LM</i>（DCLM, 2024, arXiv:2406.11794）<br>
+      <b>教材</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed., Ch.2) · 车万翔等《自然语言处理：基于预训练模型的方法》 · 张成文等《大模型导论》<br>
+      <b>工具</b><br>
+      Python re 官方文档 · regex101.com（在线调试）· NLTK（词干/词形还原）· jieba（中文分词）· OpenCC（繁简转换）
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">正则语法、P/R 与规范化为原理层、长期稳定；作业语料与示例文本为实例层，每学期更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<!-- 底部控制条 -->
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 46</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

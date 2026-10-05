@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1章 NLP导论与AI时代全景 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+
+  /* ---------- 舞台缩放 ---------- */
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+
+  /* ---------- 页眉 / 页脚（A3 模式） ---------- */
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+
+  /* ---------- 通用组件 ---------- */
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g4 .card{padding:16px}
+  .g4 .card .h{font-size:20px}
+  .g4 .card .h .tag{display:block;width:max-content;font-size:13.5px;padding:2px 10px;margin:6px 0 0}
+  .g4 .card li{font-size:17.5px;padding-left:16px}
+  .g4 .card li::before{left:2px;top:9px;width:6px;height:6px}
+  .g4 .card p{font-size:16.5px;line-height:1.45}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:52px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:20px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15.5px;color:var(--mut);margin-top:5px;line-height:1.4}
+
+  /* 时间轴 */
+  .tl{display:flex;flex:1;align-items:stretch;gap:0;position:relative;padding-top:8px}
+  .tl::before{content:"";position:absolute;top:19px;left:7%;right:7%;height:3px;background:var(--line)}
+  .tl .step{flex:1;text-align:center;position:relative;padding:0 10px}
+  .tl .dot{width:22px;height:22px;border-radius:50%;background:var(--blue);border:4px solid #fff;
+    box-shadow:0 0 0 3px var(--blue);margin:0 auto 12px;position:relative;z-index:1}
+  .tl .yr{font-size:18px;font-weight:700;color:var(--navy)}
+  .tl .nm{font-size:23px;font-weight:700;color:var(--text);margin-top:3px}
+  .tl .ds{font-size:17px;color:var(--sub);margin-top:6px;line-height:1.42}
+  .tl .tag{margin-top:9px}
+
+  /* 表格 */
+  table.ac{width:100%;border-collapse:collapse;font-size:18.5px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:11px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+
+  /* 金句条 / 结论条 */
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+
+  /* 封面 */
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:76px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+
+  /* 目录 */
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+
+  /* 章节扉页 */
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+
+  /* 控件 */
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Natural Language Processing</div>
+    <div class="cn">自然语言处理</div>
+    <div class="rule"></div>
+    <div class="sub">第一章 · NLP 导论与 AI 时代全景</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 1 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-10</div>
+  <div class="num">01</div>
+</section>
+
+<!-- ================= 2 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">教学目标与课程安排</div><div class="dd">16 次课路线图、考核方式与 AI 使用规范</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">导入：一个影响 10 亿人的技术</div><div class="dd">从身边的 NLP 与一组现象级数字说起</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">NLP 是什么：定义、任务地图与难点</div><div class="dd">NLU 与 NLG 两大任务族，语言歧义的本质</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">五代演进史</div><div class="dd">规则 → 统计 → 神经网络 → 预训练 → 大模型</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">AI 时代全景与研讨</div><div class="dd">2026 生态与国产开源，研讨：大模型时代学什么</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">小结与课后作业</div><div class="dd">要点回顾、环境配置、组队与选题</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 教学目标与重难点 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 1 讲 · NLP 导论与 AI 时代全景</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说出 NLP 的定义，区分 NLU 与 NLG</li>
+          <li>说出 NLP 五代演进脉络与每代的代表工作</li>
+          <li>了解 2026 年主流大模型与国产开源生态</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能按任务类型给身边的 NLP 应用归类</li>
+          <li>能现场用大模型完成一组基础任务，并发现其边界</li>
+          <li>能结合本讲信息选择课程项目方向</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>建立“AI 时代为什么以 NLP 为中心”的认知</li>
+          <li>形成对模型输出“先验证、再相信”的习惯</li>
+          <li>了解国产开源生态与负责任使用意识</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>NLP 任务地图（NLU/NLG）；五代演进的内在逻辑——每一代都在“用更少的人工、更多的数据”逼近语言理解。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>语言歧义为什么让机器为难；“预训练 + 微调”范式到底改变了什么。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">这门课学什么：16 次课路线图</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">四个模块层层递进，<b>8 + 8 + 6 + 10 = 32 学时</b>：</div>
+    <div class="grid g4" style="flex:1;align-content:stretch">
+      <div class="card card-blue">
+        <div class="h">模块一 · 文本处理基础<span class="tag b">1–4 讲 · 8 学时</span></div>
+        <ul>
+          <li>① 导论与 AI 全景</li>
+          <li>② 正则与文本清洗</li>
+          <li>③ 编辑距离与纠错</li>
+          <li>④ 分词与子词（BPE）</li>
+        </ul>
+        <p style="margin-top:auto;color:#4A5568">回答：<b>文本如何变成机器能算的东西</b></p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">模块二 · 词表示与语言模型<span class="tag b">5–8 讲 · 8 学时</span></div>
+        <ul>
+          <li>⑤ 词向量与语义表示</li>
+          <li>⑥ 神经网络基础</li>
+          <li>⑦ 统计语言模型 N-gram</li>
+          <li>⑧ 神经语言模型 RNN/LSTM</li>
+        </ul>
+        <p style="margin-top:auto;color:#4A5568">回答：<b>从词向量到统计与神经语言模型</b></p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">模块三 · 序列建模与 Transformer<span class="tag b">9–11 讲 · 6 学时</span></div>
+        <ul>
+          <li>⑨ 序列标注 POS/NER</li>
+          <li>⑩ Seq2Seq 与注意力</li>
+          <li>⑪ Transformer（枢纽）</li>
+        </ul>
+        <p style="margin-top:auto;color:#4A5568">回答：<b>模型如何理解并生成语言</b></p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">模块四 · 大模型原理与工程<span class="tag b">12–16 讲 · 10 学时</span></div>
+        <ul>
+          <li>⑫ 预训练 GPT/BERT</li>
+          <li>⑬ 训练·微调·对齐</li>
+          <li>⑭ 提示工程与评测</li>
+          <li>⑮ 推理·RAG·向量库</li>
+          <li>⑯ Agent·前沿·项目答辩</li>
+        </ul>
+        <p style="margin-top:auto;color:#4A5568">回答：<b>如何把大模型做成真实应用</b></p>
+      </div>
+    </div>
+    <div class="qbar">实践主线（CPU/Colab/API 零门槛）：<span class="k">文本处理 → BERT 分类 → 提示词实验 → RAG 搭建 → Agent</span>；项目：第 1 讲组队 → 5 提案 → 12 中期 → 16 答辩。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 考核方式 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">考核方式：两次测验 + 期末项目</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">本课程沿用既定考核方案——两次课堂测验 + 期末团队项目：</div>
+    <div class="grid g3" style="flex:1">
+      <div class="kpi"><div class="n">20<small>%</small></div><div class="l">课堂测验 1</div><div class="d">第 3 周 · 覆盖文本处理与词向量基础</div></div>
+      <div class="kpi"><div class="n">35<small>%</small></div><div class="l">课堂测验 2</div><div class="d">第 6 周 · 覆盖语言模型与 Transformer</div></div>
+      <div class="kpi" style="border-color:#3D7BD9"><div class="n">45<small>%</small></div><div class="l">期末团队项目</div><div class="d">提案 5 + 中期 5 + 实现与报告 25 + 答辩 10</div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="h">项目方向（2–4 人组队）</div><p>领域 RAG 问答 / 任务 Agent / 信息抽取 / 模型评测 / 提示 vs 微调对比；鼓励结合金融科技、智慧健康方向，基于 API 或开源小模型即可。</p></div>
+    <div class="qbar">两次测验合计 55% 检验基础与理解，项目 45% 检验“会用、能调、能搭”——<span class="k">周次与比例以教务核定为准</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 AI 使用规范 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">生成式 AI 使用与学术诚信</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h">✓ 鼓励：把 AI 当杠杆</div>
+        <ul>
+          <li>用 AI 辅助学习概念、调试代码、检索资料</li>
+          <li>项目里把大模型当作开发对象与工具——这本来就是课程内容</li>
+          <li>用 AI 做对比实验、互查错误</li>
+        </ul>
+      </div>
+      <div class="card card-warn"><div class="h">✗ 禁止：让 AI 当替身</div>
+        <ul>
+          <li>测验中使用任何 AI 工具</li>
+          <li>直接提交 AI 生成内容当作原创；抄袭他人代码/报告</li>
+          <li>违规使用数据（侵犯隐私、版权），生成内容不按规标识</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">硬性要求：报告须<span class="k">声明 AI 使用范围与人工修改</span>；答辩须<span class="k">现场解释全部代码</span>；一句话——你可以让 AI 帮你跑，但必须自己能走。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">用“看得见、摸得着”的场景和数字，回答一个问题：为什么 NLP 值得学？</div>
+    <ul>
+      <li>NLP 无处不在：六个你每天都在用的场景</li>
+      <li>一组现象级数字：ChatGPT 逼近 10 亿周活</li>
+      <li>抛出本课程的核心问题</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 4 NLP 无处不在 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">NLP 无处不在</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">请对号入座——你今天大概率已经用过至少三种由 NLP 驱动的功能：</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>搜索与问答</div><p>输入问题直接得到答案，而不是十条需要自己翻的链接。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>机器翻译</div><p>跨越 100 余种语言，可保留风格与专业术语。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>语音助手</div><p>语音转文本 → 理解意图 → 执行动作，一条完整流水线。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>输入法与写作</div><p>联想、纠错、续写、润色——本质是“预测下一个词”。</p></div>
+      <div class="card"><div class="h"><span class="no">5</span>客服与办公</div><p>智能客服、会议纪要、邮件草稿、PPT 大纲自动生成。</p></div>
+      <div class="card"><div class="h"><span class="no">6</span>代码与研发</div><p>代码补全、bug 定位、测试生成、文档撰写。</p></div>
+    </div>
+    <div class="qbar">这些应用的背后只有四个基本动作：<span class="k">理解 · 生成 · 检索 · 决策</span>——这就是本课程的坐标系。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 5 一组数字 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">一组现象级数字</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">生成式 AI 已从“少数人的猎奇工具”变成“数亿人的日常工具”：</div>
+    <div class="kpis">
+      <div class="kpi"><div class="n">≈10<small> 亿</small></div><div class="l">ChatGPT 周活跃用户</div><div class="d">2026 年 7 月逼近 10 亿；月活口径 2026 年 5 月已破 10 亿</div></div>
+      <div class="kpi"><div class="n">3<small> 年</small></div><div class="l">从 0 到 10 亿月活</div><div class="d">全球移动应用史上最快，超过 TikTok / YouTube 同期增速</div></div>
+      <div class="kpi"><div class="n">5000<small> 万+</small></div><div class="l">付费订阅用户</div><div class="d">大模型已成为成熟的商业产品，而非实验品</div></div>
+      <div class="kpi"><div class="n">46.4<small>%</small></div><div class="l">ChatGPT 市场份额</div><div class="d">首次跌破五成；Gemini 27.7%、Claude 10.3%（2026-05）</div></div>
+    </div>
+    <div class="src"><b>数据来源：</b>OpenAI 披露信息 / CNMO 科技 2026-07-29；Sensor Tower《2026 年 AI 产业状况报告》（2026-05）。</div>
+    <div class="qbar">四年时间，一个产品走到 10 亿周活——<span class="k">大模型时代，NLP 就是新的“操作系统”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">05</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从“NLP 是什么”出发，走完五代演进，看清 2026 年的全景地图。</div>
+    <ul>
+      <li>定义与任务地图：NLU / NLG</li>
+      <li>五代演进：规则 → 统计 → 神经 → 预训练 → 大模型</li>
+      <li>2026 全景：能力、全球生态、国产开源</li>
+      <li>课程安排：16 讲路线图、考核方式与 AI 使用规范</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 什么是 NLP ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">什么是 NLP？</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">定义</div>
+        <p><b>自然语言处理（NLP）</b>研究如何让计算机<b>理解、处理并生成</b>人类自然语言，是人工智能与语言学的交叉领域。</p>
+        <ul>
+          <li><b>NLU</b>（理解）：让机器“读懂”语言的含义</li>
+          <li><b>NLP</b>（处理）：文本清洗、分析、变换</li>
+          <li><b>NLG</b>（生成）：让机器“写出”人类可读的语言</li>
+        </ul>
+        <p style="margin-top:8px">机器只认数字：一切技术的本质，都是把离散、歧义的语言符号变成<b>可计算的表示</b>。</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="card"><div class="h">难点 1 · 词法歧义</div><p>“<b>南京市长江大桥</b>”：南京·市长·江大桥，还是南京市·长江大桥？</p></div>
+        <div class="card"><div class="h">难点 2 · 句法歧义</div><p>“<b>鸡不吃了</b>”：鸡不吃食了，还是（人）不吃鸡了？</p></div>
+        <div class="card"><div class="h">难点 3 · 语义、指代与常识</div><p>“He saw the man <b>with a telescope</b>”：谁拿望远镜？“奖杯放不进箱子，因为它太大了”——“它”指谁？需要常识推理（Winograd）。</p></div>
+      </div>
+    </div>
+    <div class="qbar">语言是<b>离散的、歧义的、依赖上下文的、开放的</b>——这正是 NLP 难，也迷人的地方。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 6b 语言五层次 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">语言的五个层次</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:16%">层次</th><th style="width:28%">研究什么</th><th style="width:28%">例子</th><th style="width:28%">对应 NLP 任务</th></tr>
+      <tr><td><b>语音学</b></td><td>音、音素与发音规律</td><td>“bank”的 /bæŋk/</td><td>语音识别、TTS</td></tr>
+      <tr><td><b>词法学</b></td><td>词的内部结构与变形</td><td>run / runs / running</td><td>分词、词干提取、子词</td></tr>
+      <tr><td><b>句法学</b></td><td>词如何组成句子</td><td>“猫吃鱼”的主谓宾结构</td><td>句法分析、语法纠错</td></tr>
+      <tr><td><b>语义学</b></td><td>句子的字面含义</td><td>“苹果”指水果还是公司</td><td>词向量、语义分析、消歧</td></tr>
+      <tr><td><b>语用学</b></td><td>语境与言外之意</td><td>“你可真行啊”是夸是讽</td><td>对话、情感与立场分析</td></tr>
+    </table>
+    <div class="qbar">大模型同时隐式处理五层——<span class="k">这正是它强大的原因</span>，也是本课程要逐层拆解的对象。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 7 任务地图 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">NLP 任务地图：理解与生成</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h"><span class="no">NLU</span>让机器“读懂”——判别式任务</div>
+        <ul>
+          <li><b>文本分类</b>：情感分析、主题分类、垃圾邮件过滤</li>
+          <li><b>序列标注</b>：分词、词性标注（POS）、命名实体识别（NER）</li>
+          <li><b>信息抽取</b>：关系抽取、事件抽取、关键词抽取</li>
+          <li><b>问答与阅读理解</b>：给定问题与材料，定位答案</li>
+          <li><b>语义匹配与检索</b>：判断两句话是否同义、相关性排序</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h"><span class="no">NLG</span>让机器“会写”——生成式任务</div>
+        <ul>
+          <li><b>文本生成</b>：文章续写、文案、代码生成</li>
+          <li><b>机器翻译</b>：跨语言生成</li>
+          <li><b>文本摘要</b>：抽取式 / 生成式摘要</li>
+          <li><b>对话系统</b>：任务型对话、开放域闲聊</li>
+          <li><b>改写与纠错</b>：润色、缩写、扩写、拼写/语法纠错</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src" style="font-size:16px;color:#4A5568"><b>记忆锚点：</b>任务地图按“字词（第 2–5 讲）→ 句子（第 6–8 讲）→ 篇章（第 10–11 讲）→ 系统（第 14–16 讲）”四层展开，与课程“文本处理基础 → 词表示与语言模型 → 序列建模与 Transformer → 大模型原理与工程”的模块主线一一呼应。</div>
+    <div class="qbar">大模型时代的范式转变：<span class="k">万物皆生成</span>——分类、抽取、问答都被统一为“文本进 → 文本出”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 7b 中文特殊性 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文 NLP 的特殊挑战</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>无空格分词</div><p>词边界要“猜”——“南京市长江大桥”怎么切，本身就是难题（第 4 讲展开）。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>简繁与异体</div><p>简体/繁体/异体字混排，语料要先归一（OpenCC）再统计。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>文言与方言</div><p>“之乎者也”与网络方言语体差异大，通用模型容易混淆语境。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>新词与谐音</div><p>内卷、破防、搭子、Citywalk——造词速度远超词典更新速度。</p></div>
+    </div>
+    <div class="qbar">别把英文教程照搬到中文——先问<span class="k">“我的语料是什么语言”</span>，这正是国产模型重视中文语料占比的原因。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 8 五代演进总览 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五代演进总览</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">70 年只做一件事：<b>如何用更少的人工、更多的数据，让机器逼近语言理解</b>。</div>
+    <div class="tl" style="flex:1">
+      <div class="step"><div class="dot"></div><div class="yr">1950s–1980s</div><div class="nm">规则时代</div><div class="ds">人写语法与词典<br>ELIZA / SHRDLU</div><span class="tag b">Symbolic</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">1980s–2000s</div><div class="nm">统计时代</div><div class="ds">从语料学概率<br>HMM / N-gram</div><span class="tag b">Probabilistic</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2010s</div><div class="nm">神经时代</div><div class="ds">表示学习端到端<br>word2vec / seq2seq</div><span class="tag b">Representation</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2017–2021</div><div class="nm">预训练时代</div><div class="ds">一个底座适配万物<br>Transformer / BERT / GPT</div><span class="tag b">Pre-training</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2022–</div><div class="nm">大模型时代</div><div class="ds">通用智能+对齐<br>ChatGPT / DeepSeek</div><span class="tag y">LLM</span></div>
+    </div>
+    <div class="qbar">主线：数据越来越多、模型越来越大、任务越来越统一、<span class="k">人工越来越少</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 9 规则时代 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">① 规则时代（1950s–1980s）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1950</span>图灵测试</div><p>Turing 发表《Computing Machinery and Intelligence》，提出“机器能否思考”的判定标准。</p></div>
+      <div class="card"><div class="h"><span class="no">1954</span>Georgetown–IBM 实验</div><p>60 句俄译英机器翻译演示，点燃早期 AI 的乐观预期。</p></div>
+      <div class="card"><div class="h"><span class="no">1966</span>ELIZA 聊天机器人</div><p>MIT 的 Weizenbaum 用模式匹配 + 代词替换“假装”理解，迷惑了众多使用者。</p></div>
+      <div class="card"><div class="h"><span class="no">1968</span>SHRDLU 积木世界</div><p>在极受限的积木世界里理解指令并推理，离开限定域即失效。</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">核心思想</div><p>人工编写语法规则（如 Chomsky 生成语法，1957）与词典；把语言当作符号系统来推演。</p></div>
+      <div class="card card-deep"><div class="h">为什么走不通</div><p>规则写不完、互相冲突，无法覆盖长尾与歧义；1966 年 ALPAC 报告直接导致机器翻译研究陷入“寒冬”。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 统计时代 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">② 统计时代（1980s–2000s）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1964</span>Brown 语料库</div><p>首个百万词级标准语料库，让“数语言”成为可能，开统计方法之先河。</p></div>
+      <div class="card"><div class="h"><span class="no">1980s–90s</span>隐马尔可夫模型</div><p>HMM 用概率推断做词性标注、语音识别，成为序列任务的标配工具。</p></div>
+      <div class="card"><div class="h"><span class="no">1990s</span>IBM 统计机器翻译</div><p>从平行语料自动学习词对齐，替代人工词典；N-gram 语言模型同源兴起。</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card card-blue"><div class="h">核心思想</div><p>从“写规则”转向“从语料中学概率”：大规模文本 + 特征工程 + 统计学习（HMM、CRF、SVM）。</p></div>
+      <div class="card card-warn"><div class="h">局限</div><p>N-gram 遭遇数据稀疏；长距离依赖难以建模；特征仍靠专家手工设计，迁移性差。</p></div>
+    </div>
+    <div class="qbar">一句话记住这个时代：<span class="k">与其教会机器语法，不如让它数一数语料。</span></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 神经时代 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">③ 神经时代（2010s）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">2013</span>word2vec</div><p>把词变成稠密向量，“国王 − 男人 + 女人 ≈ 女王”成为经典演示。</p></div>
+      <div class="card"><div class="h"><span class="no">2014</span>Seq2Seq</div><p>编码器-解码器框架让翻译、摘要等任务端到端训练。</p></div>
+      <div class="card"><div class="h"><span class="no">2015</span>注意力机制</div><p>模型自动学习“生成每个词时该看输入的哪里”，摆脱固定上下文瓶颈。</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card card-blue"><div class="h">核心思想</div><p><b>表示学习 + 端到端</b>：特征不再靠人设计，网络自己从数据中学出有用的表示。</p></div>
+      <div class="card card-warn"><div class="h">局限</div><p>仍然“一个任务一个模型”，每个任务都要数据与训练；词向量是静态的，无法区分一词多义。</p></div>
+    </div>
+    <div class="qbar">把“文字”变成“向量”，机器才第一次真正<span class="k">算得动</span>语言。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 预训练时代 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">④ 预训练时代（2017–2021）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">2017</span>Transformer</div><p>Google 提出自注意力架构（《Attention Is All You Need》），可并行、可扩展，成为此后一切模型的骨架。</p></div>
+      <div class="card"><div class="h"><span class="no">2018</span>BERT 与 GPT</div><p>BERT 用“完形填空”（MLM）预训练，GPT 用“预测下一词”预训练，确立<b>预训练 + 微调</b>范式。</p></div>
+      <div class="card"><div class="h"><span class="no">2020</span>GPT-3（175B）</div><p>参数千亿级，涌现“少样本学习”能力——给几个示例就能做新任务，无需微调。</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card card-blue"><div class="h">范式转变</div><p>一个通用底座 + 少量任务数据 = 各类下游任务；语言知识从海量无标注文本中习得。</p></div>
+      <div class="card card-blue"><div class="h">深远意义</div><p>第一次观察到“规模即能力”——参数、数据、算力同步放大，能力持续提升（Scaling Law 的起点）。</p></div>
+    </div>
+    <div class="qbar">语言知识从“每个任务单独购买”变成<span class="k">从互联网文本里免费预取</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 大模型时代 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">⑤ 大模型时代（2022–）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="tl" style="flex:1">
+      <div class="step"><div class="dot"></div><div class="yr">2022.11</div><div class="nm">ChatGPT</div><div class="ds">对话式通用模型上线，2 个月破 1 亿用户，AI 走向大众</div><span class="tag b">通用</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2023.03</div><div class="nm">GPT-4</div><div class="ds">多模态 + RLHF 对齐，“好用”成为核心竞争力</div><span class="tag b">对齐</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2024.09</div><div class="nm">o1 推理模型</div><div class="ds">引入“思考—再回答”，数学与代码能力跃升</div><span class="tag b">推理</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2025</div><div class="nm">开源 + Agent</div><div class="ds">DeepSeek R1 开源追平闭源；MCP/A2A 协议元年</div><span class="tag b">智能体</span></div>
+      <div class="step"><div class="dot"></div><div class="yr">2026</div><div class="nm">平价 + 长上下文</div><div class="ds">DeepSeek V4 成本再降 90%+；百万 token 上下文成标配</div><span class="tag y">落地</span></div>
+    </div>
+    <div class="qbar">大模型时代的“新技能”：<span class="k">提示工程 · RAG · 微调 · Agent</span>——这是本课程后半程的主角。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 五代对比表 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">五代演进对比（收口）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:12%">时代</th><th style="width:20%">代表工作</th><th style="width:25%">核心思想</th><th style="width:18%">数据与算力</th><th style="width:25%">遗留问题</th></tr>
+      <tr><td><b>规则</b></td><td>ELIZA · SHRDLU</td><td>人工编写语法与词典</td><td>几乎不用数据</td><td>覆盖差、无法扩展</td></tr>
+      <tr><td><b>统计</b></td><td>HMM · IBM 统计翻译</td><td>从语料学习概率</td><td>MB–GB 语料，单机</td><td>稀疏、特征靠人工</td></tr>
+      <tr><td><b>神经</b></td><td>word2vec · Seq2Seq</td><td>表示学习、端到端</td><td>GB 级语料，GPU 兴起</td><td>任务定制、静态表示</td></tr>
+      <tr><td><b>预训练</b></td><td>BERT · GPT-3</td><td>先通用预训练、后适配</td><td>TB 级文本，分布式训练</td><td>规模受限、可控性弱</td></tr>
+      <tr><td><b>大模型</b></td><td>ChatGPT · DeepSeek V4</td><td>生成式统一 + 人类对齐</td><td>PB 级数据，万卡集群</td><td><span class="tag r">幻觉</span>成本、安全与合规</td></tr>
+    </table>
+    <div class="qbar">规律：<span class="k">人工努力</span>持续下降，<span class="k">数据与算力</span>持续上升——NLP 从“手艺”变成了“工程学”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 14b 三大学派 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">AI 三大学派：一个更大的坐标系</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>符号主义</div><p>智能 = 符号演算与规则推理；对应<b>规则时代</b>（Chomsky 语法、专家系统）。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">2</span>连接主义</div><p>智能 = 神经网络的连接权重；对应<b>神经 → 预训练 → 大模型</b>，今天的主流。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>行为主义</div><p>智能 = 感知-行动反馈；对应<b>强化学习</b>，借 RLHF 在大模型时代复兴。</p></div>
+    </div>
+    <div class="qbar">NLP 五代演进的本质是三大学派此消彼长——<span class="k">大模型是三者融合体</span>：隐性符号知识 + 连接参数 + RLHF 行为反馈。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17 为什么是这几年 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么是这几年？数据 · 算力 · 算法</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">五代演进背后是三条腿的同时到位——缺任何一条，今天的大模型都不会出现：</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">D</span>数据 Data</div>
+        <ul>
+          <li>互联网海量文本与开源语料库</li>
+          <li>高质量清洗、合成与多语言数据</li>
+          <li>“大模型吃的是数据”——数据质量决定能力上限</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">C</span>算力 Compute</div>
+        <ul>
+          <li>GPU/TPU 集群与分布式训练（数据/模型/流水线并行）</li>
+          <li>Scaling Law：损失随参数·数据·算力呈幂律下降</li>
+          <li>规模本身就是一种能力</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">A</span>算法 Algorithm</div>
+        <ul>
+          <li>Transformer 自注意力：可并行、可扩展</li>
+          <li>自监督预训练（MLM / 自回归）：无需人工标注</li>
+          <li>RLHF / DPO 人类对齐：让能力“可用可控”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">三者共振 → <span class="k">涌现能力（Emergent Abilities）</span>：规模越过阈值后，少样本学习、思维链、工具调用“无师自通”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17b 任务形态演进 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">任务形态：从流水线到端到端</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">经典：流水线（Pipeline）</div>
+        <ul>
+          <li>分词 → 词性 → 句法 → 语义 → 任务，每步一个模块</li>
+          <li>优点：可解释、可逐级调试；缺点：<b>误差层层累积</b></li>
+          <li>例：情感分析 = 分词 + 特征 + 分类器三步</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">现代：端到端（End-to-End）</div>
+        <ul>
+          <li>文本直接进模型、结果直接出，中间表示模型自己学</li>
+          <li>优点：效果好、免特征工程；缺点：<b>黑盒</b></li>
+          <li>工程现实是混合：规则兜底 + 模型主体</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">从“流水线”到“端到端”是 NLP 三十年最大的工程变化——<span class="k">它决定了第 7–16 讲的课程结构</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 15 能力象限 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">2026：大模型能力象限</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>语言理解</div><p>阅读、摘要、分类、信息抽取——处理长文档与专业语料。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>内容生成</div><p>写作、翻译、润色、改写，风格与格式可控。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>推理</div><p>数学、逻辑、规划；思维链让“想清楚再说”成为可能。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>代码</div><p>生成、调试、审阅、测试；SWE-bench 等基准逼近资深工程师。</p></div>
+      <div class="card"><div class="h"><span class="no">5</span>多模态</div><p>看图、听音、读视频；文本与图像、语音互相转换。</p></div>
+      <div class="card"><div class="h"><span class="no">6</span>工具使用</div><p>检索、调用 API、操作环境——智能体（Agent）的核心能力。</p></div>
+    </div>
+    <div class="qbar">2026 前沿重心是<span class="k">推理 + Agent</span>：DeepSeek V4 Pro 在 DeepSWE 基准由 12.8 跃升至 62.7；Qwen3.8-Max 曾连续自主编程 16 天。</div>
+    <div class="src"><b>来源：</b>第一财经《开源“围剿”闭源》2026-08-14（DeepSWE 得分与 16 天自主编程实验）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 15b 代码智能 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">NLP × 软件工程：代码智能</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">代码也是一种“语言”——补全、生成、审阅、测试、文档，都是语言模型在代码语料上的应用：</div>
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>代码补全</div><p>Copilot 类工具逐 token 建议，本质是<b>代码语言模型</b>的生成。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>代码生成</div><p>自然语言描述 → 代码；结构化输出约束保证可解析。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>审阅与修复</div><p>发现 bug、安全漏洞，给出修复建议与解释。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>测试与文档</div><p>自动生成单元测试、API 文档与 commit 说明。</p></div>
+    </div>
+    <div class="qbar">软件工程学生学 NLP 的直接红利：<span class="k">懂 tokenizer、上下文窗口与提示工程</span>，才能把代码助手用得专业。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 16 全球生态 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">2026 全球模型生态</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">闭源第一梯队</div>
+        <ul>
+          <li><b>OpenAI</b>：GPT-5.6 系列（Sol/Luna/Terra），GPT-6 Astra 已入榜</li>
+          <li><b>Google</b>：Gemini 3.1 Pro（2026-02）、Gemini 3.8 Flash</li>
+          <li><b>Anthropic</b>：Claude Opus 5，SWE-bench Verified 达 97.0%</li>
+          <li><b>xAI</b>：Grok 4.6</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">开放权重 / 开源阵营</div>
+        <ul>
+          <li><b>DeepSeek V4 Pro / Flash</b>：1M 上下文，推理成本较 V3.2 降 90%+</li>
+          <li><b>阿里 Qwen3.8-2.4T-A95B</b>：Max 级别旗舰首次开源</li>
+          <li><b>月之暗面 Kimi K3</b>：2.8T 参数，全球最大规模开放权重模型</li>
+          <li><b>智谱 GLM-5.2 · MiniMax H3 · Meta Muse Glimmer</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">同样的第一梯队性能：DeepSeek V4 Pro 输出约 <span class="k">$0.87</span>/百万 token，Grok 4.6 却要 <span class="k">$6</span>——开源正在改写定价逻辑。</div>
+    <div class="src"><b>来源：</b>第一财经《开源“围剿”闭源 中国模型改写 AI 竞争格局》2026-08-14；OpenCompass 榜单 2026-08；Claude Opus 5 基准见博鳌 AI 2026-09-06。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 国产大模型生态 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">国产大模型生态</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1">
+      <div class="card">
+        <div class="h">六家厂商，构成国产基本盘</div>
+        <ul>
+          <li><b>深度求索 DeepSeek</b>：V4 系列，极致性价比与开源标杆</li>
+          <li><b>阿里 Qwen</b>：全尺寸开源，旗舰级首次开放权重</li>
+          <li><b>智谱 GLM</b>：GLM-5.2，国内最早布局开源路线之一</li>
+          <li><b>月之暗面 Kimi</b>：K3 主打超长上下文与开放权重</li>
+          <li><b>MiniMax</b>：H3，多模态与开放生态并进</li>
+          <li><b>字节豆包 / 百度文心</b>：面向大众的超级应用入口</li>
+        </ul>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="kpi" style="flex:1"><div class="n">41%</div><div class="l">中国开源模型下载占比</div><div class="d">Hugging Face 2026 春季报告：首次超过美国</div></div>
+        <div class="kpi" style="flex:1"><div class="n">100<small> 亿+</small></div><div class="l">全球累计下载量</div><div class="d">中国开源模型总下载次数</div></div>
+      </div>
+    </div>
+    <div class="qbar">认知升级：<span class="k">开放权重 ≠ 免费商用</span>（Kimi K3 等对大额商业用户设分成协议）；对课程项目而言，国产模型<span class="k">免费、中文强、可本地部署</span>，是最现实的底座。</div>
+    <div class="src"><b>来源：</b>Hugging Face《2026 年春季全球开源 AI 生态报告》；中国互联网协会转载 2026-08-13。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 21 行业应用 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">行业落地：金融科技与智慧健康</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">学院特色化示范性软件学院的两个建设方向，都是 NLP 与大模型的主战场：</div>
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">金融科技</div>
+        <ul>
+          <li>研报 / 公告 / 招股书结构化抽取，智能投顾问答</li>
+          <li>舆情与风险监控、合同与合规审查</li>
+          <li>据公开报道：某国有银行接入金融 Agent 后，跨境汇款可疑交易识别率由约 65% 提升至 92% <span class="tag r" style="margin-left:4px">⚠ 待核实</span></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">智慧健康</div>
+        <ul>
+          <li>病历 / 检查报告结构化与辅助解读，健康知识问答</li>
+          <li>用药与导诊助手、保险理赔自动化</li>
+          <li>据公开报道：东吴人寿单证处理由小时级缩至分钟级，理赔周期从数周缩至 1–3 天 <span class="tag r" style="margin-left:4px">⚠ 待核实</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">共同的技术底座：<span class="k">RAG（检索增强）+ Agent（工具调用）</span>——正是本课程第 15–16 讲的主角，也是期末项目的推荐赛道。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 21b 监管合规 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">生成式 AI 的监管与合规</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>中国</div><p>《生成式人工智能服务管理暂行办法》（2023）：内容合规、算法备案、生成内容<b>标识</b>、尊重知识产权与个人信息。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>欧盟</div><p>《AI 法案》（2024）：按<b>风险分级</b>监管，高风险系统强制透明与评估。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>美国</div><p>行业自律为主 + 行政令引导，暂无统一联邦立法。</p></div>
+    </div>
+    <div class="qbar">学生三句话：<span class="k">数据合规、生成标识、不越权收集</span>——⚠ 具体条款以现行法规为准。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 22 概念全景图 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">全课程概念全景图：从文本到应用</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">16 讲是一条完整的技术链——今天在起点，期末项目在终点：</div>
+    <div class="tl" style="flex:1">
+      <div class="step"><div class="dot"></div><div class="nm">文本</div><div class="ds">清洗 / 正则 / 编辑距离<br>第 2–3 讲</div><span class="tag b">预处理</span></div>
+      <div class="step"><div class="dot"></div><div class="nm">切分</div><div class="ds">分词与子词 BPE<br>第 4 讲</div><span class="tag b">切分</span></div>
+      <div class="step"><div class="dot"></div><div class="nm">表示</div><div class="ds">词向量 / 神经网络<br>第 5–6 讲</div><span class="tag b">表示</span></div>
+      <div class="step"><div class="dot"></div><div class="nm">建模</div><div class="ds">语言模型 / 序列标注 / Transformer<br>第 7–11 讲</div><span class="tag b">建模</span></div>
+      <div class="step"><div class="dot"></div><div class="nm">底座</div><div class="ds">预训练 / 微调 / 对齐<br>第 12–13 讲</div><span class="tag b">大模型</span></div>
+      <div class="step"><div class="dot"></div><div class="nm">应用</div><div class="ds">提示 / RAG / Agent<br>第 14–16 讲</div><span class="tag y">落地</span></div>
+    </div>
+    <div class="qbar">每一站解决链条上的一环：<span class="k">文本 → 切分 → 表示 → 建模 → 大模型 → 应用</span>——这就是本课程的地图。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 能力栈与岗位 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">AI 时代的 NLP 能力栈与岗位图景</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>算法研究员</div>
+        <ul>
+          <li>懂原理、会读论文、能改模型</li>
+          <li>对应本课：K1–K3、S5（读模型卡与论文）</li>
+          <li>深造与科研方向</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">2</span>大模型应用工程师</div>
+        <ul>
+          <li>会调 API、会 RAG / Agent、会微调与部署</li>
+          <li>对应本课：S2–S4——<b>本课重心</b></li>
+          <li>就业面最宽的岗位</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">3</span>产品 / 项目经理</div>
+        <ul>
+          <li>懂边界、会评估、能写清楚需求</li>
+          <li>对应本课：A2–A3、S4（评估与文档）</li>
+          <li>把技术翻译成业务价值</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">软件工程专业主攻<span class="k">应用工程师</span>，但三类能力各学一半——这是就业最宽的配置。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 前沿追踪 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">如何跟上 NLP 前沿</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>arXiv cs.CL</div><p>预印本：最新但未同行评审，适合“扫标题”；看到热点再追原文。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>ACL / EMNLP / NAACL</div><p>顶会论文：质量筛过、代表主流方向，跟着 Keynote 与 Best Paper 走。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>Papers with Code</div><p>论文 + 代码 + 榜单一起看——复现与选型的第一站。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>模型卡与 HF 榜单</div><p>模型卡写清用途、限制与坑；榜单看当前谁最强（⚠ 时效内容）。</p></div>
+    </div>
+    <div class="qbar">养成节奏：每周 30 分钟扫摘要、精读 1 篇、新模型先看模型卡——<span class="k">不要求追全，要求有自己的追踪节奏</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 24b 术语表 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">高频术语速查表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:26%">英文</th><th style="width:26%">中文</th><th style="width:48%">一句话解释</th></tr>
+      <tr><td><b>token</b></td><td>词元 / 令牌</td><td>文本切分后的最小处理单位（第 4 讲）</td></tr>
+      <tr><td><b>embedding</b></td><td>嵌入 / 词向量</td><td>把词、句映射为稠密向量（第 5 讲）</td></tr>
+      <tr><td><b>pretraining / fine-tuning</b></td><td>预训练 / 微调</td><td>先海量通用训练，再小数据适配（第 12/13 讲）</td></tr>
+      <tr><td><b>alignment</b></td><td>对齐</td><td>让模型行为符合人类意图与价值观（第 13 讲）</td></tr>
+      <tr><td><b>RAG</b></td><td>检索增强生成</td><td>先检索外部知识再生成，缓解幻觉（第 15 讲）</td></tr>
+      <tr><td><b>agent</b></td><td>智能体</td><td>能调用工具、规划并执行多步任务（第 16 讲）</td></tr>
+      <tr><td><b>hallucination</b></td><td>幻觉</td><td>模型一本正经地输出错误信息（第 14 讲）</td></tr>
+    </table>
+    <div class="qbar">本课程中英混讲、<span class="k">术语首现附中文</span>——这张表就是本讲的“口袋字典”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 24c 学习路线资源 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">学习路线与课外资源</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>跟课走</div><p>本课程作业与期末项目是主线——每讲的伏笔都在为项目铺路。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>补基础</div><p>Python / PyTorch / HuggingFace Course——缺什么补什么，不必全学。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>看前沿</div><p>arXiv 扫摘要、看模型卡、复现一个小 demo——每周 30 分钟。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>进社区</div><p>HuggingFace 与 Qwen / DeepSeek / GLM 开源生态，从 issue 开始贡献。</p></div>
+      <div class="card"><div class="h"><span class="no">5</span>打比赛</div><p>Kaggle、大模型应用开发赛——用真实问题检验所学。</p></div>
+      <div class="card"><div class="h"><span class="no">6</span>写笔记</div><p>每讲一句话总结 + 一个疑问，期末串成自己的知识图谱。</p></div>
+    </div>
+    <div class="qbar">课程给你<span class="k">地图</span>，资源给你<span class="k">路</span>——但路要自己走。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 22 课程路线图 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">现场体验为线下自学，课堂保留两组研讨。</div>
+    <ul>
+      <li>体验任务与复盘：线下自学（任务卡见下页）</li>
+      <li>小组讨论：身边的 NLP 与“为什么还要学经典”（课堂 10′）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 25b 前置知识映射 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前置知识 → 本课程：一张映射表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:22%">先修课程</th><th style="width:38%">用在哪</th><th style="width:40%">对应讲次</th></tr>
+      <tr><td><b>概率论与数理统计</b></td><td>条件概率、贝叶斯、最大似然</td><td>语言模型（7）、噪声信道（3）、对齐（13）</td></tr>
+      <tr><td><b>线性代数</b></td><td>向量空间、矩阵乘法、SVD</td><td>词向量（5）、注意力（11）</td></tr>
+      <tr><td><b>微积分</b></td><td>梯度、链式法则、优化</td><td>神经网络与反向传播（6）、微调（13）</td></tr>
+      <tr><td><b>数据结构与算法</b></td><td>Trie、动态规划、最短路</td><td>编辑距离（3）、分词（4）、Viterbi（9）</td></tr>
+      <tr><td><b>Python 编程</b></td><td>正则、PyTorch、HuggingFace</td><td>全部上机、作业与项目</td></tr>
+    </table>
+    <div class="qbar">这门课不从头讲数学，而是<span class="k">把你学过的数学“用”在语言上</span>——哪里忘了补哪里。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 18 现场体验任务清单 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：五组体验清单</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="lead">打开任一模型（DeepSeek / Qwen / Kimi / 豆包…），每组任务花 3–4 分钟完成：</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">任务 1</span>对话与问答</div><p>问一个知识问题，再追问“为什么”两轮，观察回答的变化。</p></div>
+      <div class="card"><div class="h"><span class="no">任务 2</span>翻译与润色</div><p>翻译一段带俚语的中文，再让它用“更正式/更口语”重写。</p></div>
+      <div class="card"><div class="h"><span class="no">任务 3</span>推理</div><p>出一道需要多步推理的数学或逻辑题，看它“想”的过程。</p></div>
+      <div class="card"><div class="h"><span class="no">任务 4</span>代码</div><p>让它写一个中文分词函数，并解释每一行代码。</p></div>
+      <div class="card"><div class="h"><span class="no">任务 5</span>多模态</div><p>上传一张照片（课桌/风景），请它描述内容并回答细节问题。</p></div>
+      <div class="card card-blue"><div class="h">进阶玩法</div><p>同一问题分别问两个不同模型，对比答案的风格与质量。</p></div>
+    </div>
+    <div class="qbar">带着三个问题去体验：它<span class="k">强在哪</span>？它<span class="k">错在哪</span>？换一种问法，答案<span class="k">变了吗</span>？</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 观察与讨论 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学复盘：三个一定会出现的发现</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">发现 1</span>它会“一本正经地胡说”</div><p>编造不存在的参考文献、张冠李戴的数据——这叫<b>幻觉（Hallucination）</b>，大模型时代的头号风险。</p></div>
+      <div class="card"><div class="h"><span class="no">发现 2</span>换一种问法，答案就不同</div><p>任务描述、示例、措辞都会显著影响输出质量——这正是<b>提示工程</b>要解决的问题。</p></div>
+      <div class="card"><div class="h"><span class="no">发现 3</span>它也有“软肋”</div><p>中文分词、精确计数、超长推理等任务仍会出错——<b>理解原理</b>才知道何时不该全信它。</p></div>
+    </div>
+    <div class="qbar">本课程最重要的习惯：<span class="k">对模型的每一句输出，先验证，再相信。</span></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 小组讨论 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">小组讨论（4 人一组）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h"><span class="no">Q1</span>身边的 NLP</div>
+        <p>回忆一个你最近用大模型或 NLP 功能解决的真实问题，它属于任务地图里的哪一类任务？中间经过了哪些“理解/生成/检索/决策”动作？</p>
+      </div>
+      <div class="card card-blue">
+        <div class="h"><span class="no">Q2</span>灵魂之问</div>
+        <p>大模型已经这么强了，为什么这门课还要学分词、词向量、HMM 这些“经典方法”？直接学会调 API 不就够了吗？</p>
+      </div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">把 90 分钟装进三句话：任务地图、五代演进、AI 时代格局。</div>
+    <ul>
+      <li>NLP = 理解（NLU）+ 生成（NLG）</li>
+      <li>五代演进的一条主线</li>
+      <li>2026：推理 + Agent + 开源平价化</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 21 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>任务地图</div><p>NLP = 理解（NLU）+ 生成（NLG）；一切应用都可拆成“理解·生成·检索·决策”四个动作——这是全课程的目录。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>五代演进</div><p>规则 → 统计 → 神经 → 预训练 → 大模型；主线是“人工努力让位于数据与算力”，理解了它就能预测下一个范式。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>2026 格局</div><p>关键词：推理、Agent、开源平价化；留给我们的问题是<span class="tag r" style="margin-left:0">幻觉</span>成本与安全。</p></div>
+    </div>
+    <div class="qbar">学这门课，不是为了“会用某个模型”，而是获得三种能力：<span class="k">看得懂原理 · 调得好模型 · 建得起应用</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">三件事：环境配置、组队选题、一页纸意向；下讲进入第一个动手专题。</div>
+    <ul>
+      <li>环境：Python / 代码编辑器 / 模型账号</li>
+      <li>组队：2–4 人，提交选题意向</li>
+      <li>下讲预告：文本清洗与正则表达式</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 22 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue">
+        <div class="h"><span class="no">1</span>配置环境</div>
+        <ul>
+          <li>Python 3.10+ 与 conda；VS Code 或 Jupyter</li>
+          <li>注册 1–2 个大模型账号：DeepSeek / Qwen / Kimi 等（网页版或 API）</li>
+          <li>注册 HuggingFace 账号；装好 pip、numpy，跑通 Hello World</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h"><span class="no">2</span>组队与选题意向（一页纸）</div>
+        <ul>
+          <li>2–4 人组队，提交：问题定义、目标用户、技术路线、分工</li>
+          <li>推荐方向：领域 RAG 问答 / 任务 Agent / 信息抽取 / 模型评测</li>
+          <li>鼓励结合金融科技、智慧健康等学院方向</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h"><span class="no">3</span>拓展阅读与动手体验</div>
+        <ul>
+          <li>读 J&amp;M《Speech and Language Processing》第 1 章或《大模型导论》第 1 章</li>
+          <li>打开一个国产模型的模型卡（Model Card），看它写了什么</li>
+          <li>用任一模型做 1 次摘要 + 1 次抽取，记录“做对什么、哪里出现幻觉”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 2 讲 文本清洗与正则表达式</span>：课堂会直接上手 Python，请提前熟悉 re 模块。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 参考资料与致谢 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:17px;line-height:1.9">
+      <b>数据与报道</b><br>
+      第一财经《开源“围剿”闭源：中国模型改写 AI 竞争格局》2026-08-14<br>
+      CNMO 科技《ChatGPT 周活跃用户即将突破 10 亿》2026-07-29<br>
+      Sensor Tower《2026 年 AI 产业状况报告》· Hugging Face《2026 年春季全球开源 AI 生态报告》<br>
+      <b>教材</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed.) · 车万翔等《自然语言处理：基于预训练模型的方法》 · 张成文等《大模型导论》
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">数据截止 2026-09；模型生态变化快，讲授前请按最新情况更新“实例层”。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<!-- 底部控制条 -->
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 45</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

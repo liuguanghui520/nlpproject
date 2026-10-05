@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第12章 预训练语言模型 GPT 与 BERT | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+
+  table.ac.sm{font-size:16px}
+  table.ac.sm th{padding:5px 10px;font-size:16.5px}
+  table.ac.sm td{padding:4px 10px;line-height:1.32}
+  .code.sm{font-size:15.5px;line-height:1.5;padding:10px 14px;margin-top:8px}
+  .code.xs{font-size:14.5px;line-height:1.46;padding:9px 13px;margin-top:8px}
+  .card.tight{padding:12px 16px}
+  .card.tight .h{font-size:21px;margin-bottom:5px}
+  .card.tight p{font-size:18px;line-height:1.42}
+  .card.tight li{font-size:18px;line-height:1.4;margin-top:4px}
+  .grid.tight{gap:12px}
+  .grid.tight2{gap:10px}
+  .qbar.sm{font-size:19px;padding:11px 18px;margin-top:11px}
+  .lead.sm{font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Pre-trained Language Models: GPT &amp; BERT</div>
+    <div class="cn">预训练语言模型</div>
+    <div class="rule"></div>
+    <div class="sub">第十二章 · 一个底座，适配万物</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 12 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">12</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 11 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1;align-content:stretch">
+      <div class="card tight"><div class="h"><span class="no">1</span>核心运算</div><p>Attention(Q,K,V) = softmax(QKᵀ/√d_k)·V；多头是分空间不是分模型。</p></div>
+      <div class="card tight"><div class="h"><span class="no">2</span>关键组件</div><p>位置编码补语序（置换等变）；残差给通路、LayerNorm 给稳定；FFN 逐位置加工。</p></div>
+      <div class="card tight"><div class="h"><span class="no">3</span>三种注意力</div><p>编码器双向 / 解码器 causal / cross-attention——公式相同，区别在 Q/K/V 来源与可见范围。</p></div>
+      <div class="card tight"><div class="h"><span class="no">4</span>三种范式</div><p>encoder-only（BERT）、decoder-only（GPT）、encoder-decoder（T5）——差别就是掩码组合。</p></div>
+    </div>
+    <div class="qbar">今天的关键问题：<span class="k">这个架构凭什么能吃下整个互联网的文本？</span>——答案就是“预训练 + 微调”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：为什么 2018 年是 NLP 的分水岭</div><div class="dd">同一任务的四代做法；三个灵魂之问</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">范式：预训练 + 微调</div><div class="dd">参数可迁移 + 标签可自动生成；两阶段流水线；成本经济学</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">两类自监督目标：AR vs AE</div><div class="dd">自回归（GPT 路线）与自编码（BERT 路线）；掩码矩阵对比</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">GPT 系列：从预训练到提示</div><div class="dd">GPT-1 奠基、GPT-2 多任务、GPT-3 少样本与范式转移</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">BERT 精讲：目标与微调</div><div class="dd">输入表示；MLM 与 80/10/10；NSP 与争议；四种任务头</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">变体、规模与工具链</div><div class="dd">RoBERTa / ALBERT / ELECTRA / XLNet / WWM；规模法则；HuggingFace</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 12 讲 · 预训练语言模型 GPT 与 BERT</span></div>
+  <div class="content">
+    <div class="lead sm">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说清预训练 + 微调范式为何有效</li>
+          <li>区分自回归 LM 与自编码 LM 两类目标</li>
+          <li>解释因果掩码与 BERT 的 MLM / NSP</li>
+          <li>说出 RoBERTa / ALBERT / ELECTRA / XLNet 的核心改动</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能用 HuggingFace 加载底座并完成分类/掩码填充</li>
+          <li>能为四类下游任务选对任务头</li>
+          <li>能列出微调的关键超参与常见踩坑</li>
+          <li>能对比“微调”与“提示”两条路线的成本</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>理解“昂贵的事只做一次”的工程经济学</li>
+          <li>建立目标函数决定能力边界的判断力</li>
+          <li>认识配方、数据、算力三者的相对重要性</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:10px">
+      <div class="card tight"><div class="h">本讲重点</div><p>预训练 + 微调范式；AR vs AE；MLM 的 15% 与 80/10/10；NSP 争议；四种任务头；微调超参。</p></div>
+      <div class="card card-warn tight"><div class="h">本讲难点</div><p>MLM 为何要掺随机词与不变词；预训练-微调不一致；为什么 decoder-only 成为主流。</p></div>
+    </div>
+    <div class="qbar sm">一句话主线：<span class="k">昂贵的事只做一次，便宜的事做一万次</span>——这就是预训练范式的经济学。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">为什么 2018 年是自然语言处理的分水岭？</div>
+    <ul>
+      <li>同一任务的四代做法：从零训练 → 微调 → 提示</li>
+      <li>三个灵魂之问：先猜后学，课堂揭示</li>
+      <li>核心问题：一个底座凭什么适配万物？</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① 四代做法 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">分水岭：同一任务的四代做法</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:200px">路线</th><th style="width:200px">代表工作（年份）</th><th style="width:150px">标注需求</th><th>迁移的对象</th><th style="width:190px">任务适配方式</th></tr>
+      <tr><td>静态词向量 + 浅层模型</td><td>word2vec + SVM（2013）</td><td><b>数万条</b></td><td>仅词表上的<b>固定向量</b></td><td>每个任务重训分类器</td></tr>
+      <tr><td>端到端深度模型</td><td>LSTM + 注意力（2016）</td><td>数千条</td><td>预训练词向量 + <b>网络结构</b></td><td>每个任务重训整个网络</td></tr>
+      <tr><td><b>预训练 + 微调</b></td><td><b>BERT（2018）</b></td><td><b>数百 ~ 数千条</b></td><td><b>整个预训练底座</b>（1.1 亿参数）</td><td>只换一个<b>任务头</b>，底座微调</td></tr>
+      <tr><td><b>提示 + 大模型</b></td><td>GPT-3 / 指令模型（2020+）</td><td><b>零标注起步</b></td><td>一段<b>提示词</b>（参数不改）</td><td>把任务写成自然语言</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句总结</div>
+      <p style="font-size:20px">变化的不是算力，而是<b>“被迁移的东西”的颗粒度越来越粗</b>：一批向量 → 一个网络 → 一个底座 → 一段提示。而这条演变线上的关键转折点，就是 2018 年的 BERT 与 GPT。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② 三个灵魂之问 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三个灵魂之问：先猜后学</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">Q1</span>凭什么适配万物？</div>
+        <p style="font-size:19px">同一个模型，为何能同时做情感分类、命名实体识别、抽取式问答与句子相似度？</p>
+        <p style="font-size:17.5px;margin-top:8px"><b>A.</b> 因为它们共享同一个自监督目标<br>
+        <b>B.</b> 因为它们共享同一种架构<br>
+        <b>C.</b> 因为它们看过同一批数据</p>
+        <p style="font-size:16.5px;color:#8B97A8;margin-top:8px">→ 提示：想想同一个底座怎样接上不同的任务头。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q2</span>BERT 为什么不会说话？</div>
+        <p style="font-size:19px">BERT 的语义理解很强，为什么让它写一句通顺的话却不行？</p>
+        <p style="font-size:17.5px;margin-top:8px">提示：它的注意力是<b>双向</b>的——每个位置都能看到右边的词。那么生成第 t 个词时，它看到了什么？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q3</span>能力是怎么来的？</div>
+        <p style="font-size:19px">GPT-3 没有针对任何具体任务训练过，为什么给它几个例子就会做？</p>
+        <p style="font-size:17.5px;margin-top:8px">提示：如果训练语料里天然包含“任务描述 + 示例 + 答案”的模式，一个足够大的语言模型会学到什么？</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">本讲主线（每个箭头都有明确的输入与输出）</div>
+      <p style="font-size:19.5px;text-align:center"><b>自监督目标 → 架构选择 → 预训练底座 → 任务适配 → 规模与范式</b><br>
+      <span style="font-size:18px">（自回归 / 自编码）　（decoder / encoder）　（GPT / BERT）　（微调 / 提示）　（涌现 / 上下文学习）</span></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从范式到目标函数，从架构到工具链。</div>
+    <ul>
+      <li>范式：参数可迁移 + 标签可自动生成 · 两阶段流水线 · 成本账</li>
+      <li>目标：自回归 vs 自编码 · 掩码矩阵 · 八维对照</li>
+      <li>GPT：架构解剖 · 教师强制 · 三代演进与范式转移</li>
+      <li>BERT：输入表示 · MLM 与 80/10/10 · NSP · 四种任务头</li>
+      <li>变体与规模：RoBERTa / ALBERT / ELECTRA / XLNet / WWM · 规模法则</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 六年脉络 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">六年脉络：迁移的“颗粒度”越来越粗</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:110px">时间</th><th style="width:190px">代表工作</th><th>关键贡献</th><th style="width:250px">被迁移的资产</th></tr>
+      <tr><td>2013</td><td>word2vec / GloVe</td><td>分布式词向量：一词一向，<b>与上下文无关</b></td><td>词表上的静态向量</td></tr>
+      <tr><td>2015</td><td>ELMo</td><td>上下文化词向量（双向 LSTM 拼接）</td><td>一个可插拔的编码器</td></tr>
+      <tr><td>2017</td><td>Transformer</td><td>可并行的注意力架构（第 11 讲）</td><td>架构本身</td></tr>
+      <tr><td><b>2018</b></td><td><b>GPT-1 · BERT</b></td><td><b>预训练 + 微调范式确立</b>：一个底座适配多任务</td><td><b>整个预训练底座</b></td></tr>
+      <tr><td>2019</td><td>RoBERTa · ALBERT · ELECTRA · XLNet · T5</td><td>配方优化、参数瘦身、目标改进、任务统一</td><td>更好的底座与接口</td></tr>
+      <tr><td><b>2020</b></td><td><b>GPT-3</b></td><td>1750 亿参数；<b>少样本与上下文学习</b>取代微调</td><td><b>一段提示</b></td></tr>
+      <tr><td>2022+</td><td>指令微调与对齐模型</td><td>“会续写”变成“会听话”（第 13 讲）</td><td>对齐后的助手能力</td></tr>
+    </table>
+    <div class="qbar sm">三件事同时在变：<span class="k">被迁移的资产越来越大、标注需求越来越少、模型越来越大</span>——三者互相推动，构成大模型时代的主旋律。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 自监督 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">迁移学习与自监督：免费的监督信号</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">前提一：参数可迁移</div>
+        <p>语言任务共享大量<b>底层规律</b>：词形、搭配、句法、语义、常识。这些规律都存在于网络参数里。</p>
+        <p>所以在一个任务上学到的表示，可以帮助另一个任务——这就是<b>迁移学习</b>。</p>
+        <p>与静态词向量的区别：迁移的不再只是词向量，而是<b>整个编码器的参数</b>（含上下文建模能力）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">前提二：标签可自动生成（自监督）</div>
+        <div class="code xs" style="background:#fff">给定无标注序列  x = ( x₁ , x₂ , … , x_T )
+
+用规则造样本： ( 输入 x′ , 标签 y ) = ( g(x) , f(x) )
+                <span class="c">g、f 都是规则，无需人工标注</span></div>
+        <table class="ac sm" style="margin-top:8px">
+          <tr><th style="width:120px">目标</th><th>g(x)：输入</th><th>f(x)：标签</th></tr>
+          <tr><td><b>自回归</b></td><td>去掉最后一位</td><td>最后一位的词</td></tr>
+          <tr><td><b>MLM</b></td><td>随机挖空 15%</td><td>被挖掉的词</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">为什么这件事如此重要</div>
+      <p style="font-size:20px">人工标注的语料最多到百万级，而互联网文本是<b>万亿 token 级</b>——差六个数量级。<b>自监督把“没有标注就用不了”变成了“有文本就能学”</b>，这是 NLP 能吃到互联网规模数据的唯一途径。第 8 讲在语言模型上第一次用到它，本讲把它放大成了整个领域的范式。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 两阶段流水线 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两阶段流水线：预训练 → 微调（必背图）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">【阶段一 · 预训练 Pre-training】
+
+   无标注语料 D<sub>u</sub>（数十亿 ~ 数万亿 token）
+            │
+            ▼   自监督损失 L<sub>pre</sub>（自回归 或 掩码语言模型）
+      通用底座 θ<sub>pre</sub>          <span class="c">← 昂贵：数千 GPU 天</span>
+            │
+   ─────────┴──────────────────────────────────────
+            │
+            ▼   阶段二 · 微调 Fine-tuning
+   标注数据 D<sub>l</sub>（数百 ~ 数万条）
+            │
+            ▼   任务损失 L<sub>task</sub>（分类交叉熵 / 序列标注 / 起止指针）
+      任务模型 θ<sub>task</sub>         <span class="c">← 便宜：单卡几十分钟</span></div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">两个阶段的分工</div>
+        <p><b>预训练</b>：学会语言的一般规律——词形、句法、语义、常识。目标是<b>泛化</b>。</p>
+        <p><b>微调</b>：把规律对齐到具体任务。目标是<b>专门化</b>。</p>
+        <p>两者用不同的数据、不同的损失、不同的规模。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">更新的范围有三种</div>
+        <ul>
+          <li><b>全参数微调</b>：底座 + 任务头一起更新（效果最好、成本最高）</li>
+          <li><b>只训任务头</b>：冻结底座（特征提取，成本最低，效果略弱）</li>
+          <li><b>部分微调 / 参数高效微调</b>：只训少量新增参数（LoRA 等）——第 13 讲的主角</li>
+        </ul>
+      </div>
+      <div class="card card-deep tight"><div class="h">为什么这个范式这么强</div>
+      <p style="font-size:19px;color:#E9F0FA">因为它把<b>“学语言”与“学任务”解耦</b>了。学语言需要海量数据与算力，但只需做一次；学任务需要少量标注，可以快速反复做。<b>这就是下一頁要算的那笔账。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 成本经济学 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">成本经济学：昂贵的事只做一次</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">范式能否成立，取决于一道朴素的算术题</div>
+      <p style="font-size:20px">预训练的巨额投入，能被多少次廉价的微调<b>摊薄</b>？</p>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h"><span class="no">1</span>预训练这一侧</div>
+        <p><b>语料</b>：3.3 B 词（BooksCorpus 约 8 亿 + 英文维基约 25 亿）。</p>
+        <p><b>配置</b>：batch 256、序列长 512、约 1 M 步（相当于在 33 亿词上训练约 40 轮）。</p>
+        <p><b>成本</b>：4 天 × 16 块 TPU（BERT-base）；后续更大的模型要数千 GPU 天。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>微调这一侧</div>
+        <p><b>数据</b>：数百到数万条标注。</p>
+        <p><b>配置</b>：学习率 2e-5 ~ 5e-5、2–4 个 epoch。</p>
+        <p><b>成本</b>：单卡几十分钟到几小时——<b>比预训练便宜三个数量级</b>。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h"><span class="no">3</span>这笔账的结论</div>
+        <p style="color:#E9F0FA">只要任务数量多、微调次数多，<b>预训练的一次性投入就被完全摊薄</b>。</p>
+        <p style="color:#E9F0FA">这就是范式成立的经济学基础：<b>昂贵的事只做一次，便宜的事做一万次</b>。</p>
+        <p style="color:#E9F0FA">而到了 GPT-3，连“便宜的事”都可以省掉——改用提示（第 22 页）。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一个延伸判断：<span class="k">当你看到“预训练成本极高”时，要追问的是“它被多少下游任务共享”</span>——成本高不高，取决于摊薄的分母。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 AR 目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自回归语言模型（AR）· GPT 路线的目标</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">链式分解（第 7 讲）
+    P( x₁ , … , x_T ) = ∏<sub>t=1..T</sub> P( x<sub>t</sub> | x₁ … x<sub>t−1</sub> )
+
+自回归预训练目标（负对数似然 ≡ 对真实下一词的交叉熵）
+    L<sub>AR</sub> = − Σ<sub>t=1..T</sub> log P( x<sub>t</sub> | x₁ … x<sub>t−1</sub> ; θ )</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 严格单向</div>
+        <p>第 t 个位置<b>只能看左边</b>（1 … t−1），因果掩码保证这一点（第 11 讲）。</p>
+        <p>代价：不能双向理解——“银行”是河岸还是金融机构，单向模型只能靠左文判断（除非右文被移到后面）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 信号密度 100%</div>
+        <p>序列长度 T 就有 <b>T 个监督信号</b>——每个位置都是一次“预测下一个词”的训练。</p>
+        <p>这是 AR 相对 MLM 的一大优势（第 25 页会对比）。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">③ 天然支持生成</div>
+        <p style="color:#E9F0FA">训练目标与推理行为<b>完全一致</b>：都是“给定前缀预测下一个”。</p>
+        <p style="color:#E9F0FA">所以 AR 模型可以直接写文章、写代码、做对话——<b>这正是 decoder-only 最终成为大模型主流的技术原因</b>。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">自回归 = 用左边预测右边，每个位置都是一个训练样本，训练什么就会什么</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 AE 目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自编码语言模型（AE）· BERT 路线的目标</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">掩码语言模型（Masked Language Model, MLM）
+
+以概率 p = <b>15%</b> 随机选中位置集合 M，按 <b>80 / 10 / 10</b> 策略替换
+
+    L<sub>MLM</sub> = − Σ<sub>t ∈ M</sub> log P( x<sub>t</sub> | 上下文 )
+                    └─ 只对<b>被选中的位置</b>计算损失 ─┘</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 条件集合是双向的</div>
+        <p>预测被挖掉的词时，可以看<b>除它自己以外的左右全部</b>上下文。</p>
+        <p>这带来很强的语义消歧能力：“他把书放在桌子上，因为它太重了”——“它”指书还是桌子，双向信息能帮上忙。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 信号密度只有约 15%</div>
+        <p>只有被选中的位置产生损失：T=512 时约 <b>77 个训练信号</b>。</p>
+        <p>所以在同等算力下，MLM 的收敛比 AR 慢——这是它付出的第一笔账。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">③ 不能直接用于生成</div>
+        <p>训练时输入里有 <b>[MASK]</b> 这个符号，而真实生成时不可能出现 [MASK]。</p>
+        <p>更根本的是：双向注意力在生成第 t 个词时能看到右边的词——那是“抄答案”。</p>
+        <p><b>这就是导入页 Q2 的答案：目标函数决定了能力边界。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 两张掩码矩阵 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两张掩码矩阵：单向 vs 双向</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">因果掩码（GPT / decoder）</div>
+        <div class="code xs" style="background:#fff">Q \ K   东  北  大  学  好
+  东    1   0   0   0   0
+  北    1   1   0   0   0
+  大    1   1   1   0   0
+  学    1   1   1   1   0
+  好    1   1   1   1   1
+
+<span class="c">行 = 当前 token，列 = 它能看见的 token</span>
+<span class="c">实现：softmax 之前给 0 的位置加 −∞，</span>
+<span class="c">而不是把权重直接置零（那样会破坏归一化）</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h">双向注意力（BERT / encoder）</div>
+        <div class="code xs" style="background:#fff">Q \ K   东  北  大  学  好
+  东    1   1   1   1   1
+  北    1   1   1   1   1
+  大    1   1   1   1   1
+  学    1   1   1   1   1
+  好    1   1   1   1   1
+
+<span class="c">右上角的 0 全部消失了</span>
+<span class="c">编码器不做生成，因此无需遮蔽未来</span>
+<span class="c">→ 每个位置的向量都融合了全文信息</span></div>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">要澄清的两点</div>
+      <p style="font-size:19px"><b>① BERT 也不是完全没有掩码</b>：它仍然需要屏蔽 padding 位置，只是不需要因果掩码。<b>② “双向”与“生成”是不可兼得的</b>：双向带来了更强的理解能力，代价是彻底放弃了自回归生成的能力——这就是两个灵魂之问中的 Q2。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 AR vs AE 八维对照 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口对比：自回归 vs 自编码（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:230px">对照维度</th><th>自回归 AR（GPT 路线）</th><th>自编码 AE（BERT 路线）</th></tr>
+      <tr><td><b>条件集合</b></td><td>仅左侧 x<sub>&lt;t</sub>，<b>严格单向</b></td><td>除自身外的左右全部，<b>双向</b></td></tr>
+      <tr><td><b>注意力可见性</b></td><td>下三角（因果掩码）</td><td>全可见（仅保留 padding 掩码）</td></tr>
+      <tr><td><b>训练信号密度</b></td><td><b>100%</b>（每个位置都算损失）</td><td>约 <b>15%</b>（仅被选中的位置算损失）</td></tr>
+      <tr><td><b>能否直接生成</b></td><td><b>能</b>——训练与推理行为一致</td><td><b>不能</b>——依赖 [MASK]，且双向会“抄答案”</td></tr>
+      <tr><td><b>预训练-微调一致性</b></td><td>一致：都是“给定前缀预测下一个”</td><td>有差异：预训练输入含 [MASK]，下游没有</td></tr>
+      <tr><td><b>典型代表</b></td><td>GPT-1/2/3、Llama、Qwen</td><td>BERT、RoBERTa、ELECTRA</td></tr>
+      <tr><td><b>注意力架构</b></td><td>decoder-only</td><td>encoder-only</td></tr>
+      <tr><td><b>适配方式</b></td><td>提示 / 生成 / 少样本（不需要改结构）</td><td>加任务头微调</td></tr>
+      <tr><td><b>擅长</b></td><td>生成、对话、写作、代码</td><td>分类、标注、抽取、检索（理解）</td></tr>
+    </table>
+    <div class="qbar sm">建议课后<span class="k">脱稿复述这张表</span>——它把整个预训练时代的技术选择压缩成了一页。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 单向 vs 双向歧义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">单向 vs 双向：一次真实的歧义消解</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">英文：Winograd 式指代消解</div>
+        <div class="code xs" style="background:#fff">The trophy didn't fit into the suitcase
+because <b>it</b> was too large.</div>
+        <p style="margin-top:8px"><b>it 指谁？</b>答案是 trophy（奖杯）——但判断依据是后面的 <b>too large</b>。</p>
+        <p><b>单向模型</b>处理 “it” 时只能看左文，不知道后面会说什么，只能猜。</p>
+        <p><b>双向模型</b>能读到 “too large”，于是有足够信息做出正确判断。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">中文：同样的机制</div>
+        <div class="code xs" style="background:#fff">他把书放在桌子上，因为<b>它</b>太重了。
+→ “它” = 书   <span class="c">（线索：太重 → 书重）</span>
+
+他把书放在桌子上，因为<b>它</b>太乱了。
+→ “它” = 桌子   <span class="c">（线索：太乱 → 桌子乱）</span></div>
+        <p style="margin-top:8px">同一个代词，指代对象由<b>后半句的性质形容词</b>决定——这是双向注意力天然擅长的。</p>
+        <p>所以 BERT 类模型在指代消解、问答、自然语言推断这类<b>理解任务</b>上表现突出。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">这就把 Q2 的答案讲完了</div>
+      <p style="font-size:20px">BERT 之所以“不会说话”，不是因为它的表示不够强，而是因为<b>双向注意力在生成时能看到答案</b>。这是一个不可兼得的设计取舍：<b>要理解就双向，要生成就单向</b>。而 2020 年之后，随着规模变大，单向路线因为“能生成 + 能扩展 + 能统一所有任务”而胜出——但双向模型在垂直领域判别任务上仍是主力（成本低、可控性强）。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 GPT 架构解剖 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">decoder-only 架构解剖：GPT 的内部</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">token ids (B × T) → 词嵌入 E + 可学习绝对位置嵌入 P   <span class="c">上限 T_max = 上下文窗口</span>
+      │
+      ▼   [ B × T × d ]
+  × N 层 decoder block：
+    ① Masked 多头自注意力 → Add &amp; LN     <span class="c">← 删掉了 cross-attention</span>
+    ② FFN（逐位置）        → Add &amp; LN
+      │
+      ▼
+  线性层 ( d → |V| ) → softmax → 下一个词的概率分布</div>
+    <div class="grid g3 tight" style="margin-top:10px;flex:1">
+      <div class="card card-blue tight" style="padding:10px 14px"><div class="h" style="font-size:20px">与原始 Transformer 的两点差别</div>
+        <ul>
+          <li><b>删掉 cross-attention</b>：只有一条序列，不需要“看另一条序列”</li>
+          <li><b>删掉编码器</b>：整摞都是解码器层，重复 N 次</li>
+        </ul>
+        <p>所以 GPT 的输入是“一段文本”，输出是“下一个词”——极简但通用。</p>
+      </div>
+      <div class="card card-blue tight" style="padding:10px 14px"><div class="h" style="font-size:20px">两个独立的扩展维度</div>
+        <p><b>宽度 d</b>：每层的表示维度（GPT-1 768 → GPT-2 1600 → GPT-3 12288）。</p>
+        <p><b>深度 N</b>：层数（GPT-1 12 → GPT-2 48 → GPT-3 96）。</p>
+        <p>再加上<b>上下文窗口 T_max</b>，共三个可扩展的旋钮——这是后来“规模法则”研究的基础。</p>
+      </div>
+      <div class="card card-warn tight" style="padding:10px 14px"><div class="h" style="font-size:20px">一个必须注意的细节</div>
+        <p>GPT 用的是<b>可学习绝对位置嵌入</b>（与原始 Transformer 的正弦编码不同），所以位置上限 <b>T_max 是硬约束</b>——超出范围就无法编码。</p>
+        <p>这个限制后来被 RoPE 等相对位置方案打破（第 11 讲）。</p>
+      </div>
+    </div>
+    <div class="qbar sm" style="margin-top:8px">一句话：<span class="k">GPT = 因果自注意力层叠 N 次，输入文本、输出下一个词</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 教师强制 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教师强制：单向也能并行训练</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">以「东 北 大 学 好」为例
+
+位置:   1      2      3       4        5
+输入:  &lt;BOS&gt;   东      北      大       学     <span class="c">← 真值序列右移一位</span>
+标签:   东      北      大      学       好     <span class="c">← 每个位置都是一次监督</span>
+可见:  {∅}    {东}   {东北}  {东北大}  {东北大学}  <span class="c">← 因果掩码保证</span></div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:150px">对比项</th><th>训练</th><th>推理</th></tr>
+      <tr><td><b>操作</b></td><td>整句一次前向，T 个位置的损失同时算出</td><td>一次生成一个 token，再把它喂回去</td></tr>
+      <tr><td><b>并行度</b></td><td><b>完全并行</b>（一次矩阵乘算完 T 个位置）</td><td><b>串行 T 次</b>前向</td></tr>
+      <tr><td><b>输入</b></td><td>真实前缀（右移一位的真值序列）</td><td>自生成前缀</td></tr>
+      <tr><td><b>为什么可以这样</b></td><td>因果掩码保证位置 i 看不到 i 之后的真值——<b>没有信息泄漏</b></td><td>本来就只有前面的词可用</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">两个必须澄清的点</div>
+      <p style="font-size:19px"><b>① “单向”不等于“慢”</b>：单向是注意力的可见性约束，与计算能否并行无关。因果掩码让训练完全并行，这正是 GPT 能扩展到千亿参数的前提。</p>
+      <p style="font-size:19px;margin-top:6px"><b>② 训练并行、推理串行</b>是自回归模型的固有不对称（第 10 讲的暴露偏差也源于此）。工业界为此发明了 KV Cache（第 14 讲）。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 GPT-1 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GPT-1（2018）：生成式预训练的奠基</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">一句话定位</div>
+      <p style="font-size:19px">用<b>自回归语言建模</b>做无监督预训练，再用<b>判别式微调</b>适配 12 个任务——其中 <b>9 项刷新纪录</b>。</p>
+    </div>
+    <div class="grid g23 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">规格</div>
+        <table class="ac sm">
+          <tr><th style="width:130px">项目</th><th>取值</th></tr>
+          <tr><td>结构</td><td>12 层 / 隐维 768 / 12 头，Transformer <b>解码器</b></td></tr>
+          <tr><td>参数量</td><td>约 <b>1.17 亿</b>（与后来的 BERT-base 同量级）</td></tr>
+          <tr><td>上下文</td><td>512</td></tr>
+          <tr><td>词表</td><td>约 4 万（BPE 子词）</td></tr>
+          <tr><td>语料</td><td>BooksCorpus，约 7000 本未出版书籍</td></tr>
+        </table>
+      </div>
+      <div class="card card-warn tight"><div class="h">三个损失：微调阶段的标准写法</div>
+        <div class="code xs" style="background:#fff">① 无监督预训练（k 为上下文窗口，GPT-1 取 512）
+   L₁(U) = Σ<sub>i</sub> log P( u<sub>i</sub> | u<sub>i−k</sub> … u<sub>i−1</sub> ; Θ )
+
+② 监督微调（(x¹..x^m) 是输入序列，y 是标签）
+   L₂(C) = Σ<sub>(x,y)</sub> log P( y | x¹ … x<sup>m</sup> )
+
+③ 联合训练（λ 是权重）
+   L₃(C) = L₂(C) + <b>λ · L₁(C)</b>
+   <span class="c">把预训练目标也带进微调，能缓解灾难性遗忘、提升泛化</span></div>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">为什么 GPT-1 值得单独讲一页</div>
+      <p style="font-size:19px">它的架构今天看很小（1.17 亿参数），但它第一次完整给出了<b>『无监督预训练 + 有监督微调』的标准流程</b>，包括输入改造（把分类、蕴含、相似度、问答都改写成一段序列）与联合损失。<b>BERT 沿用了这套流程，只是换了目标函数与架构——范式是 GPT-1 先立的。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 GPT-2 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GPT-2（2019）：语言模型是无监督多任务学习器</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">核心论点</div>
+        <p style="font-size:19px">任何监督任务都是<b>条件语言建模</b>：P(输出 | 输入, 任务)。</p>
+        <p>只要语料里有这种模式，足够大的模型就会<b>隐式学会</b>——“翻译”这个任务在网页里以中英对照的形式出现过无数次，“摘要”以新闻 + 导语的形式出现过无数次。</p>
+        <p style="margin-top:8px">所以它第一次把 <b>zero-shot（零样本）</b> 当作卖点：不做任何微调，直接让它做摘要、翻译、问答。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">规格与数据</div>
+        <table class="ac sm">
+          <tr><th style="width:150px">项目</th><th>取值</th></tr>
+          <tr><td>参数量</td><td><b>15 亿</b>（GPT-1 的约 13 倍）</td></tr>
+          <tr><td>结构</td><td>48 层 / 隐维 1600 / 上下文 1024</td></tr>
+          <tr><td>语料</td><td>WebText：约 <b>40 GB</b>、约 800 万文档</td></tr>
+          <tr><td>筛选标准</td><td>Reddit 上获得至少 <b>3 个赞</b>的外链页面</td></tr>
+        </table>
+        <p style="margin-top:6px"><b>数据质量比数量更重要</b>——用“人类点赞”作为质量过滤器，是它比同期语料效果更好的关键原因之一。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一个必须点明的边界</div>
+      <p style="font-size:19px">GPT-2 的“零样本”往往是<b>碰巧做对</b>：你得猜它把任务理解成了什么续写任务，然后凑出一个能诱出正确答案的前缀。它仍然只是<b>会续写</b>，还不会<b>听话</b>。<b>从“会续写”到“会听话”，要等第 13 讲的指令微调与对齐。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 GPT-3 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GPT-3（2020）：规模把“微调”变成了“举例”</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:170px">维度</th><th>GPT-1（2018）</th><th>GPT-2（2019）</th><th>GPT-3（2020）</th></tr>
+      <tr><td><b>参数量</b></td><td>1.17 亿</td><td>15 亿</td><td><b>1750 亿</b></td></tr>
+      <tr><td><b>结构</b></td><td>12 层 / 768 / 12 头</td><td>48 层 / 1600 / —</td><td>96 层 / 12288 / 96 头</td></tr>
+      <tr><td><b>上下文</b></td><td>512</td><td>1024</td><td>2048</td></tr>
+      <tr><td><b>语料</b></td><td>BooksCorpus 7000 本</td><td>WebText 40 GB</td><td>约 <b>3000 亿 token</b>（含 Common Crawl 等）</td></tr>
+      <tr><td><b>适配方式</b></td><td>微调（每个任务重新训练）</td><td>零样本（靠凑前缀）</td><td><b>少样本 / 上下文学习（参数不改）</b></td></tr>
+    </table>
+    <div class="grid g23 tight" style="margin-top:12px;flex:1">
+      <div class="code sm" style="margin-top:0">上下文学习（In-Context Learning）的三种形态
+
+zero-shot（零样本）：
+  Translate English to French:
+  cheese =&gt;
+
+one-shot（单样本）：
+  Translate English to French:
+  sea otter =&gt; loutre de mer
+  cheese =&gt;
+
+few-shot（少样本，通常 3–100 个例子）：
+  ……（若干条“英文 =&gt; 法文”示例）……
+  cheese =&gt;</div>
+      <div class="card card-deep tight"><div class="h">为什么这是一次真正的转折</div>
+        <p style="font-size:19px;color:#E9F0FA">前两代的做法都是“<b>改模型参数</b>”来适配任务；GPT-3 第一次证明了：<b>只要模型足够大，任务可以通过“写在提示里”来定义，参数一个都不用动。</b></p>
+        <p style="font-size:19px;color:#E9F0FA;margin-top:6px">这直接催生了<b>提示工程</b>这门手艺（第 14 讲），也让“一个模型做所有事”从口号变成了工程现实。</p>
+        <p style="font-size:18.5px;color:#E9F0FA;margin-top:6px">但代价也出现了：上下文窗口成为瓶颈、推理成本高、输出不可控、无法针对垂直领域深调——这些问题构成了第 13–15 讲的全部动机。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 BERT 解剖 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BERT 解剖：encoder-only 与输入表示</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">输入：[CLS]  x₁ x₂ … x_n  [SEP]  y₁ … y_m  [SEP]
+      │
+      ▼
+ 每个 token 的输入表示 = <b>E<sub>token</sub> + E<sub>segment</sub> + E<sub>pos</sub></b>
+                          <span class="c">（三者逐元素相加）</span>
+      │
+      ▼
+┌──────────────────────────────────┐
+│  × N 层 encoder block             │
+│    ① 双向多头自注意力 → Add &amp; LN   │   <span class="c">← 不加因果掩码</span>
+│    ② FFN（逐位置）    → Add &amp; LN   │
+└──────────────────────────────────┘
+      │
+      ▼
+  H ∈ R<sup>T×d</sup>   每个位置一个<b>上下文化的向量</b>（不是词表分布）</div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">三个特殊符号与三种嵌入</div>
+        <ul>
+          <li><b>[CLS]</b>：序列首位的特殊符号，它的输出向量当作<b>整句表示</b>（分类任务用它）</li>
+          <li><b>[SEP]</b>：分隔句子（也标记序列结束）</li>
+          <li><b>段嵌入</b>：标记当前 token 属于句子 A 还是 B</li>
+        </ul>
+        <p>位置嵌入是<b>可学习</b>的，上限 512。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">两个规格</div>
+        <table class="ac sm">
+          <tr><th></th><th>base</th><th>large</th></tr>
+          <tr><td>层数</td><td>12</td><td>24</td></tr>
+          <tr><td>隐维</td><td>768</td><td>1024</td></tr>
+          <tr><td>头数</td><td>12</td><td>16</td></tr>
+          <tr><td>参数</td><td><b>1.1 亿</b></td><td><b>3.4 亿</b></td></tr>
+        </table>
+      </div>
+      <div class="card card-warn tight"><div class="h">中文 BERT 的一个重要细节</div>
+        <p>英文词表 30522（WordPiece 子词）；<b>中文 BERT 词表 21128，且基本按字切分</b>。</p>
+        <p>这意味着中文 BERT 的“词”概念是缺失的——直接后果是 MLM 挖一个字时，靠词内共现就能猜出来（太简单）。<b>这正是第 35 页中文 WWM 要解决的问题。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 MLM 与 80/10/10 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">预训练任务一：MLM 与 80 / 10 / 10（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">把互联网当成一份巨大的<b>完形填空卷子</b>：随机挖掉 <b>15%</b> 的 token，用剩下 85% 把它们猜回来
+
+原句：  东北大学 是 一所 位于 沈阳 的 重点 高校
+挖空：  东北大学 是 [MASK] 位于 沈阳 的 [MASK] 高校      <span class="c">← 随机选中约 15% 的位置</span>
+标签：            一                        重点        <span class="c">← 只对被选中的位置算损失</span></div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:120px">策略</th><th style="width:110px">比例</th><th>做法</th><th style="width:330px">解决什么问题</th></tr>
+      <tr><td><b>挖</b></td><td><b>80%</b></td><td>替换成 <b>[MASK]</b></td><td>只有真正挖空，才需要依赖<b>双向上下文</b>去推断——这是 MLM 的核心</td></tr>
+      <tr><td><b>换</b></td><td><b>10%</b></td><td>替换成<b>随机词</b></td><td>防止模型学到捷径：“看到 [MASK] 才认真处理”。换成随机词后，模型必须对<b>每个位置</b>都保持警觉</td></tr>
+      <tr><td><b>留</b></td><td><b>10%</b></td><td><b>保持不变</b></td><td>让输入分布更贴近真实文本，缓解<b>预训练与微调的输入不一致</b>（下游不会出现 [MASK]）</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">口诀与两个易错点</div>
+      <p style="font-size:19px"><b>口诀：80 挖、10 换、10 留。</b>　易错点 ①：如果全部用 [MASK]（即 100%），模型会把“有 [MASK] 的句子”当成一个特殊任务，而下游没有 [MASK]，分布差异变大。<br>
+      易错点 ②：只有被选中的位置计算损失，<b>没被选中的 85% 不产生梯度</b>——这正是信号密度只有 15% 的原因。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 MLM 三个代价 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">MLM 的三笔代价（与后人的两种解法）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h"><span class="no">1</span>信号密度低</div>
+        <p><b>自回归</b>：每个位置都是一次预测 → T=512 时 <b>512 个训练信号（100%）</b>。</p>
+        <p><b>掩码 MLM</b>：只有被选中的位置计损失 → 约 <b>77 个（15%）</b>。</p>
+        <p>后果：<b>同等算力下 MLM 收敛更慢</b>，需要更多训练步数才能达到同样的效果。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">2</span>预训练-微调不一致</div>
+        <p>预训练输入里有大量 <b>[MASK]</b>，而下游任务的输入永远是完整文本——<b>训练与使用的输入分布不同</b>。</p>
+        <p>BERT 用 10% “保持不变”来缓解，但没有根治。这是“预训练-微调差异”（pretrain-finetune discrepancy）的经典例子。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">3</span>被掩码位置相互独立</div>
+        <p>BERT 假设 15% 的位置可以<b>彼此独立地</b>预测——例如同时挖掉“自然”和“语言”时，它不会建模这两个位置之间的依赖。</p>
+        <p>而事实上它们高度相关。<b>这是 XLNet 的直接动机</b>（第 35 页）。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">解法 A：ELECTRA —— 把“填空”换成“纠错”</div>
+        <p>用一个小的生成器把某些词换成<b>看起来合理的错词</b>（不是 [MASK]、不是随机词），然后让判别器<b>逐位置判断“这个词是原文还是被换过的”</b>。</p>
+        <p>于是<b>一条序列的全部 T 个位置都产生监督信号</b>，密度从 15% 提升到 100%。这就是 RTD（Replaced Token Detection）的核心。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">解法 B：XLNet —— 排列语言模型</div>
+        <p>洞察：自回归的本质是『按某个顺序连乘』，而<b>顺序可以任意</b>。</p>
+        <p>枚举/采样多种分解顺序（如 x₃ → x₁ → x₄ → x₂），每个位置在<b>某个顺序下</b>都能看到左右文，同时保持自回归的形式。</p>
+        <p>于是既得到双向上下文，又能生成、且没有 [MASK]。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 NSP 与争议 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">预训练任务二：NSP 与它的争议</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">NSP（Next Sentence Prediction）</div>
+        <p>MLM 学的是<b>句内</b>关系，NSP 补上<b>句间</b>关系：判断 B 是不是 A 的真实下一句。</p>
+        <div class="code xs" style="background:#fff">正例（IsNext，占 <b>50%</b>）
+  [CLS] 今天天气很好 [SEP] 我们一起去公园散步 [SEP] → IsNext
+
+负例（NotNext，占 <b>50%</b>，B 从语料中随机采样）
+  [CLS] 今天天气很好 [SEP] 服务器需要定期重启 [SEP] → NotNext</div>
+        <p style="margin-top:8px">损失算在 <b>[CLS]</b> 的向量上（接一个二分类头）。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">争议：一个太简单的任务</div>
+        <p>负例来自<b>另一篇文档</b>，主题差异过于明显——于是模型学会了走捷径：<b>判断主题是否相关，而不是判断连贯性</b>。</p>
+        <p>证据：RoBERTa（Liu 等 2019）做了大规模消融，在动态掩码 + 更大数据 + 更大 batch 的配置下，<b>去掉 NSP 重新训练，GLUE 与 SQuAD 均不降反升</b>。</p>
+        <p>后续方案：ALBERT 用 <b>SOP</b>（句子顺序预测）——正负例都来自同一文档，只把两句顺序调换，从而避免主题捷径；RoBERTa 则直接去掉 NSP。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">这一页的教学价值</div>
+      <p style="font-size:19px">NSP 是一个<b>“设计了一个任务，但模型学会了捷径”</b>的经典案例。它提醒我们：<b>自监督任务的设计质量，直接决定模型学到的是我们想要的能力，还是投机取巧的捷径。</b>这种“任务设计 → 捷径 → 消融证伪 → 改任务”的循环，是预训练研究的主要工作方式。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 微调总览 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">微调总览：同一个底座，四种任务头</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">BERT 底座（参数端到端更新，学习率 2e-5 ~ 5e-5）
+      │
+      ├──────────────┬──────────────┬──────────────┬──────────────┐
+      ▼              ▼              ▼              ▼
+ ① 文本分类     ② 序列标注     ③ 句对关系     ④ 抽取式问答
+ 取 [CLS]       每个 token     取 [CLS]       两个可学习向量
+ → 线性层       → 线性层       → 线性层       → 起止指针
+ → K 类 softmax → 每位置标签   → K 类 softmax → 原文区间</div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:150px">任务头</th><th style="width:230px">取哪个位置的输出</th><th>输出与损失</th><th style="width:230px">典型任务</th></tr>
+      <tr><td><b>① 文本分类</b></td><td>[CLS] 的向量 c ∈ R<sup>768</sup></td><td>logits = Wc + b → K 类 softmax + 交叉熵</td><td>情感、主题、蕴含、句子相似度</td></tr>
+      <tr><td><b>② 序列标注</b></td><td><b>每个 token</b> 的向量 hᵢ</td><td>每位置 K 类 softmax（可接 CRF 层）+ 逐位交叉熵</td><td>POS、NER、分词（第 9 讲无缝对接）</td></tr>
+      <tr><td><b>③ 句对关系</b></td><td>[CLS] 的向量（输入含两句）</td><td>K 类 softmax + 交叉熵</td><td>自然语言推断、释义判断、问答排序</td></tr>
+      <tr><td><b>④ 抽取式问答</b></td><td>段落里每个 token 的向量 hᵢ</td><td>两个可学习向量 S、E 分别点出起止位置</td><td>SQuAD 类抽取式问答</td></tr>
+    </table>
+    <div class="qbar sm">统一的输入格式：<span class="k">[CLS] 句 A [SEP] 句 B [SEP]</span>，用<b>段嵌入</b>区分归属；单句任务就把句 B 留空。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 任务头① 分类 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">任务头 ①：文本分类（[CLS] + 线性层）</span><span class="sec">环节二 · 知识点讲解 · 作业 3 阶段二</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">[CLS]  这  部  电  影  真  好  看  [SEP]
+      │  BERT（12 层 encoder）
+      ▼
+  H ∈ R<sup>T × 768</sup>   <span class="c">← 每个位置一个向量</span>
+      │  取 c = H[0]（[CLS] 的向量）
+      ▼
+  logits = W · c + b  ∈ R<sup>K</sup>   <span class="c">W ∈ R^{K×768}</span>
+      │
+      ▼
+  softmax → 交叉熵损失 → 预测类别（如 正面/负面）</div>
+    <div class="grid g2 tight" style="margin-top:10px;flex:1">
+      <div class="card card-blue tight"><div class="h">两个设计问题</div>
+        <p><b>① 为什么用 [CLS] 而不是对全部 token 做平均池化？</b>[CLS] 是专门为句级表示训练的（NSP 的损失就加在它上面），所以它的向量天然适合承载整句语义。</p>
+        <p>实践中平均池化与 [CLS] 效果接近，但 [CLS] 是标准做法、也是所有教程与文档的默认写法。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">代码骨架（HuggingFace）</div>
+        <div class="code xs" style="background:#fff">from transformers import AutoTokenizer, AutoModelForSequenceClassification
+tok = AutoTokenizer.from_pretrained("bert-base-chinese")
+model = AutoModelForSequenceClassification.from_pretrained(
+            "bert-base-chinese", num_labels=2)
+batch = tok(["这部电影真好看","太糟糕了"], padding=True,
+            truncation=True, return_tensors="pt")
+out = model(**batch)
+print(out.logits.argmax(-1))   <span class="c"># 预测类别</span></div>
+      </div>
+    </div>
+    <div class="qbar sm">推荐配置：<span class="k">学习率 2e-5 ~ 5e-5、2–4 个 epoch、batch 16–32、最大长度 128–256</span>（第 31 页给完整检查清单）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 任务头② 序列标注 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">任务头 ②：序列标注（每 token 一个标签）</span><span class="sec">环节二 · 知识点讲解 · 第 9 讲的无缝对接</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">[CLS] 张  三  在  东北大学  读  书 [SEP]
+        h₀  h₁  h₂  h₃  h₄ …                    ← 每个位置各自的向量
+        ↓   ↓   ↓   ↓   ↓
+      线性层（每位置独立） → 每个位置的标签分布
+        ↓
+      （可选）CRF 层 + Viterbi 解码        <span class="c">← 全局约束，保证 BIO 合法</span>
+        ↓
+      O  B-PER I-PER O  B-ORG I-ORG …</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">与第 9 讲的对应关系</div>
+        <p>第 9 讲的结构是 <b>BiLSTM → 发射分数 → CRF → Viterbi</b>。</p>
+        <p>这里把 BiLSTM 换成 <b>BERT</b>，后面的部分完全保留——<b>编码器升级，解码逻辑不动</b>。</p>
+        <p>这也是“底座可替换”的直观体现。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">必须处理的子词对齐</div>
+        <p>BERT 用 WordPiece，一个词可能被切成多个子词（“东北大学”→ 东北/大学 或更细），但标签是<b>词级</b>的。</p>
+        <p><b>常见做法</b>：只取每个词的<b>第一个子词</b>的输出作为该词的表示；或对子词向量做池化。</p>
+        <p>处理不当会让评估结果莫名其妙掉 1–2 个点。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">另外两个细节</div>
+        <ul>
+          <li><b>[CLS] 与 [SEP]</b> 位置不参与损失（它们的标签设为 −100 忽略）</li>
+          <li><b>padding 位置</b>必须用 attention mask 屏蔽，否则会影响注意力分配</li>
+          <li>中文按字切分时，一个字就是一个 token，子词对齐问题较小</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 任务头③④ ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">任务头 ③④：句对关系与抽取式问答</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">③ 句对关系任务</div>
+        <div class="code xs" style="background:#fff">输入： [CLS] 句 A [SEP] 句 B [SEP]
+段嵌入：A 段全 0，B 段全 1
+        ↓  BERT
+取 [CLS] 向量 c  →  线性层  →  K 类 softmax</div>
+        <p style="margin-top:8px">与单句分类几乎相同，<b>差别只在输入有两个句子</b>，靠段嵌入与 [SEP] 区分归属。</p>
+        <p><b>典型任务</b>：自然语言推断（蕴含 / 矛盾 / 中立）、释义判断、问答候选排序、句对相似度。</p>
+        <p>进阶（第 14 讲）：也可以把分类改写成“提示 + 续写”，用生成式方式做——这就是提示学习。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">④ 抽取式问答（起止指针）</div>
+        <div class="code xs" style="background:#fff">输入： [CLS] 问题 [SEP] 段落 [SEP]
+        ↓  BERT
+段落里每个位置向量 hᵢ
+
+P( start = i ) ∝ exp( <b>S</b> · hᵢ )     S ∈ R<sup>H</sup> 可学习
+P( end   = i ) ∝ exp( <b>E</b> · hᵢ )     E ∈ R<sup>H</sup> 可学习
+
+损失 = 起点的交叉熵 + 终点的交叉熵</div>
+        <p style="margin-top:8px"><b>输出不是类别，而是原文中的一段连续区间</b>——用两个可学习向量去“点”出起点与终点。</p>
+        <p>这也是 SQuAD 等抽取式问答基准的标准做法。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">把这两页连起来看</div>
+      <p style="font-size:19px">这四个任务头覆盖了绝大多数 NLP 下游任务。而第 13 讲的指令微调，本质上是用<b>一个生成式头</b>替代全部四个头——<b>分类变成“输出类别名”、标注变成“输出标签序列”、问答变成“回答问题”</b>。这就是从“多任务头”到“一个头通吃”的范式转移。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 31 微调工程要点 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">微调工程要点：超参、陷阱与检查清单</span><span class="sec">环节二 · 知识点讲解 · 作业检查清单</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">推荐超参</div>
+        <table class="ac sm">
+          <tr><th style="width:140px">超参</th><th style="width:130px">推荐取值</th><th>为什么</th></tr>
+          <tr><td>学习率</td><td><b>2e-5 ~ 5e-5</b></td><td>底座已收敛，需比预训练（1e-4）小一个数量级以上</td></tr>
+          <tr><td>训练轮数</td><td><b>2 ~ 4</b> epochs</td><td>标注量小，轮数多了必然过拟合</td></tr>
+          <tr><td>batch size</td><td>16 ~ 32</td><td>显存允许下越大越稳</td></tr>
+          <tr><td>最大长度</td><td>分类 128–256<br>问答 384–512</td><td>按任务需要，过长浪费显存</td></tr>
+          <tr><td>warmup 比例</td><td>0.1</td><td>前期小步、后期大步</td></tr>
+          <tr><td>早停</td><td>验证集指标</td><td>防过拟合，保留最佳检查点</td></tr>
+        </table>
+      </div>
+      <div class="card card-warn tight"><div class="h">六个高频踩坑</div>
+        <ul>
+          <li><b>学习率设太大</b>（如 1e-3）→ 灾难性遗忘，底座通用能力被冲垮，效果比不微调还差</li>
+          <li><b>不写随机种子</b> → 结果不可复现，第 28 页的规范问题</li>
+          <li><b>不做多种子重复</b> → 把随机波动（通常 ±1 个点）当成方法改进</li>
+          <li><b>中文任务误用英文底座</b> → 词表不匹配、分词混乱、效果骤降</li>
+          <li><b>换了底座忘记换分词器</b> → token id 错位，模型输出完全无意义</li>
+          <li><b>不做错误分析</b> → 不知道错误来自边界、类别还是数据噪声，无法改进</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一条重要的经验</div>
+      <p style="font-size:19px">很多同学急着改结构、换模型，但<b>数据量、训练时长、batch 大小这些“无聊”的因素，收益往往更大</b>。RoBERTa 的全部贡献就是“不改架构、不改目标函数，只把训练配方做到位”，却显著超越了原版 BERT（下一页）。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 RoBERTa ================= -->
+<section class="slide" content-notes="">
+  <div class="hdr"><span class="t">变体 ①：RoBERTa —— 把配方做到位</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="card card-blue tight" style="margin-top:0"><div class="h">一句话定位</div>
+      <p style="font-size:19px"><b>不改架构、不改目标函数，只把训练配方做到位</b>——却显著超越了原版 BERT。</p>
+    </div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:170px">改动</th><th style="width:280px">BERT 原版</th><th>RoBERTa</th><th style="width:280px">为什么有效</th></tr>
+      <tr><td><b>① 动态掩码</b></td><td>预处理时就把掩码固定（<b>静态掩码</b>），同一句话每次看到的是同一组空</td><td>每次喂入时<b>重新随机选 15%</b> 的位置</td><td>等价于数据增强，模型见过更多掩码模式，不会“背下”固定的空</td></tr>
+      <tr><td><b>② 去掉 NSP</b></td><td>MLM + NSP 两个任务</td><td>只用 MLM</td><td>消融实验显示 NSP 带来的是捷径学习，去掉后 GLUE/SQuAD <b>不降反升</b></td></tr>
+      <tr><td><b>③ 更大的 batch 与数据</b></td><td>batch 256；16 GB 语料</td><td>batch <b>8 K</b>；语料扩到 <b>160 GB</b></td><td>更大的 batch 让梯度估计更稳，更多数据提供更丰富的语言现象</td></tr>
+      <tr><td><b>④ 更长的训练</b></td><td>约 1 M 步</td><td>步数大幅增加，总 token 量约 <b>2.2 万亿</b></td><td>相当于把同样的数据反复看很多遍，把模型“喂饱”</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">成绩</div>
+        <p>GLUE、SQuAD、RACE 全面超过 BERT-large——<b>而架构完全相同</b>。</p>
+        <p>这让整个领域意识到：<b>『配方』（数据规模、batch、训练步数、掩码策略）的重要性被长期低估了。</b></p>
+      </div>
+      <div class="card card-deep tight"><div class="h">对学生的直接启示</div>
+      <p style="font-size:19px;color:#E9F0FA">做课程项目时，先<b>把数据量、训练轮数、batch、学习率调度这些“无聊”的因素调到位</b>，再考虑改结构。很多“结构创新”的收益，其实来自于训练更充分。</p>
+    </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 33 ALBERT ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">变体 ②：ALBERT —— 参数瘦身</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">技术一：因式分解嵌入参数化</div>
+        <p>原版把词表嵌入矩阵设成 V×H（词表大小 × 隐层维度），参数量巨大。</p>
+        <div class="code xs" style="background:#fff">原版：  V × H
+分解：  V × E   再   E × H     <span class="c">E ≪ H（如 E=128, H=768）</span></div>
+        <p style="margin-top:6px">动机：词嵌入本来就不需要和隐层同维——<b>把它压到较小的 E 再投影上去</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">技术二：跨层参数共享</div>
+        <p>原版每层一套独立的参数；ALBERT 让<b>所有层共用同一套</b>。</p>
+        <p>12 层变 1 层参数——这是参数量下降的主要来源。</p>
+        <p>反直觉的是：共享之后效果并没有明显变差，说明 Transformer 各层学到的变换有大量共性。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h">必须澄清的误区：省的是“内存”，不是“时间”</div>
+        <p>ALBERT-xxlarge 约 <b>2.35 亿</b>参数，比 BERT-large（<b>3.34 亿</b>）小约 30%，而 GLUE 分数更高（约 <b>89</b>）。</p>
+        <p><b>但推理速度并没有变快</b>：层数一层没减，前向计算量（FLOPs）基本不变，ALBERT-xxlarge 反而比 BERT-large 更慢。</p>
+        <p>很多论文标题里的“轻量”指的是<b>参数存储与显存占用</b>，不是计算时间——读论文时务必分清。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">一个实用的判断</div>
+      <p style="font-size:19px;color:#E9F0FA"><b>参数量</b>决定手机部署时的包体大小与内存占用；<b>FLOPs</b>决定耗电与延迟。<b>两者是独立的优化目标</b>——做端侧部署时必须分别评估，不能只看参数量。</p>
+    </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 ELECTRA 与 DistilBERT ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">变体 ③：ELECTRA 与 DistilBERT</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">ELECTRA：把“填空”换成“纠错”</div>
+        <div class="code xs" style="background:#fff">原始： 我 爱 自然 语言 处理
+生成器替换： 我 爱 <b>烹饪</b> 语言 处理    <span class="c">← 看起来合理的错词</span>
+判别器逐位置二分类：原/被换？
+           原  原   <b>换</b>   原   原</div>
+        <p style="margin-top:6px"><b>信号密度从 15% 提到 100%</b>——全部 T 个位置都产生监督。这就是 RTD（Replaced Token Detection）。</p>
+        <p><b>三个工程细节</b>：①生成器比判别器小得多（1/4 ~ 1/2），因为只用来造负样本；②两者共享词嵌入；③<b>小模型上收益尤其明显</b>——ELECTRA-Small（1400 万参数）单卡训练 4 天，效果超过 GPT（1.17 亿）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">DistilBERT：知识蒸馏</div>
+        <div class="code xs" style="background:#fff">普通监督： L = CE( softmax(z<sub>s</sub>) , y )
+           <span class="c">← 只学硬标签「这是正面」</span>
+
+知识蒸馏： L = α · CE( softmax(z<sub>s</sub>/τ) , softmax(z<sub>t</sub>/τ) )
+             + (1−α) · CE( softmax(z<sub>s</sub>) , y )
+           <span class="c">← 还学教师模型的整个输出分布</span>
+           <span class="c">τ 是温度，把分布“软化”以暴露类间相似性</span></div>
+        <p style="margin-top:6px">让学生模型模仿<b>教师模型的输出分布</b>，而不只是硬标签——软标签携带了“哪些类更容易混”的信息。</p>
+        <p><b>结果</b>：参数量减少 <b>40%</b>、速度快 <b>60%</b>、保留约 <b>97%</b> 的效果。第 14 讲还会展开量化、剪枝、低秩分解等压缩手段。</p>
+      </div>
+    </div>
+    <div class="qbar sm">共同主题：<span class="k">在“效果—成本”曲线上找到更好的点</span>——ELECTRA 改目标提升数据效率，DistilBERT 改模型尺寸换取速度，两者都在回答同一个工程问题。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 XLNet 与中文变体 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">变体 ④：XLNet 与中文变体（WWM / MacBERT）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">XLNet：排列语言模型（PLM）</div>
+        <p><b>洞察</b>：自回归的本质是“按某个顺序连乘”，而<b>顺序可以任意</b>。</p>
+        <div class="code xs" style="background:#fff">普通 AR（唯一顺序）：
+  x₁ → x₂ → x₃ → x₄     每个位置只能看左边
+
+排列 LM（枚举分解顺序，共 T! 种，实际采样若干）：
+  取顺序  x₃ → x₁ → x₄ → x₂
+  → 预测 x₂ 时，x₃ x₁ x₄ 都已出现
+  → <b>同时利用了左右文，且保持自回归形式</b>
+  → <b>不需要 [MASK]</b>（消除了预训练-微调差异）</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">中文 WWM：掩码粒度从“字”升到“词”</div>
+        <div class="code xs" style="background:#fff">原版 MLM（字级随机掩码）：
+  我 喜 欢 学 习 自 然 语 言 处 理
+  我 喜 欢 <b>[MASK]</b> 习 自 然 语 言 处 理
+  <span class="c">← 看到“_习”几乎必然填“学”，任务太简单</span>
+
+WWM（Whole Word Masking，整词掩码）：
+  我 喜 欢 <b>[MASK] [MASK]</b> 自 然 语 言 处 理
+  <span class="c">← 按词边界整词挖掉，任务变难，表示更强</span></div>
+        <p style="margin-top:6px"><b>MacBERT</b>：把 [MASK] 换成<b>相似词</b>（MLM as correction），例如“学习”→“研习”，彻底消除预训练与下游之间的输入分布差异，并顺带获得纠错能力。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">这一页的三条设计思想</div>
+      <p style="font-size:19px"><b>XLNet</b>：不改变任务形式，只改变<b>分解顺序</b>——用更聪明的数学结构拿双向信息。<b>WWM</b>：不改变目标函数，只改变<b>掩码粒度</b>——让任务难度匹配语言结构。<b>MacBERT</b>：不改变架构，只改变<b>替换方式</b>——消除训练与使用的分布差异。<b>三者的共同点：改进往往来自对“任务设计”的思考，而不是堆参数。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 36 T5 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">变体 ⑤：T5 —— 把所有任务统一成“文本 → 文本”</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">T5 = Text-to-Text Transfer Transformer：一切任务都写成「输入文本 → 输出文本」
+
+  翻译： translate English to German: That is good.   →  Das ist gut.
+  分类： sentiment: This movie is great.               →  positive
+  相似度：stsb sentence1: A  sentence2: B              →  3.8
+  摘要： summarize: 长文章……                            →  一段摘要
+  问答： question: 谁写的？ context: 作者是……            →  作者名</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">统一了什么</div>
+        <ul>
+          <li><b>统一输入输出格式</b>：都是文本</li>
+          <li><b>统一损失函数</b>：都是交叉熵</li>
+          <li><b>统一解码过程</b>：都是自回归生成</li>
+          <li><b>统一参数</b>：所有任务共享同一个模型</li>
+        </ul>
+        <p>换任务时<b>只改前缀任务描述</b>，不换结构、不换头。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么这很关键</div>
+        <p>在 T5 之前，每个任务都要设计专属的任务头（分类头、标注头、指针头），工程上要维护多套代码。</p>
+        <p>T5 的思路把“任务适配”从<b>结构问题</b>变成了<b>文本问题</b>——这正是后来提示（prompting）的思想雏形。</p>
+        <p>它的预训练目标（span 掩码）也值得记住：挖掉连续的片段而不是单个词。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">历史地位</div>
+        <p style="color:#E9F0FA">T5 本身是 encoder-decoder 架构、110 亿参数，在多个基准上达到当时 SOTA。</p>
+        <p style="color:#E9F0FA">但更重要的是它把<b>“统一文本接口”</b>这个思想推到了极致——今天所有指令微调（第 13 讲）与提示工程（第 14 讲）都建立在这个接口之上。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">36</span></div>
+</section>
+
+<!-- ================= 37 规模法则与涌现 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">规模法则与涌现：能力是怎么长出来的</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">Scaling Law：损失是规模的幂律函数</div>
+        <div class="code xs" style="background:#fff">Kaplan 等 2020：测试损失随规模呈<b>幂律下降</b>
+
+  L(N) ∝ N<sup>−α</sup>      N = 模型参数量
+  L(D) ∝ D<sup>−α</sup>      D = 训练数据量
+  L(C) ∝ C<sup>−α</sup>      C = 训练算力
+
+<span class="c">在对数坐标下近似直线 → 可以外推预测</span></div>
+        <p style="margin-top:6px"><b>Chinchilla（Hoffmann 等 2022）</b>给出更优配比：给定算力预算，参数量与训练 token 数应<b>大致同比例增长</b>（约 20 token / 参数）——这纠正了早期“只堆参数、数据不够”的做法。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">涌现能力：越过阈值后突然出现</div>
+        <p>某些能力在小模型上<b>几乎为零</b>，超过某个规模后突然出现：</p>
+        <ul>
+          <li>多步推理（算术、逻辑链）</li>
+          <li><b>上下文学习</b>（给几个例子就会做）</li>
+          <li>指令遵循、格式保持、代码生成</li>
+        </ul>
+        <p>这解释了为什么 GPT-3 能在没有针对任何任务训练的情况下“会做”新任务——<b>这些能力不是被专门教出来的，而是规模变大之后自然浮现的。</b></p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">导入页 Q3 的正式答案</div>
+      <p style="font-size:19px">能力不是被『教』出来的，是<b>随规模长出来的</b>。这是一个非常重要的观念转变：在预训练时代，<b>“把模型做大 + 把数据喂够”本身就是一种算法</b>——它比很多精巧的结构设计更有效。但它也带来新问题：成本、能耗、可复现性、以及“能力到底怎么来的”这个仍未完全解释的问题。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 范式转移：微调到提示 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">范式转移：从“微调”到“提示”，从判别到生成</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:180px">维度</th><th>微调范式（BERT 时代）</th><th>提示范式（GPT-3 之后）</th></tr>
+      <tr><td><b>任务怎么表达</b></td><td>数据 + 标签（标注数据集）</td><td><b>一段文本</b>（自然语言描述 + 示例）</td></tr>
+      <tr><td><b>参数是否改动</b></td><td>底座 + 任务头全部更新</td><td><b>一个参数都不改</b></td></tr>
+      <tr><td><b>每个任务的成本</b></td><td>标注 + 训练 + 保存一份模型副本</td><td>写一段提示，共享同一个模型</td></tr>
+      <tr><td><b>标注需求</b></td><td>数百 ~ 数万条</td><td><b>零标注起步</b>（zero / few-shot）</td></tr>
+      <tr><td><b>切换任务</b></td><td>重新训练、重新部署</td><td>改提示词即可</td></tr>
+      <tr><td><b>输出形式</b></td><td>判别式（标签 / 区间 / 类别）</td><td>生成式（一段文本，可解析成任意结构）</td></tr>
+      <tr><td><b>主要代价</b></td><td>标注成本、维护多套模型</td><td>上下文窗口有限、推理贵、输出不稳定、领域能力难注入</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">今天的实际做法：两者结合</div>
+        <p>提示 + 少量示例（少样本）解决 80% 的通用任务；<b>指令微调</b>（第 13 讲）让模型更会听话；<b>参数高效微调</b>（LoRA）在成本可控的前提下注入领域能力。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么生成式接口赢了</div>
+        <p>因为<b>一个接口能表达所有任务</b>：分类是“输出类别名”、抽取是“输出 JSON”、翻译是“输出译文”。</p>
+        <p>维护一套代码、一套部署、一套评估——工程成本相差一个数量级。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">但判别式没有消失</div>
+        <p style="color:#E9F0FA">在延迟与成本敏感、类型固定、需要审计的场景（搜索 query 理解、合同要素抽取），<b>小模型 + 判别式微调仍是首选</b>（第 9 讲的选型三问）。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">38</span></div>
+</section>
+
+<!-- ================= 39 HuggingFace 三件套 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HuggingFace 三件套：三层抽象</span><span class="sec">环节二 · 知识点讲解 · 工具链</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0"><span class="c"># 第 1 层：pipeline —— 一行出结果（上机任务用这个）</span>
+from transformers import pipeline
+print(pipeline("fill-mask", model="bert-base-chinese")("东北大学位于[MASK]阳。"))
+
+<span class="c"># 第 2 层：Tokenizer + Model —— 显式控制，适合微调</span>
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+tok = AutoTokenizer.from_pretrained("bert-base-chinese")
+model = AutoModelForSequenceClassification.from_pretrained(
+            "bert-base-chinese", num_labels=2)
+
+<span class="c"># 第 3 层：Trainer —— 自动训练循环（评测、检查点、日志）</span>
+from transformers import Trainer, TrainingArguments
+args = TrainingArguments("./out", learning_rate=2e-5, num_train_epochs=3,
+                         per_device_train_batch_size=16, seed=42,
+                         evaluation_strategy="epoch", load_best_model_at_end=True)
+trainer = Trainer(model=model, args=args, train_dataset=ds_tr,
+                  eval_dataset=ds_va, tokenizer=tok); trainer.train()</div>
+    <div class="grid g3 tight" style="margin-top:10px">
+      <div class="card card-blue tight" style="padding:10px 14px"><div class="h" style="font-size:20px">换底座 = 改一个字符串</div>
+        <p><code>bert-base-chinese</code> → <code>hfl/chinese-roberta-wwm-ext</code> → <code>hfl/chinese-macbert-base</code>。</p>
+        <p>这正是『通用底座 + 任务适配』在工具层面的体现。</p>
+      </div>
+      <div class="card card-warn tight" style="padding:10px 14px"><div class="h" style="font-size:20px">三个必须记住的工程纪律</div>
+        <ul>
+          <li><b>底座与分词器必须配套</b>——换了模型一定要换 tokenizer</li>
+          <li><b>中文任务必须用中文底座</b>——词表不匹配会产生大量 UNK</li>
+          <li><b>动态补齐</b>：组 batch 时按 batch 内最长补齐，而不是把整个数据集补到最长</li>
+        </ul>
+      </div>
+      <div class="card card-deep tight" style="padding:10px 14px"><div class="h" style="font-size:20px">作业 3 阶段二的推荐配置</div>
+        <p style="color:#E9F0FA">学习率 2e-5、epochs 3、batch 16、max_len 128、warmup 0.1、<b>固定 seed 并跑三个种子报告均值 ± 标准差</b>。</p>
+        <p style="color:#E9F0FA">这四个数字可以直接抄进实验报告。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">39</span></div>
+</section>
+
+<!-- ================= 40 模型谱系 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">模型谱系：三条路线一张图（实例层）</span><span class="sec">环节二 · 知识点讲解 · 以开课当年为准</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">Transformer（2017，第 11 讲）
+│
+├── <b>仅编码器</b>（理解）── BERT（2018）
+│     ├── 配方改进：RoBERTa（动态掩码、去 NSP、更大 batch 与数据）
+│     ├── 参数瘦身：ALBERT（因式分解嵌入 + 跨层参数共享）
+│     ├── 目标改进：ELECTRA（替换词检测）、XLNet（排列语言模型）
+│     ├── 中文改良：中文 WWM（整词掩码）、MacBERT（相似词替换）
+│     └── 压缩：DistilBERT（知识蒸馏，-40% 参数 / +60% 速度 / 保留 97%）
+│
+├── <b>仅解码器</b>（生成）── GPT-1（2018）→ GPT-2（2019）→ <b>GPT-3（2020）</b>
+│     └── 指令微调与对齐模型（2022+）→ <b>今天的主流大模型</b>
+│           （Llama / Qwen / GLM / DeepSeek 等开源与闭源模型大多属于这一支）
+│
+└── <b>编码器-解码器</b>（转换）── 原始 Transformer → T5、BART、mT5
+      └── 擅长翻译、摘要等明确的序列到序列任务</div>
+    <div class="grid g3 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">这张图怎么用</div>
+        <p>看到一个新模型，先问三个问题：<b>它是哪一支？它的预训练目标是什么？它的上下文窗口多大？</b></p>
+        <p>大多数“新模型”的创新都落在这三个答案的某个维度上。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">2020 年之后的分水岭</div>
+        <p>规模让天平倒向了<b>可扩展的一侧</b>——decoder-only 因为“能生成 + 训练完全并行 + 一个接口统一所有任务”成为大模型主流。</p>
+        <p>但这不代表 encoder-only 消失：它在垂直领域判别任务上仍是工业主力。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">本页属于“实例层”</div>
+        <p>模型名称、版本、榜单每学期都在变。</p>
+        <p>考试只要求建立<b>三条路线的判断力</b>，不要求记住具体模型名与年份。开课前请核实最新模型谱系与中文开源生态。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">40</span></div>
+</section>
+
+<!-- ================= 41 三条路线怎么选 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三条路线怎么选 + 三问对账</span><span class="sec">环节二 · 知识点讲解 · 复习索引</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:190px">判断维度</th><th>encoder-only（BERT 系）</th><th>decoder-only（GPT 系）</th><th>enc-dec（T5 系）</th></tr>
+      <tr><td><b>任务类型</b></td><td>理解：分类 / 标注 / 抽取 / 检索</td><td>生成：写作 / 对话 / 代码 / 推理</td><td>转换：翻译 / 摘要 / 结构化生成</td></tr>
+      <tr><td><b>延迟与成本</b></td><td><b>最省</b>：一次前向出结果</td><td>较贵：自回归逐 token 生成</td><td>中等：编码一次 + 解码多次</td></tr>
+      <tr><td><b>输出稳定性</b></td><td><b>稳定可复现</b>（判别式）</td><td>受采样参数影响，需固定种子</td><td>介于两者之间</td></tr>
+      <tr><td><b>标注需求</b></td><td>需要标注数据微调</td><td>可零样本起步</td><td>需要标注数据微调</td></tr>
+      <tr><td><b>典型场景</b></td><td>搜索 query 理解、合同抽取、知识库构建</td><td>智能助手、内容生成、Agent（第 16 讲）</td><td>翻译系统、摘要系统、数据清洗</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-deep tight"><div class="h">导入页 Q1 的对账</div>
+        <p style="color:#E9F0FA">一个模型之所以能适配万物，靠的是<b>“通用底座 + 任务适配”的分离</b>——底座不变（共享架构与预训练目标），适配层可换（四种任务头，或换成一段提示）。</p>
+        <p style="color:#E9F0FA">答案更接近 <b>B</b>（共享架构）与 <b>A</b>（共享自监督目标）的组合，而不是 C（看过同一批数据）。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">导入页 Q2 的对账</div>
+        <p style="color:#E9F0FA">BERT 不会说话，是因为它的<b>目标函数（双向掩码语言模型）</b>决定的：双向注意力在生成第 t 个词时能看到右边的真值，等价于“抄答案”。</p>
+        <p style="color:#E9F0FA">结论：<b>目标函数决定能力边界</b>，不是表示能力不够。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">导入页 Q3 的对账</div>
+        <p style="color:#E9F0FA">GPT-3 会做新任务，是因为<b>规模带来了涌现与上下文学习</b>——训练语料里天然包含“任务描述 + 示例 + 答案”的模式，足够大的模型把它学成了一个通用能力。</p>
+        <p style="color:#E9F0FA">结论：<b>能力不是被教出来的，是随规模长出来的。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">41</span></div>
+</section>
+
+<!-- ================= 42 速查卡 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲速查卡：数字与公式</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="code xs" style="margin-top:0">【两类预训练目标】
+  自回归 AR ：L = − Σ<sub>t</sub> log P( x<sub>t</sub> | x<sub>&lt;t</sub> )
+              单向 · 信号密度 100% · 能生成
+  掩码 MLM  ：L = − Σ<sub>t∈M</sub> log P( x<sub>t</sub> | 上下文 )
+              双向 · 信号密度 15% · 不能生成
+
+【MLM 细节（考点）】
+  掩码比例 <b>15%</b>；被选中位置按 <b>80 / 10 / 10</b>
+  80% → [MASK]　10% → 随机词　10% → 保持不变
+
+【BERT 规格】
+  base ：12 层 / 768 / 12 头 / <b>1.1 亿</b>参数
+  large：24 层 / 1024 / 16 头 / <b>3.4 亿</b>参数
+  语料 ：3.3 B 词（BooksCorpus 8 亿 + 英文维基 25 亿）
+  配置 ：batch 256、长度 512、约 1 M 步、16 块 TPU × 4 天
+  中文 ：词表 21128，基本按字切分
+  成绩 ：GLUE 80.5（large）· SQuAD v1.1 F1 93.2</div>
+      <div class="code xs" style="margin-top:0">【GPT 三代（考点）】
+            GPT-1      GPT-2       GPT-3
+  参数     1.17 亿     15 亿       1750 亿
+  层/维    12 / 768    48 / 1600   96 / 12288
+  上下文   512         1024        2048
+  适配     微调        零样本      少样本 / ICL
+
+【四种微调任务头】
+  ① 分类：[CLS] 向量 → 线性层 → K 类 softmax
+  ② 标注：每个 token 向量 → 线性层（可加 CRF）
+  ③ 句对：[CLS] 向量 → 线性层（输入含两句）
+  ④ 问答：两个可学习向量 S / E 点出起止位置
+
+【微调超参（可直接抄）】
+  学习率 <b>2e-5 ~ 5e-5</b>｜epochs <b>2–4</b>｜batch 16–32
+  max_len 128–256（问答 384–512）｜warmup 0.1｜固定 seed
+
+【变体一句话】
+  RoBERTa 配方做到位｜ALBERT 参数瘦身｜ELECTRA 替换词检测
+  XLNet 排列 LM｜WWM 整词掩码｜MacBERT 相似词替换
+  DistilBERT 知识蒸馏｜T5 文本到文本</div>
+    </div>
+    <div class="qbar sm">复习建议：<span class="k">把这一页与第 10、11 讲的速查卡合并成一张“预训练时代”总卡片</span>——第 13–16 讲的所有内容都建立在这些数字之上。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">42</span></div>
+</section>
+
+<!-- ================= 43 学院视角 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">学院视角：预训练模型在两个方向上的落地</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">① 金融科技</div>
+        <ul>
+          <li><b>领域底座</b>：在通用中文底座上继续用公告、研报、年报语料做<b>领域自适应预训练</b></li>
+          <li><b>合同要素抽取</b>：BERT + 序列标注任务头（第 9 讲的任务头②），边界与类型全对才算对</li>
+          <li><b>金融舆情分类</b>：BERT + 分类任务头，判断利好/利空/中性</li>
+          <li><b>合规文本比对</b>：句对任务头判断两段条款是否语义等价</li>
+          <li><b>检索</b>：编码器双塔结构做语义检索与重排（第 15 讲 RAG 的基础件）</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 智慧健康</div>
+        <ul>
+          <li><b>病历领域底座</b>：用中文医学语料继续预训练；术语差异大，通用底座直接迁移效果有限</li>
+          <li><b>临床命名实体识别</b>：疾病、症状、药品、检查、手术——同样用序列标注头</li>
+          <li><b>医学文本蕴含 / 问答</b>：句对任务头与抽取式问答头</li>
+          <li><b>随访问卷结构化</b>：从自由文本回复里抽取字段（分类 + 标注组合）</li>
+          <li><b>患者教育材料改写</b>：把专业表述转成通俗语言（第 10 讲生成任务）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">三个共同特征</div>
+      <p style="font-size:19px"><b>① 领域术语与通用语言差异大</b> → 需要在领域语料上继续预训练（或使用已有的领域预训练模型）。<b>② 标注数据稀缺且昂贵</b> → “预训练 + 少量标注”的范式在这两个领域价值最大，因为领域标注需要专业人员。<b>③ 必须可审计</b> → 冻结底座 + 小任务头的方案比大模型提示更容易解释与追溯，这直接呼应课程素养目标 A2/A3。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">43</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">课后跑通底座与任务头，课堂研讨三个范式问题。</div>
+    <ul>
+      <li>自学：掩码填充 · 中文分类推理 · 微调 vs 提示对比</li>
+      <li>研讨：范式为何成立 · AR 与 AE 的本质差别 · 为何 decoder-only 胜出（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 45 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：看见 MLM、看见任务头、看见两条路线</span><span class="sec">环节三 · 实践自学（课后完成）</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>掩码填充：看 MLM 在预测什么</div>
+        <div class="code xs" style="background:#fff">from transformers import pipeline
+filler = pipeline("fill-mask", model="bert-base-chinese")
+
+for s in ["东北大学位于[MASK]阳。",
+          "[MASK]北大学位于沈阳。",
+          "东北大学位于沈阳[MASK]"]:
+    print(filler(s)[:3])   <span class="c"># top-3 候选与概率</span></div>
+        <p><b>观察</b>：把同一个空放在句首、句中、句尾，top-1 概率是否不同？<b>为什么句尾通常更好填？</b>（提示：左侧上下文最完整）</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>分类推理：看清底座与任务头的分界</div>
+        <div class="code xs" style="background:#fff">from transformers import AutoTokenizer, AutoModelForSequenceClassification
+tok = AutoTokenizer.from_pretrained("bert-base-chinese")
+m = AutoModelForSequenceClassification.from_pretrained(
+        "bert-base-chinese", num_labels=2)
+
+b = tok(["这部电影真好看","太糟糕了"], padding=True,
+        truncation=True, return_tensors="pt")
+o = m(**b)
+print(o.logits.argmax(-1))    <span class="c"># 任务头输出类别</span>
+<span class="c"># 底座输出：o.hidden_states[-1] (B, T, 768)</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>对比：微调 vs 提示</div>
+        <p>用同一批句子（20–50 条）分别做两件事：</p>
+        <ul>
+          <li><b>路线 A</b>：微调一个小模型（或加载已微调的中文分类模型）</li>
+          <li><b>路线 B</b>：调用大模型 API 或本地生成模型做零样本提示分类</li>
+        </ul>
+        <p>对比四个维度：<b>准确率 / 延迟 / 成本 / 可复现性</b>，做一张表。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">4</span>工程提醒（必读）</div>
+        <ul>
+          <li>换底座必须<b>同时换分词器</b>，否则 token id 错位</li>
+          <li>中文任务<b>必须用中文底座</b></li>
+          <li>跑推理时加 <code>torch.no_grad()</code> 或 <code>inference_mode()</code>，省显存</li>
+          <li>把所有超参与 seed 写进实验记录——这是评分项</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">验收：<span class="k">掩码填充的三组 top-3 结果 + 分类推理输出 + 微调/提示四维对比表 + 一段分析</span>。全部 CPU 可完成。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">45</span></div>
+</section>
+
+<!-- ================= 46 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个范式问题（10 分钟）</span><span class="sec">环节三 · 研讨 · 答案课堂揭示</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">Q1</span>预训练范式为什么成立？</div>
+        <p style="font-size:20px">预训练一次要花数千 GPU 天，为什么这个范式仍然划算？<b>请从“两个前提 + 一笔账”来回答。</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：什么可以被迁移？标签从哪来？成本被谁摊薄？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q2</span>AR 与 AE 的本质差别是什么？</div>
+        <p style="font-size:20px">同样是预测被遮住的词，为什么一个能生成、一个不能？<b>请从“条件集合”说起。</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：条件里包含哪些位置？这些位置在推理生成时是否已知？信号密度差多少？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q3</span>为什么 decoder-only 成为主流？</div>
+        <p style="font-size:20px">BERT 在理解任务上更强，为什么 2020 年之后大模型几乎都是 decoder-only？<b>给出至少三条理由。</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：生成能力、训练并行度、任务接口、规模扩展、涌现能力。</p>
+      </div>
+    </div>
+    <div class="qbar sm">讨论 5′ · 分享 3′ · 点评 2′　｜　<span class="k">每组至少给一问定出结论并准备辩护</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">46</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个范式、两个目标、三条路线。</div>
+    <ul>
+      <li>一个范式：预训练 + 微调 —— 昂贵的事只做一次</li>
+      <li>两个目标：自回归 vs 自编码 —— 目标决定能力边界</li>
+      <li>三条路线：encoder-only / decoder-only / enc-dec —— 理解 / 生成 / 转换</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 49 本讲小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>一个范式</div>
+        <p><b>预训练 + 微调</b>：两个前提（参数可迁移、标签可自动生成）+ 一笔账（一次性投入被无数次微调摊薄，成本差约三个数量级）。</p>
+        <p>自监督是它成立的关键：<b>用规则把无标注数据翻译成有监督样本</b>。</p>
+        <p>更新的范围有三种：全参数微调 / 只训任务头 / 参数高效微调。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>两个目标</div>
+        <p><b>AR（GPT）</b>：单向、信号密度 100%、能生成、训练与推理一致 → decoder-only。</p>
+        <p><b>AE（BERT）</b>：双向、信号密度 15%、不能生成、输入含 [MASK] → encoder-only。</p>
+        <p><b>MLM 必考细节</b>：15% 掩码 + 80/10/10（80 挖、10 换、10 留）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>三条路线与工具</div>
+        <p><b>encoder-only</b> 理解（分类/标注/抽取/检索）｜<b>decoder-only</b> 生成（且成为大模型主流）｜<b>enc-dec</b> 转换（翻译/摘要）。</p>
+        <p><b>变体改的都是配方、参数或目标，不是架构本身</b>：RoBERTa 配方、ALBERT 参数、ELECTRA 目标、XLNet 顺序、WWM 粒度。</p>
+        <p>HuggingFace 三层抽象让<b>换底座只需改一个字符串</b>。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句话带走</div>
+      <p style="font-size:21px"><b>昂贵的事只做一次，便宜的事做一万次。</b>预训练范式把“学语言”与“学任务”解耦，从而让 NLP 第一次吃到了互联网规模的数据。而 GPT-3 之后，连“便宜的事”都开始被省掉——改用提示。下一讲我们就讲：怎么让这个“只会续写”的模型变得<b>会听话</b>。</p>
+    </div>
+    <div class="qbar sm">复习索引：<span class="k">范式两前提与成本账 · AR vs AE 八维对照 · MLM 的 15% 与 80/10/10 · NSP 争议 · 四种任务头 · 微调超参 · BERT/GPT 规格 · 变体六家一句话</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">49</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">作业 3 阶段二：换成 BERT 底座重做同一个任务。</div>
+    <ul>
+      <li>交付：代码 + 日志 + 三种子结果 + 错误分析</li>
+      <li>对比：与阶段一（词向量 + MLP）的效果差距与原因</li>
+      <li>预告：第 13 讲 大模型训练、微调与对齐</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 51 作业与预告 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">作业 3 · 阶段二 与 第 13 讲预告</span><span class="sec">环节五 · 作业与预告</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">交付物（四项，缺一扣分）</div>
+        <ul>
+          <li><b>① 可运行代码 + 环境说明</b>（requirements 或镜像名）</li>
+          <li><b>② 训练日志</b>：损失与验证指标随步数的曲线</li>
+          <li><b>③ 三个种子的结果表</b>：报告均值 ± 标准差</li>
+          <li><b>④ 错误样本分析</b>：至少 20 条错例，归类原因（数据噪声 / 边界问题 / 类别混淆 / 长度截断）</li>
+        </ul>
+        <p style="margin-top:8px"><b>关键要求</b>：数据划分必须与阶段一<b>完全一致</b>，否则无法对比。<b>目标是“对比两种底座”，不是重新做一个任务。</b></p>
+      </div>
+      <div class="card card-warn tight"><div class="h">评分要点</div>
+        <ul>
+          <li>是否做了<b>多种子重复</b>（把随机波动与方法改进区分开）</li>
+          <li>是否有<b>对照基线</b>（阶段一的词向量 + MLP）</li>
+          <li>是否做了<b>错误分析</b>（而不是只报一个分数）</li>
+          <li>是否写明<b>所有超参与随机种子</b>（可复现性）</li>
+        </ul>
+        <p style="margin-top:6px"><b>推荐配置</b>：学习率 2e-5、epochs 3、batch 16、max_len 128、warmup 0.1。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">选做加分 + 下讲预告</div>
+      <p style="font-size:19px"><b>选做</b>：对比三个中文底座（<code>bert-base-chinese</code> / <code>hfl/chinese-roberta-wwm-ext</code> / <code>hfl/chinese-macbert-base</code>）在同一数据上的表现，说明差异可能来自哪里（掩码粒度、训练数据、配方）。</p>
+      <p style="font-size:19px;margin-top:8px"><b>下讲预告 · 第 13 讲 大模型训练、微调与对齐</b>：今天学的 GPT-3 只会续写、不会听话——你问它问题，它可能接着“续写”出一堆问题而不是回答。下讲讲怎么把它变成会听话的助手：指令微调（SFT）、参数高效微调（LoRA / QLoRA）、对齐（RLHF / DPO / GRPO），以及缩放律与并行训练。</p>
+      <p style="font-size:18.5px;margin-top:6px">思考题：<b>为什么“给几个例子”（上下文学习）比“改参数”（微调）更快速灵活，但在可靠性与领域深度上又不如微调？</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">51</span></div>
+</section>
+
+<!-- ================= 52 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:98px">
+    <div class="cn" style="font-size:42px">参考资料与致谢</div>
+    <div class="rule" style="margin:18px 0 20px"></div>
+    <div class="meta" style="font-size:15.5px;line-height:1.72">
+      <b>教材与经典文献（原理层）</b><br>
+      Vaswani et al. (2017) Transformer · Radford et al. (2018) GPT-1 · Devlin et al. (2019) BERT<br>
+      Radford et al. (2019) GPT-2 · Brown et al. (2020) GPT-3 · Liu et al. (2019) RoBERTa · Lan et al. (2020) ALBERT<br>
+      Clark et al. (2020) ELECTRA · Sanh et al. (2019) DistilBERT · Yang et al. (2019) XLNet · Raffel et al. (2020) T5<br>
+      Cui et al. (2019/2020) 中文 WWM 与 MacBERT · Kaplan et al. (2020) 缩放律 · Hoffmann et al. (2022) Chinchilla<br>
+      <b>课程与工具（实例层）</b><br>
+      《动手学深度学习》D2L 中文版（预训练章）· HuggingFace Transformers 官方文档与 NLP 课程<br>
+      HFL 中文预训练模型仓库（chinese-roberta-wwm-ext / chinese-macbert-base）· 中文 BERT 模型卡与使用说明
+    </div>
+    <div class="foot" style="position:static;margin-top:16px">预训练范式、两类目标、MLM 与 NSP、四种任务头为原理层、长期稳定；具体模型名称、版本与榜单为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 51</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

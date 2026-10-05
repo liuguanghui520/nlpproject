@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4章 分词与子词表示 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  table.dp{border-collapse:collapse;margin-top:6px}
+  table.dp td{min-width:44px;height:38px;text-align:center;padding:0 5px;border:1px solid var(--line2);
+    font-size:18px;font-weight:600;color:var(--text)}
+  table.dp td.ax{background:var(--lb1);color:var(--navy);font-weight:700}
+  table.dp td.cur{background:#FFF5D9;border:2px solid #C9A227;color:#8A6D00;font-weight:800}
+  table.dp td.path{background:var(--mid);color:#fff;font-weight:800}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Tokenization &amp; Subword Representation</div>
+    <div class="cn">分词与子词表示</div>
+    <div class="rule"></div>
+    <div class="sub">第四章 · 分词与子词表示</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 4 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作（综合 QW / Doubao / WorkBuddy 素材）· 2026-09-10</div>
+  <div class="num">04</div>
+</section>
+
+<!-- ================= 1.5 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 3 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>最小编辑距离</div><p>插入 / 删除 / 替换三种操作；替换代价按 Levenshtein 惯例计 2。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>六步 DP 演示</div><p>子问题 → 初始化 → 递推 → 填表 → 回溯 → 对齐，O(mn)。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>噪声信道</div><p>ŵ = argmax P(x|w)·P(w)：信道管“像不像”，先验管“常不常用”。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>四代范式</div><p>词典+MED → 统计噪声信道 → 神经 CSC → LLM 生成式，分工而非替代。</p></div>
+    </div>
+    <div class="qbar">上节课用距离“<span class="k">比字符串</span>”，今天把字符串切成<span class="k">语料能学的最小碎片</span>——BPE 的词表从共现里长出来。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 2 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：Token 账单与中文分词之难</div><div class="dd">计费、上下文窗口、以及中文没有空格的三重困难</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">基础概念：Token / Type / 词表 / OOV</div><div class="dd">Token 的多领域含义、三种粒度与 one-hot 三大死穴</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">中文分词：最大匹配与 jieba</div><div class="dd">贪心切词、双向匹配、Trie→DAG→DP 概率切分</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">子词四算法</div><div class="dd">BPE 手算与代码、WordPiece / Unigram / SentencePiece</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">为什么 LLM 都用子词</div><div class="dd">三角权衡、字节级 BPE、Chat Template 与伏笔回收</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">上机研讨、小结与作业</div><div class="dd">FMM + toy BPE 实现、“中文为何更费 token”研讨、作业 2</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 4 讲 · 分词与子词表示</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>区分 Token 与 Type，说清词表与 OOV 的含义</li>
+          <li>讲清最大匹配与 jieba 概率切分的思路差异</li>
+          <li>写出 BPE 合并流程，说出 WordPiece / Unigram / SentencePiece 的差异</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能实现前向最大匹配（纯 Python）并指出其错误</li>
+          <li>能手算小语料 BPE 并用 Python 训练 toy 词表</li>
+          <li>能用 jieba / HF tokenizer 对比中英文切分并选型</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>体会“词”在中文里不是天然、而是被切出来的</li>
+          <li>建立“没有完美词表，只有工程权衡”的判断</li>
+          <li>理解预处理质量如何决定下游模型上限</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>最大匹配法原理；BPE 合并准则与手推（期中考点）；四子词算法对比与 LLM 选型动机。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>贪心切词的歧义失败；BPE / WordPiece / Unigram 合并准则的差异。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">从“手机里的 Token 账单”说起——分词与子词，就在你身边、就在你钱包上。</div>
+    <ul>
+      <li>Token：计费、上下文窗口与切分现场</li>
+      <li>中文没有空格的三重困难</li>
+      <li>核心问题：文本该被切成多大的块？</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 5 Token 账单 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Token 账单：分词就在你钱包上</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">请对号入座——你每天都在为“怎么切词”付钱：</div>
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">四个身边场景</div>
+        <ul>
+          <li><b>输入法</b>：打 beijingdaxue，候选给“北京大学”——背后就是中文分词</li>
+          <li><b>按 token 计费</b>：大模型 API 按 token 计价，输入输出分开算</li>
+          <li><b>上下文窗口</b>：“128K 上下文”是 token 数，不是字数</li>
+          <li><b>响应与成本</b>：输出被切成多少 token，决定慢不慢、贵不贵</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">切分现场</div>
+        <ul>
+          <li>Unbelievable → <b>[Un, belie, vable]</b></li>
+          <li>自然语言处理 → <b>[自然, 语言, 处理]</b></li>
+          <li>模型眼里没有“单词”，只有 <b>token 碎片</b></li>
+          <li>1000 token ≈ 700 汉字 / 约 750 英文单词（⚠ 经验口径）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>说明：</b>token 与字数的换算为常见经验口径，不同 tokenizer 差异明显，讲授前以所用模型官方计价页为准。</div>
+    <div class="qbar">同一句话，<span class="k">切得越细 token 越多、越贵</span>——分词策略直接写在你的账单上。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">05</span></div>
+</section>
+
+<!-- ================= 6 中文分词之难 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">英文靠空格，中文为什么难？</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">英文的空格就是分词器</div>
+        <p>The cat sits on the mat——空格天然把词隔开，<code>split(' ')</code> 就算分完了。</p>
+        <p style="margin-top:8px">中文没有这个福利：<b>猫坐垫子上</b>，字与字直接相连，机器必须自己判断“词”从哪开始、到哪结束。</p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">三重困难</div>
+        <ul>
+          <li><b>① 无分隔符</b>：词边界不写在句子里，要靠词典和概率去猜</li>
+          <li><b>② 歧义</b>：结婚的和尚未结婚的——怎么切？第 12 页揭晓</li>
+          <li><b>③ 新词</b>：内卷、破防、搭子、Citywalk——词典永远追不上造词速度</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">英文的词边界是<span class="k">写出来的</span>，中文的词边界是<span class="k">猜出来的</span>——这就是中文分词的全部困难，也是本讲要解决的核心问题。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从“词是什么”到“子词怎么造”，再到“LLM 为什么都选它”。</div>
+    <ul>
+      <li>基础：Token 定义与多领域含义、三种粒度、one-hot 三死穴</li>
+      <li>中文分词：最大匹配、双向匹配、jieba 概率切分</li>
+      <li>子词：BPE 手算+代码、WordPiece/Unigram/SentencePiece、三角权衡</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 8 Token 是什么 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Token 到底是什么？一词多义</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead"><b>Token</b> 本义 = “不可再分的最小可交换单位”；在 NLP 里是<b>文本切分后的最小处理单位</b>——不是字，也不是词。</div>
+    <div class="grid g3" style="flex:1;align-content:stretch;gap:14px">
+      <div class="card card-blue small"><div class="h">① NLP 本义</div>
+        <ul>
+          <li>Unbelievable → <b>Un / belie / vable</b> 三个 token</li>
+          <li>“自然语言处理” → 自然 / 语言 / 处理</li>
+          <li>Token 是“出现”，Type 是“种类”（下一页展开）</li>
+        </ul>
+      </div>
+      <div class="card card-blue small"><div class="h">② 大模型视角</div>
+        <ul>
+          <li>每个 token 对应词表里一个<b>整数 ID</b></li>
+          <li>计费与上下文窗口的最小单位</li>
+          <li>生成时“逐 token”输出——步进单位</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h">③ 编译原理</div>
+        <ul>
+          <li>lexer 把源码切成词法 token</li>
+          <li>int x = 1; → <b>int / x / = / 1 / ;</b></li>
+          <li>关键字、字面量、运算符都是 token</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h">④ 网络安全</div>
+        <ul>
+          <li>JWT、OAuth、API Key、CSRF token</li>
+          <li>登录后凭 token 验明身份</li>
+          <li>“最小的身份凭证”</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h">⑤ 金融科技</div>
+        <ul>
+          <li>代币 / 通证：加密资产、积分、权益</li>
+          <li>“最小价值载体”——呼应学院金融方向</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h">⑥ 心理 / 游戏</div>
+        <ul>
+          <li>代币制（token economy）：代币作行为强化物</li>
+          <li>棋类与游戏里的棋子 / 游戏币也是 token</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">共同内核：<span class="k">不可再分的最小可交换单位</span>——语言的处理单位、计费的最小单位、身份的凭证、价值的载体。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 9 术语地基 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">术语地基：Token / Type / 词表 / OOV</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">the cat sat on the mat</div>
+        <ul>
+          <li><b>Token（词例）</b>：切分后的每一次出现 → 共 <b>6</b> 个</li>
+          <li><b>Type（词型）</b>：去重后的不同 token → 共 <b>5</b> 个</li>
+          <li><b>词表（Vocabulary）</b>：全部 type 的集合，每个 type 配一个整数 ID</li>
+          <li>Token 回答“说了多少”，Type 回答“会说几种”</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">OOV：词表查不到怎么办</div>
+        <ul>
+          <li>新词、拼写变体、专名、错字……查不到的叫 <b>OOV（未登录词）</b></li>
+          <li>经典对策：一律替换成 <b>[UNK]</b>——信息全部丢失</li>
+          <li>这是词级方法的死穴，本讲后半程的子词就是来破它的</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">词表大小是模型的<span class="k">第一超参数</span>：大了稀疏，小了 OOV 泛滥——这个两难贯穿全讲。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 9 粒度之争 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">粒度之争：词 / 字 / 子词</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1">
+      <table class="ac">
+        <tr><th style="width:16%">粒度</th><th style="width:32%">切分示例</th><th style="width:26%">优点</th><th style="width:26%">致命伤</th></tr>
+        <tr><td><b>词级</b></td><td>[I, love, natural, language, processing]</td><td>语义完整、序列短</td><td>词表爆炸、OOV、中文先分词</td></tr>
+        <tr><td><b>字级</b></td><td>[I, l, o, v, e, …] / 中文逐字</td><td>词表极小、永不 OOV</td><td>序列过长、单字语义稀薄</td></tr>
+        <tr><td><b>子词</b></td><td>[un, believ, able] / [自然, 语言, 处理]</td><td>词表可控、OOV 消失、序列适中</td><td>切分与语言学“词”不总一致</td></tr>
+      </table>
+      <div class="card card-warn">
+        <div class="h">one-hot 三大死穴</div>
+        <ul>
+          <li><b>维度灾难</b>：词表 50 万 → 每个词 50 万维，几乎全 0</li>
+          <li><b>语义鸿沟</b>：任意两词的 one-hot 正交，“猫/狗”与“猫/汽车”一样远</li>
+          <li><b>OOV 无解</b>：词表外的词连编号都分不到，只能丢成 [UNK]</li>
+        </ul>
+        <p style="margin-top:8px">伏笔：怎么让向量自己长出语义？——第 5 讲词向量的入口问题。</p>
+      </div>
+    </div>
+    <div class="qbar">工业界的答案：<span class="k">子词（subword）</span>——常见词整存，生僻词拆碎，两头的好处都要。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 中文分词歧义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文分词：与“词边界”搏斗三十年</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">歧义：语法都通，语境裁决</div>
+        <ul>
+          <li><b>南京市长江大桥</b> → 南京市/长江大桥？还是 南京市长/江大桥？</li>
+          <li><b>结婚的和尚未结婚的</b> → 和尚？还是 尚未？</li>
+          <li>歧义藏在字序列内部，没有上下文无法裁决</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">更深的问题：“词”本身没有标准</div>
+        <ul>
+          <li>“北大”“红烧肉”算一个词还是两个？</li>
+          <li>不同标注规范（CTB / PKU / MSR）答案不同，评估都要先约定标准</li>
+          <li>人工标注一致性都不到 100%——分词是有上限的任务</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">既然“词边界”连人类都意见不一，<span class="k">干脆不让模型依赖词边界</span>——这正是子词路线的深层动机。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 10b 分词评估与标准 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文分词：评估与标注标准</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">怎么打分</div>
+        <ul>
+          <li>以<b>词</b>为单位：边界与位置完全一致才算命中</li>
+          <li>统计 P / R / F1，经典评测 <b>SIGHAN Bakeoff</b></li>
+          <li>分词边界错一个，整词算错——标准严格</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">标准难题</div>
+        <ul>
+          <li>CTB / PKU / MSR 三大规范对“北京大学”“红烧肉”切法不同</li>
+          <li>评估必须先约定规范；人工一致性都不到 100%</li>
+          <li>分词是<b>有上限</b>的任务——“唯一正确切分”不存在</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">“词”连人类都意见不一——<span class="k">评估先约定规范，上限早被写死</span>，这正是子词绕行的动机。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 11 最大匹配 FMM ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">最大匹配法：贪心切词（含代码）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div>
+        <div class="h" style="font-size:22px;font-weight:700;color:var(--navy)">算法三步（前向 FMM）</div>
+        <ul style="list-style:none;margin-top:8px">
+          <li style="font-size:19.5px;line-height:1.5;padding-left:18px;position:relative;margin-top:5px">① 从当前位置取长为 L（词典最长词长）的窗口</li>
+          <li style="font-size:19.5px;line-height:1.5;padding-left:18px;position:relative;margin-top:5px">② 窗口在词典 → 整词切走，窗口右移</li>
+          <li style="font-size:19.5px;line-height:1.5;padding-left:18px;position:relative;margin-top:5px">③ 不在词典 → 末尾删一字再试；删到 1 字还不命中 → 单字切走</li>
+        </ul>
+        <div class="code" style="margin-top:10px">def fmm(sent, vocab):
+    max_len = max(len(w) for w in vocab)
+    words, i = [], 0
+    while i &lt; len(sent):
+        for L in range(min(max_len, len(sent)-i), 0, -1):
+            w = sent[i:i+L]
+            if w in vocab:
+                words.append(w); i += L; <b>break</b>
+        else:
+            words.append(sent[i]); i += 1   <span class="c"># OOV 单字</span>
+    return words</div>
+      </div>
+      <div class="card card-warn">
+        <div class="h">现场失败案例</div>
+        <p>词典最长词长 L=3，词典含：研究 / 研究生 / 生命 / 起源。</p>
+        <ul>
+          <li>句子：<b>研究生命起源</b></li>
+          <li>窗口“研究生”命中 → 切 <b>研究生</b>；剩“命起源”</li>
+          <li>“命”单字 → 切 <b>命</b>；剩“起源” → 切 <b>起源</b></li>
+          <li>结果：研究生 / 命 / 起源 <span class="tag r" style="margin-left:4px">✗</span></li>
+          <li>正确：研究 / 生命 / 起源 <span class="tag b" style="margin-left:4px">✓</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">贪心 + 只看词典 + 不看语义 = <span class="k">必然犯的错</span>——复杂度近线性、完全可解释，日志切分等轻量场景至今仍在服役。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 11b 词典数据结构 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">词典分词的数据结构</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">结构</th><th style="width:38%">思路</th><th style="width:42%">适用</th></tr>
+      <tr><td><b>Trie 前缀树</b></td><td>沿前缀路径逐字走，查词 O(词长)</td><td>词典查询、输入法联想、jieba 前缀词典</td></tr>
+      <tr><td><b>双数组 Trie（DAT）</b></td><td>把 Trie 压成两个数组，内存紧凑、缓存友好</td><td>大规模词典、嵌入式设备</td></tr>
+      <tr><td><b>AC 自动机</b></td><td>Trie + 失败指针，一次扫描同时匹配所有模式</td><td>关键词过滤、多模式抽取、敏感词</td></tr>
+    </table>
+    <div class="qbar">算法决定“对不对”，数据结构决定“<span class="k">快不快</span>”——第 9 讲 NER 与搜索引擎复用同一批结构。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 12 双向匹配 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">歧义句：规则方法撞上天花板</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">经典歧义句：结婚的和尚未结婚的</div>
+        <ul>
+          <li><b>FMM（从左）</b>：结婚 / 的 / <span class="tag r" style="margin-left:4px">和尚</span> / 未 / 结婚 / 的</li>
+          <li><b>RMM（从右）</b>：结婚 / 的 / 和 / <b>尚未</b> / 结婚 / 的 ✓</li>
+          <li>语义上应是“和 / 尚未”——FMM 切出了荒谬的“和尚”</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">双向最大匹配（BMM）</div>
+        <ul>
+          <li>同时跑 FMM 与 RMM：结果相同 → 直接采用</li>
+          <li>结果不同 → 取<b>词数更少</b>（粒度更粗）或单字更少者</li>
+          <li>经验上 RMM 略准于 FMM——中文中心词常在后</li>
+        </ul>
+        <p style="margin-top:8px">但这仍是启发式，不是正解——规则到顶了，下一页换概率。</p>
+      </div>
+    </div>
+    <div class="qbar">规则方法的天花板：<span class="k">没有上下文参与，歧义永远无解</span>——必须让“概率”登场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 jieba 思想升级 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">jieba：词典 + DAG + 动态规划</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>前缀词典（Trie）</div><p>把词典建成前缀树：从“研”出发快速查到 研究/研究生，O(字长) 查词。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>建 DAG</div><p>扫描句子，把“所有能成词的切法”连成有向无环图——节点是字位置，边是一种切法。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>DP 找最大概率路径</div><p>边权重 = 词频对数概率；用 DP 选总概率最大的切分路径——又一次动态规划。</p></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="h">未登录词：HMM + BMES 序列标注</div><p>词典里没有的新词（“破防了”“Citywalk”）：对成单字的片段跑 HMM + Viterbi，给每个字打标签 <b>B</b>词首 / <b>M</b>词中 / <b>E</b>词尾 / <b>S</b>单字——“自然语言处理”→ 自/B 然/E 语/B 言/E 处/B 理/E；“我爱北京天安门”→ 我/S 爱/S 北/B 京/E 天/B 安/M 门/E。这是序列标注，第 9 讲 NER 的 BIO 是它的近亲。</p></div>
+    <div class="qbar">分词从“贪心取最长”升级为<span class="k">“图上找最可能的路径”</span>——词典管熟词，统计管生词。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 13b 序列标注分词 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">序列标注分词：BiLSTM-CRF</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">思想：逐字打标签</div>
+        <ul>
+          <li>给每个字打 <b>B 词首 / M 词中 / E 词尾 / S 单字</b> 之一</li>
+          <li>自然语言处理 → 自B然E 语B言E 处B理E</li>
+          <li>我爱北京天安门 → 我S爱S 北B京E 天B安M门E</li>
+          <li>边界从标签里“长出来”，歧义靠整句上下文裁决</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">模型与伏笔</div>
+        <ul>
+          <li>BiLSTM 提上下文特征 + <b>CRF</b> 保证标签序列合法</li>
+          <li>这是第 9 讲 NER 的 BIO 标注的<b>直接先辈</b></li>
+          <li>CRF 与 Viterbi 是第 9 讲的主角</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">词典管熟词、标注管歧义——<span class="k">BMES 是 NLP 的通用世界观</span>，第 9 讲再见。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 14 子词动机 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">子词动机：词级词表的三宗罪</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">词级词表的三个致命伤</div>
+        <ul>
+          <li><b>① 词表爆炸</b>：英文几十万词含变形，首层嵌入表就可能上亿参数，长尾词学不好</li>
+          <li><b>② OOV</b>：新词、人名、品牌名一律变 [UNK]，模型“瞎”了</li>
+          <li><b>③ 形态盲</b>：run / runs / running 被当成四个毫无关系的词</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">子词：在“整词”与“单字”之间</div>
+        <ul>
+          <li>unhappy → <b>[un, happy]</b>；ChatGPT → <b>[Chat, G, PT]</b>；猫 → <b>[猫]</b></li>
+          <li>任何词都能由已知碎片拼出，<b>OOV 基本消失</b></li>
+          <li>词表大小可控（常见 3 万–20 万），常见词整存、生僻词拆碎</li>
+          <li>路线一自底向上：BPE / WordPiece；路线二自顶向下：Unigram</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">词级词表“见词不识词”——<span class="k">要么词表大到爆炸，要么新词变 [UNK]</span>，子词就是来破局的。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 BPE 原理 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BPE：让词表从字符里“长”出来</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">训练三步循环</div>
+        <ul>
+          <li><b>① 初始化</b>：词表 = 全部字符，每个词尾加 <code>&lt;/w&gt;</code> 标边界</li>
+          <li><b>② 统计</b>：全语料相邻符号对的频率，取最高频一对</li>
+          <li><b>③ 合并</b>：该对合并为新符号入词表、全语料替换；回到 ② 直到词表达标</li>
+        </ul>
+        <p style="margin-top:8px">词表大小 ≈ 字符数 + 合并轮数 K——K 就是“词表旋钮”。</p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">来历与关键性质</div>
+        <ul>
+          <li>Gage（1994）数据压缩算法；Sennrich et al.（2016）引入 NMT 分词</li>
+          <li>高频片段先合并成“整词”——常见词自动完整保留</li>
+          <li>生僻词拆不成整词——自然落在有意义碎片上</li>
+          <li>纯数据驱动、零语言学知识；编码按合并顺序（rank）贪心回放</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">一句话：词表不再预先存在，而是<span class="k">从语料的共现统计里长出来</span>——这是子词革命的第一性原理。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 BPE 手算 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BPE 手算：四轮合并 + OOV 消失现场</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">训练语料：<b>low</b>×5　<b>lower</b>×2　<b>newest</b>×6　<b>widest</b>×3（词尾已加 <b>&lt;/w&gt;</b>）</div>
+    <table class="ac" style="flex:1">
+      <tr><th style="width:12%">轮次</th><th style="width:30%">最高频相邻对</th><th style="width:22%">共现次数</th><th style="width:36%">词表新增</th></tr>
+      <tr><td><b>第 1 轮</b></td><td>e + s</td><td>9 次（newest×6 + widest×3）</td><td>es</td></tr>
+      <tr><td><b>第 2 轮</b></td><td>es + t</td><td>9 次</td><td>est</td></tr>
+      <tr><td><b>第 3 轮</b></td><td>est + &lt;/w&gt;</td><td>9 次</td><td>est&lt;/w&gt;</td></tr>
+      <tr><td><b>第 4 轮</b></td><td>l + o</td><td>7 次（low×5 + lower×2）</td><td>lo</td></tr>
+    </table>
+    <div class="qbar">全场的“啊哈”时刻：训练语料<span class="k">没有</span> lowest，却由 <span class="k">lo + w + est&lt;/w&gt;</span> 拼出——OOV 当场消失。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 BPE 代码 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BPE 代码：30 行训练你自己的词表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;flex:1;font-size:14px;line-height:1.4;padding:10px 16px">
+import re, collections
+vocab = {"l o w &lt;/w&gt;":5, "l o w e r &lt;/w&gt;":2,
+         "n e w e s t &lt;/w&gt;":6, "w i d e s t &lt;/w&gt;":3}
+def get_stats(v):                  <span class="c"># 数相邻 pair 频率</span>
+    pairs = collections.Counter()
+    for word, freq in v.items():
+        s = word.split()
+        for i in range(len(s)-1): pairs[(s[i], s[i+1])] += freq
+    return pairs
+def merge_vocab(pair, v):          <span class="c"># 全语料替换该对</span>
+    bigram = re.escape(' '.join(pair))
+    p = re.compile(r'(?&lt;!\S)' + bigram + r'(?!\S)')
+    return {p.sub(''.join(pair), w): f for w, f in v.items()}
+for i in range(10):                <span class="c"># 合并轮数 = 词表旋钮</span>
+    pairs = get_stats(vocab); best = max(pairs, key=pairs.get)
+    if not pairs: break
+    vocab = merge_vocab(best, vocab)
+    print(i+1, ''.join(best))      <span class="c"># 1 es 2 est 3 est&lt;/w&gt; 4 lo …</span></div>
+    <div class="qbar">30 行、纯标准库——<span class="k">合并次数就是词表旋钮</span>：10 轮是碎片，20 轮几乎全是整词。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17b BPE 数据预处理 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BPE 训练：数据预处理四道工序</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>预切分</div><p>按空格/标点切成初始单元；GPT-2 起在<b>字节级</b>做，任何输入可编码。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>词频统计</div><p>合并依据是频次——低质量样本先清洗（第 2 讲三件套）。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>词尾标记</div><p>加 <b>&lt;/w&gt;</b> 区分词边界，否则合并会跨词“串味”。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>规模控制</div><p>合并轮数 K 决定词表大小；语料越大，K 可以越大。</p></div>
+    </div>
+    <div class="qbar">预处理决定词表质量——<span class="k">同样的 BPE 代码，不同预切分规则，结果大不同</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 18 WordPiece ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">WordPiece：不看频次，看“似然最大”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">与 BPE 的唯一区别：合并准则</div>
+        <ul>
+          <li><b>BPE</b>：选“共现次数最多”的 pair</li>
+          <li><b>WordPiece</b>：选“合并后使语料<b>似然概率最大</b>”的 pair</li>
+          <li>近似打分：score = freq(ab) ÷ (freq(a)·freq(b))</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">直觉与细节</div>
+        <ul>
+          <li>偏爱“组合出人意料”的对——合并后语料变得更可能才合</li>
+          <li>用 <b>##</b> 标记续接：playing → play + ##ing</li>
+          <li>Schuster &amp; Nakajima（2012）语音搜索提出；BERT（2018）推广</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">一句区别：<span class="k">BPE 看谁出现多，WordPiece 看谁合并后让数据更“可能”</span>——代表模型：BERT 系。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 Unigram ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Unigram：先做大，再剪枝</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">与 BPE 反着来（自顶向下）</div>
+        <ul>
+          <li>① 先建<b>超大候选词表</b>（所有字符 + 大量子串）</li>
+          <li>② 训练一元语言模型，估每个子词概率</li>
+          <li>③ 每轮删掉“删后语料似然损失最小”的一批子词</li>
+          <li>④ 反复剪枝，直到词表大小达标</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">独门绝技与编码</div>
+        <ul>
+          <li><b>子词正则化</b>：同一词可随机多种切分，训练时增强鲁棒性</li>
+          <li>编码：用 <b>Viterbi</b> 选“总概率最大”的切分——又一次 DP</li>
+          <li>代表模型：T5、ALBERT、gemma（Kudo 2018）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">BPE 是<span class="k">从少往多“加”</span>，Unigram 是<span class="k">从多往少“减”</span>——殊途同归，都到一个可控词表。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 19b Unigram 编码实例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Unigram 编码：Viterbi 实例</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">编码“<b>低音炮</b>”：比较所有合法切法，选<b>概率乘积最大</b>者（示意概率）：</div>
+    <table class="ac" style="flex:1">
+      <tr><th style="width:30%">切法</th><th style="width:40%">概率乘积</th><th style="width:30%">结果</th></tr>
+      <tr><td><b>低 / 音 / 炮</b></td><td>0.40 × 0.30 × 0.25 = 0.030</td><td>✗</td></tr>
+      <tr><td><b>低音 / 炮</b></td><td>0.35 × 0.25 = 0.0875</td><td>✗</td></tr>
+      <tr><td><b>低音炮</b></td><td>0.20</td><td><b>✓ 最大</b></td></tr>
+    </table>
+    <div class="qbar">不是贪心最长，而是<span class="k">全切法枚举求最优</span>——与第 3 讲 DP、第 9 讲 Viterbi 同一骨架。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 20 SentencePiece ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">SentencePiece：语言无关的框架</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">解决了什么痛点</div>
+        <ul>
+          <li>BPE / WordPiece 都要<b>先预分词</b>（用空格切开）</li>
+          <li>可中文没有空格——预分词本身就是难题</li>
+          <li>SentencePiece 直接在<b>原始裸文本</b>上训练，把空格当普通字符</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">两点革命与生态</div>
+        <ul>
+          <li><b>语言无关</b>：空格编码为符号 ▁，中英日一视同仁</li>
+          <li><b>可逆</b>：空格也是 token，切分结果能无损拼回原文</li>
+          <li>内部引擎二选一：BPE 或 Unigram；LLaMA 系 / T5 / ALBERT 用它</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">不依赖空格，自然<span class="k">中英同一条流水线</span>——这是现代中文 LLM 多用 SentencePiece 的根本原因。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 20b SentencePiece 参数 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">SentencePiece：训练参数与流程</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.55">
+import sentencepiece as spm
+spm.SentencePieceTrainer.train(
+    input="corpus.txt",
+    model_prefix="sp",
+    model_type=<b>"bpe"</b>,            <span class="c"># bpe 或 unigram</span>
+    vocab_size=<b>32000</b>,           <span class="c"># 词表旋钮</span>
+    character_coverage=<b>1.0</b>,     <span class="c"># 中文建议 1.0</span>
+    input_sentence_size=1000000)
+sp = spm.SentencePieceProcessor(model_file="sp.model")
+sp.encode("我爱北京天安门", out_type=str)  <span class="c"># → ['▁我爱', '北京', '天安门']</span></div>
+      <div class="card card-blue">
+        <div class="h">四个关键旋钮</div>
+        <ul>
+          <li>model_type：BPE 或 Unigram</li>
+          <li>vocab_size：词表大小（32K/50K 常见）</li>
+          <li>character_coverage：中文 1.0、英文 0.9995 省词表</li>
+          <li>input_sentence_size：采样句数控制训练时长</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">参数即<span class="k">词表旋钮</span>——vocab_size 与 character_coverage 是三角权衡的落地开关。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 21 四子词算法对比 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">四子词算法：一张表收口</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:16%">算法</th><th style="width:20%">方向</th><th style="width:34%">选谁合并 / 删谁的准则</th><th style="width:30%">代表模型</th></tr>
+      <tr><td><b>BPE</b></td><td>自底向上</td><td>选<b>共现频次最高</b>的相邻 pair 合并</td><td>GPT 系、LLaMA、tiktoken</td></tr>
+      <tr><td><b>WordPiece</b></td><td>自底向上</td><td>选合并后<b>语料似然最大</b>的 pair（## 续接）</td><td>BERT、中文 BERT</td></tr>
+      <tr><td><b>Unigram</b></td><td>自顶向下</td><td>先大词表，删<b>似然损失最小</b>的子词</td><td>T5、ALBERT、gemma</td></tr>
+      <tr><td><b>SentencePiece</b></td><td>工具层</td><td>语言无关、裸文本训练，支持 BPE / Unigram + 字节回退</td><td>多语模型、中文 LLM 常用</td></tr>
+    </table>
+    <div class="qbar">记两列就够了：<span class="k">方向（加 or 减）+ 准则（频次 or 似然）</span>——四子词算法全在这张表里。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 字节级 BPE ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">字节级 BPE：连 [UNK] 都不要了</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">从“字符”到“字节”</div>
+        <ul>
+          <li>GPT 系用字节级 BPE（BBPE）：初始字母表是 <b>256 个字节</b></li>
+          <li>任意 Unicode（生僻字、emoji）都能退到字节——<b>理论上不存在 [UNK]</b></li>
+          <li>SentencePiece 的 byte_fallback 同源，工业 tokenizer 标配</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">代价：中文更费 token</div>
+        <ul>
+          <li>生僻中文字可能被拆成 <b>2~3 个字节 token</b></li>
+          <li>序列变长、账单变贵、上下文窗口更不经用</li>
+          <li>导入页“一个汉字几个 token”的答案就藏在这里</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">把字母表压到字节，换来<span class="k">“任何输入都不会被 [UNK] 拒之门外”</span>——代价是中文多花几个 token。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 三角权衡 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么 LLM 都用子词：三角权衡</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>词表大小</div><p>嵌入矩阵参数 = <b>V × d</b>；子词把 V 稳在 3 万–25 万，内存与计算可控。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>覆盖率</div><p>任何文本都能由碎片拼出 → <b>OOV 从词典里被删除</b>，新词、代码、表情全覆盖。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>序列长度</div><p>常见词保持完整 → 远短于字级；注意力计算量随长度<b>平方增长</b>（第 11 讲展开）。</p></div>
+    </div>
+    <div class="qbar">红利：形态学免费送（un + belie + able）；副作用：中文被英文主导的词表切得偏碎、更费钱——<span class="k">子词是三点全及格的工程甜点</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 Chat Template ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">现代 tokenizer 与 Chat Template</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">现代 tokenizer 三件套</div>
+        <ul>
+          <li>预切分规则（正则 / 字节级）→ 子词合并 → <b>特殊 token</b></li>
+          <li>[CLS] [SEP] [MASK]、&lt;|begin_of_text|&gt; 等</li>
+          <li>词表规模：GPT-2 ≈5 万 · cl100k ≈10 万 · LLaMA ≈3.2 万 · Qwen ≈15 万 ⚠</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">Chat Template：对话先“拼串”再编码</div>
+        <div class="code" style="margin-top:8px">&lt;|im_start|&gt;user
+你好！&lt;|im_end|&gt;
+&lt;|im_start|&gt;assistant
+你好，有什么可以帮你？&lt;|im_end|&gt;</div>
+        <p style="margin-top:8px">HF 一行：<code>tokenizer.apply_chat_template(...)</code>——换模型要换模板，第 12/13 讲实操再见。</p>
+      </div>
+    </div>
+    <div class="qbar">tokenizer 是 LLM 的第一道工序：<span class="k">计费、上下文窗口、多语言公平性皆出于此</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 24b 切分对比与特殊 token ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">切分对比与特殊 token</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">同一句话，不同切法</div>
+        <ul>
+          <li>“我爱北京天安门”：英文主导词表 → 逐字/字节切；中文优化词表 → 成词成块</li>
+          <li>这就是“词表是国产大模型工程资产”的直观证据</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">特殊 token：模型的“控制字符”</div>
+        <ul>
+          <li>[BOS]/[EOS] 起止、[PAD] 补齐、[UNK] 兜底</li>
+          <li>[CLS]/[SEP]/[MASK] 是 BERT 家族的任务标记</li>
+          <li>Chat Template 靠它们拼接对话——换模型必须换集合</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">tokenizer 与特殊 token 集合<span class="k">一一绑定</span>——换模型先换它俩，第 12/13 讲微调的必经之路。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 25 三个误区 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三个常见误区：作业前先避坑</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">1</span>混淆“分词”与“子词化”</div><p>中文分词是<b>词级</b>切分（jieba）；子词 token 化是<b>喂模型前</b>的编码（BPE）——粒度、目的都不同，作业 2 对比的正是它俩。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">2</span>以为 BPE 必须先分词</div><p>BPE 本身依赖预分词，但 <b>SentencePiece 直接吃裸文本</b>——这正是它对中文友好的原因，别再去手工切一遍。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>以为词表越大越好</div><p>词表大 = OOV 少，但嵌入参数多、中文更费 token——<b>这是权衡</b>，不是越大越优。</p></div>
+    </div>
+    <div class="qbar">分词是给<span class="k">人读的索引</span>，子词是给<span class="k">模型吃的原料</span>——别把两道工序当成一件事。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 伏笔回收 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">伏笔回收：中文为什么不怕没空格？</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>不依赖空格</div><p>tokenizer 把一切语言当 Unicode 字符流，空格只是符号 ▁——中英同一条流水线。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>绕过而非解决</div><p>BPE 在碎片上学共现统计：“自然语言”高频共现 → 自动合并成 token，没人需要定义“词”。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>现场演示</div><p>我爱北京天安门 → <b>[我, 爱, 北京, 天安门]</b>——碎片 ≠ 语言学的词，但可复现、够用。</p></div>
+    </div>
+    <div class="qbar">NLP 史上第一次，中文和英文站上<span class="k">同一条起跑线</span>——下一讲：每块碎片如何变成“有意义的向量”？</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 BPE 编码 rank 回放 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">BPE 编码：按 rank 贪心回放</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div>
+        <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.5;padding:10px 16px">
+def encode(word, merges):
+    symbols = list(word) + ['&lt;/w&gt;']
+    <b>while True:</b>
+        pairs = list(zip(symbols, symbols[1:]))
+        i, j = min((p for p in pairs if p in merges),
+                   key=lambda p: merges[p], default=(None,None))
+        if i is None: break
+        symbols = merge_pair(symbols, i, j)
+    return symbols</div>
+      </div>
+      <div class="card card-blue">
+        <div class="h">lowest 的编码过程</div>
+        <ul>
+          <li>字符：l o w e s t &lt;/w&gt;</li>
+          <li>rank1：e+s → <b>es</b>；rank2：es+t → <b>est</b></li>
+          <li>rank3：est+&lt;/w&gt; → <b>est&lt;/w&gt;</b>；rank4：l+o → <b>lo</b></li>
+          <li>结果：<b>[lo, w, est&lt;/w&gt;]</b>——OOV 就这样被拼出来</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">训练决定<span class="k">合并顺序（rank）</span>，编码只是按顺序回放——同一词表，切分结果唯一确定。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 嵌入参数量 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">词表大小的账：嵌入参数量</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">嵌入矩阵参数量 = <b>V × d</b>（词表大小 × 向量维度）——词表不是免费的：</div>
+    <div class="kpis" style="flex:none;height:140px">
+      <div class="kpi"><div class="n">3840<small> 万</small></div><div class="l">GPT-2</div><div class="d">词表 5 万 × 维度 768</div></div>
+      <div class="kpi"><div class="n">7680<small> 万</small></div><div class="l">cl100k_base</div><div class="d">词表 10 万 × 维度 768</div></div>
+      <div class="kpi"><div class="n">3.8<small> 亿</small></div><div class="l">词级词表（假设）</div><div class="d">50 万词 × 768，且长尾词没数据可学</div></div>
+      <div class="kpi"><div class="n">×2<small> 倍</small></div><div class="l">词表翻倍的代价</div><div class="d">首层 + 末层参数同步翻倍</div></div>
+    </div>
+    <div class="qbar">词表每扩大一倍，<span class="k">首层与输出层参数同步翻倍</span>，长尾词还没数据可学——这就是“词表旋钮”的两端。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 HF tokenizer 实操 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">HF tokenizer：三行实操</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.5;padding:10px 16px">
+from tokenizers import Tokenizer, models, trainers
+
+tok = Tokenizer(models.BPE())
+trainer = trainers.BpeTrainer(vocab_size=30000, special_tokens=["[UNK]","[CLS]","[SEP]"])
+tok.train_from_iterator(texts, trainer)       <span class="c"># ① 训练词表</span>
+ids = tok.encode("我爱北京天安门").ids        <span class="c"># ② 编码 → ID</span>
+text = tok.decode(ids)                         <span class="c"># ③ 解码 → 原文</span></div>
+    <div class="qbar">课堂手推 BPE 是为了<span class="k">懂原理</span>，生产直接调 HF tokenizers——Rust 核心、快几个数量级，第 12/13 讲反复使用。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">上机任务为线下自学，课堂保留研讨环节。</div>
+    <ul>
+      <li>任务一 / 任务二：线下自学（验收标准见任务页）</li>
+      <li>研讨：中英文谁更“费 token”？+ 词表旋钮怎么拧（课堂 10′）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 28 上机任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：FMM + toy BPE（课后完成）</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>前向最大匹配（5′）</div>
+        <ul>
+          <li>照第 11 页实现 <code>fmm(sent, vocab)</code></li>
+          <li>验证：研究生命起源 → 研究生/命/起源（看到错例）</li>
+          <li>指出正确切分应为 研究/生命/起源，并说明错因</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">2</span>toy BPE 训练（5′）</div>
+        <ul>
+          <li>照第 17 页跑训练循环，说出第 1 轮为什么合并 <b>e+s</b></li>
+          <li>自写 encode：按 rank 回放，把 <b>lowest</b> 编码成 [lo, w, est&lt;/w&gt;]</li>
+          <li>挑战：num_merges 10 → 20，观察词表“几乎全是整词”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">本页为<span class="k">线下自学</span>内容：FMM 切分正确，且能指着 BPE 循环说出“为什么选这一对”，并入作业 2 检查。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 研讨 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：token 效率与词表旋钮（10′）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h">Q1 谁更费 token</div><p>同一段语义的中英文，谁占的 token 更多？为什么？对写中文提示词有什么启发？</p></div>
+      <div class="card card-blue"><div class="h">Q2 词表旋钮怎么拧</div><p>设计自己的 tokenizer，词表该选多大？用三角权衡（词表大小 / 覆盖率 / 序列长度）给出你的答案。</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个粒度、四个算法、一套工程现实。</div>
+    <ul>
+      <li>粒度：词 / 字 / 子词的三角权衡</li>
+      <li>算法：BPE 手算 + WordPiece / Unigram / SentencePiece</li>
+      <li>系统：tokenizer 是 LLM 第一道工序</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 31 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>粒度</div><p>词级保语义、字级保覆盖，<b>子词两头兼顾</b>——词表大小 × 覆盖率 × 序列长度的帕累托最优。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>算法</div><p>BPE：从字符按频率合并，词表“长出来”，编码按 rank 回放；WordPiece 换准则、Unigram 换方向、SentencePiece 统一封装。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>系统</div><p>tokenizer 是 LLM 第一道工序：计费、上下文窗口、多语言公平性皆出于此；中文词边界被绕过，中英同一起跑线。</p></div>
+    </div>
+    <div class="qbar">一句话带走：<span class="k">词表不是编出来的，是长出来的</span>——数据驱动的切分，让“词”第一次由语料自己定义。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">发布作业 2；下讲让碎片长出语义。</div>
+    <ul>
+      <li>作业 2：分词与 BPE 对比实验（一周截止）</li>
+      <li>观察题：找出三种切法不一致的片段并论证</li>
+      <li>下讲预告：词向量与语义表示</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 33 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>作业 2：分词与 BPE 对比实验（一周）</div>
+        <ul>
+          <li>环境：jieba + 本讲 toy BPE（或 HF tokenizers）</li>
+          <li>对比：同一段约 500 字中文新闻，统计 token 数 / type 数 / OOV 处理</li>
+          <li>观察题：找 3 个切法不一致的片段，分析谁更合理（论证打分）</li>
+          <li>交付：代码 + 一页纸报告；AI 使用范围须声明</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>下讲预告与思考题</div>
+        <ul>
+          <li>第 5 讲：词向量与语义表示——碎片如何变成有意义的向量</li>
+          <li>切分解决了，但 one-hot 里“猫”和“狗”还是一样远</li>
+          <li>思考题：<b>dogs 和 dog 应不应该共享一个向量？</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 5 讲 词向量与语义表示</span>：让向量自己长出语义——Word2Vec 的分布式假设登场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:16.5px;line-height:1.9">
+      <b>教材与经典文献（原理层）</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed., Ch.2) · Gage (1994) BPE 压缩算法<br>
+      Sennrich et al. (2016) BPE 用于 NMT · Schuster &amp; Nakajima (2012) WordPiece<br>
+      Kudo (2018) Unigram《Subword Regularization》· Kudo &amp; Richardson (2018) SentencePiece · SIGHAN Bakeoff 中文分词评测<br>
+      <b>工程资料（实例层）</b><br>
+      OpenAI tiktoken 文档 · HuggingFace tokenizers 库 · jieba 开源项目 · 各模型词表规模（GPT-2 ≈5 万 / cl100k ≈10 万 / LLaMA ≈3.2 万 / Qwen ≈15 万 ⚠）
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">BPE 手算、最大匹配与子词四算法为原理层、长期稳定；词表规模与工具版本为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 46</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

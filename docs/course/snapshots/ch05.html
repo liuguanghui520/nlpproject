@@ -1,0 +1,2222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第5章 词向量与语义表示 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  table.dp{border-collapse:collapse;margin-top:6px}
+  table.dp td{min-width:44px;height:38px;text-align:center;padding:0 5px;border:1px solid var(--line2);
+    font-size:18px;font-weight:600;color:var(--text)}
+  table.dp td.ax{background:var(--lb1);color:var(--navy);font-weight:700}
+  table.dp td.cur{background:#FFF5D9;border:2px solid #C9A227;color:#8A6D00;font-weight:800}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:20px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:104px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .figwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin-top:8px}
+  .figwrap svg{width:100%;height:100%;font-family:var(--sans)}
+  .figwrap .ft-t{font-size:16px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-g{font-size:13px;fill:var(--mut)}
+  .figwrap .ft-c{font-size:16px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-cw{font-size:16px;font-weight:700;fill:#fff}
+  .figwrap .ft-x{font-size:15px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-ch{font-size:12.5px;fill:var(--mut)}
+  .figwrap .ft-chip{font-size:15px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-s{font-size:15px;font-weight:700;fill:var(--blue)}
+  .figwrap .ft-p{font-size:13px;fill:var(--sub)}
+  .figwrap .ft-f{font-size:15.5px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-f2{font-size:13px;fill:var(--sub)}
+  .figwrap .ft-cap{font-size:13px;fill:var(--mut)}
+  .figwrap .ft-num{font-family:Consolas,"Courier New",monospace;font-size:14px;fill:#16315F}
+  .figwrap .ft-w{font-size:14px;font-weight:600;fill:var(--text)}
+  .figwrap .ft-lab{font-size:11.5px;fill:var(--sub)}
+  .figwrap .ft-ax{font-size:12.5px;fill:var(--mut)}
+  .figwrap .ft-arw{font-size:12.5px;font-weight:700;fill:var(--blue)}
+  .figwrap .ft-alert{font-size:12.5px;fill:#B03A36}
+  .figwrap .ft-good{font-size:12.5px;fill:#3F7D4F}
+  .figwrap .ft-note{font-size:12px;fill:var(--sub)}
+  .figwrap .ft-op{font-size:22px;fill:#4A5568}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Word Vectors &amp; Semantic Representation</div>
+    <div class="cn">词向量与语义表示</div>
+    <div class="rule"></div>
+    <div class="sub">第五章 · 词向量与语义表示</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 5 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作（综合 QW / Doubao / WorkBuddy 素材）· 2026-09-10</div>
+  <div class="num">05</div>
+</section>
+
+<!-- ================= 1.5 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 4 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>Token / Type / 词表</div><p>Token 是“出现”，Type 是“种类”；词表是全部 type 配整数 ID，OOV 是查不到的词。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>中文分词</div><p>最大匹配贪心切最长；jieba 用 Trie→DAG→DP 选概率最大的切分。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>BPE 与子词四算法</div><p>BPE 从字符按频率合并、词表“长出来”；WordPiece 换准则、Unigram 换方向。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>三角权衡</div><p>词表大小 × 覆盖率 × 序列长度——子词是三点全及格的工程甜点。</p></div>
+    </div>
+    <div class="qbar">上节课把文本切成了<span class="k">最小碎片</span>，今天让每个碎片变成<span class="k">有意义的向量</span>——回收 one-hot 的伏笔。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 2 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：国王 − 男人 + 女人 ≈ 女王</div><div class="dd">词向量名场面，与 one-hot 的语义鸿沟</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">同义词词典、分布式假设与计数派</div><div class="dd">同义词集、关键假设、共现矩阵 → PPMI → SVD</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">预测派：word2vec</div><div class="dd">CBOW / Skip-gram（含网络图示）/ 负采样 + gensim</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">改进派与上下文派</div><div class="dd">GloVe / FastText / ELMo + 向量可视化</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">评估、跨领域应用与自学</div><div class="dd">内在/外在评估、node embedding、gensim 自学任务</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">研讨、小结与作业</div><div class="dd">三问研讨（答案课堂揭示）、读 word2vec 论文、第 6 讲预告</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 3 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 5 讲 · 词向量与语义表示</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说出分布式假设：“词的意义由上下文决定”</li>
+          <li>讲清共现矩阵、PPMI 与 CBOW/Skip-gram/负采样</li>
+          <li>区分静态词向量与 ELMo 上下文表示</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能用 gensim 训练/加载词向量并做相似度与类比</li>
+          <li>能解释 king−man+woman≈queen 为何成立</li>
+          <li>能用 PCA/t-SNE 把高维向量可视化</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>体会“用上下文定义词义”的范式转变</li>
+          <li>认识“自监督”——监督信号从数据自身构造</li>
+          <li>对向量算术与其中偏见保持审慎</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>分布式假设；CBOW/Skip-gram 的预测方向；负采样的动机与做法。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>负采样为何有效；静态向量“一词一向量”的局限与 ELMo 的解法。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">从“国王 − 男人 + 女人 ≈ 女王”说起——机器居然会做语义推理。</div>
+    <ul>
+      <li>向量算术名场面：king − man + woman ≈ queen</li>
+      <li>第 4 讲回响：one-hot 的三大死穴</li>
+      <li>核心问题：语义如何变成可度量的几何</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 5 名场面 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">名场面：国王 − 男人 + 女人 ≈ 女王</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">两个“神机妙算”</div>
+        <ul>
+          <li><b>vec(国王) − vec(男人) + vec(女人) ≈ vec(女王)</b></li>
+          <li>北京 − 中国 + 法国 ≈ <b>巴黎</b>；强 − 最强 + 弱 ≈ 最弱</li>
+          <li>计算机不懂“国王”“性别”“首都”，却都算对了——关系是从语料里<b>长出来的几何</b></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="h">先泼半勺冷水</div>
+        <ul>
+          <li>向量算术是<b>统计规律的线性投影</b>，不是“模型理解了性别”</li>
+          <li>有时惊艳，有时翻车（第 26 页细看）</li>
+          <li>本讲任务：搞清楚这种几何<b>从哪来、灵到哪、何时失效</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>来源：</b>king−man+woman 类比见 Mikolov et al. (2013) word2vec 原论文。</div>
+    <div class="qbar">机器没学过“性别”两个字，却在向量里<span class="k">“算”出了它</span>——这就是分布式表示的魔力。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">05</span></div>
+</section>
+
+<!-- ================= 6 one-hot 回响 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">第 4 讲回响：one-hot 的病，今天来治</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">one-hot 三大死穴</div>
+        <ul>
+          <li><b>维度灾难</b>：词表 50 万 → 每个词 50 万维稀疏向量</li>
+          <li><b>语义鸿沟</b>：任意两词正交，“猫/狗”与“猫/汽车”一样远</li>
+          <li><b>OOV</b>：词表外无编号（第 4 讲已用子词缓解一半）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">词向量的验收标准（学生自己提）</div>
+        <ul>
+          <li>① <b>低维</b>：几百维足矣，不是几十万维</li>
+          <li>② <b>稠密</b>：每个分量都有信息量，不再是 0/1</li>
+          <li>③ <b>距离有意义</b>：近义词近、类比可算</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">核心问题：看不见的“语义”，怎么变成向量空间里<span class="k">可度量的几何</span>？</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">一条公理、两派方法、一次跃迁——从“数”到“猜”再到“随语境变”。</div>
+    <ul>
+      <li>同义词词典、分布式假设与计数派：关键假设、共现矩阵、PPMI、SVD</li>
+      <li>预测派：CBOW / Skip-gram（网络图示）/ 负采样 + gensim 实战</li>
+      <li>改进与上下文派：GloVe / FastText / ELMo、评估与跨领域应用</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 8 分布式假设 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">分布式假设：观其伴，知其义</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">现场游戏：不看词典猜生词</div>
+        <ul>
+          <li>① 他用 <b>溟涬</b> 写了一封信。</li>
+          <li>② 这支 <b>溟涬</b> 没水了。</li>
+          <li>③ <b>溟涬</b> 的笔尖很细。</li>
+          <li>没人教过这个词，但你已经知道它和<b>笔</b>同类——意义从上下文分布里推断出来</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">第一公理</div>
+        <ul>
+          <li>“<b>一个词的意义，由它所处的上下文决定</b>”</li>
+          <li>“You shall know a word by the company it keeps.”——Firth (1957)</li>
+          <li>推论：常出现在高度重合上下文里的词，语义相似</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">把“意义”的哲学问题换成“<span class="k">分布</span>”的统计问题——NLP 历史上最划算的一次偷换概念。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 8b 同义词词典 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">同义词词典表示（Thesaurus）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">思想：人工语义网络</div>
+        <ul>
+          <li>用<b>同义词集（synset）</b>与层级关系表示词义</li>
+          <li>最著名实现：<b>WordNet</b>——词组成一张语义网络</li>
+          <li>car = auto / automobile / machine / motorcar</li>
+          <li>上位词（vehicle）→ 下位词（car），形成层级</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">两个致命问题</div>
+        <ul>
+          <li>① <b>人工维护难</b>：词典靠人编写，新词新义永远追不上</li>
+          <li>② <b>粒度太粗</b>：synset 只给“同义/不同义”，表达不了词间细微差异与连续相似度</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">人工词典的尽头，是语料统计的起点——<span class="k">“car 有多像 automobile”需要一个连续的数字</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 9a 关键假设 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">共现方法：关键假设</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">教材经典对比例</div>
+        <ul>
+          <li>I <b>drink</b> beer. / We drink wine.</li>
+          <li>I <b>guzzle</b> beer. / We guzzle beer.</li>
+          <li>drink 与 guzzle 的上下文分布高度重合 → 它们“同义”</li>
+          <li>一个类比：颜色 = RGB 组合，词义 = 上下文维度的组合（分布式表示）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">三条工程假设</div>
+        <ul>
+          <li>① 窗口内<b>共现即相关</b>——窗口大小是超参数</li>
+          <li>② 窗口内<b>词序不重要</b>——袋装上下文（与 CBOW 同源）</li>
+          <li>③ 相似度 = 上下文<b>分布</b>的距离（行向量相似）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">核心假设：<span class="k">意义相似 ⇔ 上下文相似</span>——这是计数派与预测派共同的公理。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 10 共现矩阵 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">计数派第一步：共现矩阵</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">固定上下文窗口，数每个词与谁共现——教材经典语料：<b>You say goodbye and I say hello.</b>（窗口 = 2，词序不计）</div>
+    <table class="ac" style="flex:1">
+      <tr><th style="width:16%">词</th><th>You</th><th>Say</th><th>Goodbye</th><th>And</th><th>I</th><th>Hello</th></tr>
+      <tr><td><b>Say</b></td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+      <tr><td><b>Goodbye</b></td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+      <tr><td><b>And</b></td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+      <tr><td><b>I</b></td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+    </table>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card card-blue"><div class="h">怎么读</div><p>每个词的<b>行向量 = 上下文指纹</b> = 第一版词向量；“苹果/香蕉”的行很像 → 两词相似。</p></div>
+      <div class="card card-warn"><div class="h">两个毛病</div><p>① 高频词淹没：the/of 计数巨大却无信息量；② 又稀又高维：仍是 V 维、大多为 0。</p></div>
+    </div>
+    <div class="qbar">把“谁和谁一起出现多少次”记下来——<span class="k">这一行数字就是词的语义指纹</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10a 两种共现 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两种共现：窗口级 vs 文档级</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">窗口级共现</div>
+        <ul>
+          <li>固定滑动窗口（如 ±2）内出现的词</li>
+          <li>捕捉<b>局部搭配</b>：形容词+名词</li>
+          <li>例：“吃”与“苹果”近——word2vec 的原料</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">文档级共现</div>
+        <ul>
+          <li>同一篇文档内出现的词</li>
+          <li>捕捉<b>全局主题</b>：股票↔债券、苹果↔发布会</li>
+          <li>LSA 主题模型的原料</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">数法不同，语义不同：<span class="k">窗口级要搭配，文档级要主题</span>——选错数法，向量就会偏。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 10b PMI 变体 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">PMI 的变体与平滑</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">变体</th><th style="width:38%">做法</th><th style="width:42%">解决什么</th></tr>
+      <tr><td><b>PMI</b></td><td>log[P(x,y)/(P(x)P(y))]</td><td>基准：衡量关联强度</td></tr>
+      <tr><td><b>PPMI</b></td><td>max(0, PMI)</td><td>负值噪声截断为 0</td></tr>
+      <tr><td><b>平滑 PPMI</b></td><td>计数先加 α 再算比值</td><td>零计数也有定义，低频更稳</td></tr>
+      <tr><td><b>PMI² / PMI³</b></td><td>对 PMI 取平方 / 立方</td><td>放大强关联、压制弱关联</td></tr>
+    </table>
+    <div class="qbar">所有变体都在回答一个问题：<span class="k">共现统计里，多少是信号、多少是噪声</span>——与第 7 讲平滑同源。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 10 PPMI ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">PPMI：奖励“意外的共现”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">公式</div>
+        <div class="code" style="margin-top:8px">PMI(x, y) = log [ P(x, y) / (P(x)·P(y)) ]
+PPMI(x, y) = max(0, PMI(x, y))</div>
+        <p style="margin-top:10px">分子 P(x,y)：真的共现了多少；分母 P(x)P(y)：按各自频率本该碰巧共现多少。</p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">直觉与效果</div>
+        <ul>
+          <li>比值 ≈1（纯属偶然）→ PMI≈0；比值远大于 1 → PMI 很大</li>
+          <li>奖励“意外的共现”（苹果 &amp; 甜），惩罚高频虚词（the 跟谁都平平）</li>
+          <li>负值截断为 0：低频噪声不再捣乱</li>
+          <li>教材算例：PMI(Say, You)≈<b>1.807</b>，PMI(Say, Goodbye)≈<b>0.807</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">重要的不是“<span class="k">一起出现得多</span>”，而是“一起出现得<span class="k">出乎意料</span>”——惊喜 = 实际 ÷ 预期。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 SVD 降维 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">SVD：把稀疏大矩阵压成稠密向量</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="SVD 分解示意：稀疏的共现矩阵 M 近似等于 U、Σ、V 转置三个矩阵相乘，只保留前 d 个主方向；右侧为奇异值谱，前 d 个很大、长尾很小">
+        <!-- 左：分解式 -->
+        <rect x="8" y="8" width="692" height="234" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 分解：M ≈ U · Σ · Vᵀ（只保留前 d 个主方向）</text>
+        <rect x="40" y="72" width="84" height="84" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="48" y="82" width="7" height="7" fill="#1E4FA8"/>
+        <rect x="70" y="82" width="7" height="7" fill="#1E4FA8" opacity="0.75"/>
+        <rect x="104" y="82" width="7" height="7" fill="#1E4FA8" opacity="0.6"/>
+        <rect x="48" y="104" width="7" height="7" fill="#1E4FA8" opacity="0.85"/>
+        <rect x="92" y="104" width="7" height="7" fill="#1E4FA8" opacity="0.55"/>
+        <rect x="114" y="104" width="7" height="7" fill="#1E4FA8" opacity="0.7"/>
+        <rect x="59" y="126" width="7" height="7" fill="#1E4FA8" opacity="0.9"/>
+        <rect x="81" y="126" width="7" height="7" fill="#1E4FA8" opacity="0.5"/>
+        <rect x="103" y="126" width="7" height="7" fill="#1E4FA8" opacity="0.8"/>
+        <rect x="48" y="148" width="7" height="7" fill="#1E4FA8" opacity="0.65"/>
+        <rect x="92" y="148" width="7" height="7" fill="#1E4FA8" opacity="0.75"/>
+        <text class="ft-p" x="82" y="172" text-anchor="middle">M（V×V）</text>
+        <text class="ft-note" x="82" y="188" text-anchor="middle">PPMI：稀疏、大</text>
+        <text class="ft-op" x="138" y="124" text-anchor="middle">≈</text>
+        <rect x="152" y="72" width="60" height="84" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="152" y="72" width="20" height="84" fill="#1E4FA8"/>
+        <rect x="172" y="72" width="20" height="84" fill="#2C63B8"/>
+        <rect x="192" y="72" width="20" height="84" fill="#6E93CF"/>
+        <rect x="152" y="100" width="60" height="14" fill="none" stroke="#C9A227" stroke-width="2"/>
+        <text class="ft-p" x="182" y="172" text-anchor="middle">U（V×d）</text>
+        <text class="ft-note" x="182" y="188" text-anchor="middle">每行 = 一个词</text>
+        <text class="ft-op" x="227" y="124" text-anchor="middle">·</text>
+        <rect x="242" y="72" width="56" height="84" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="246" y="76" width="12" height="12" fill="#1E4FA8"/>
+        <rect x="260" y="90" width="12" height="12" fill="#2C63B8"/>
+        <rect x="274" y="104" width="12" height="12" fill="#6E93CF"/>
+        <rect x="288" y="118" width="12" height="12" fill="#B9CDE8"/>
+        <text class="ft-p" x="270" y="172" text-anchor="middle">Σ（d×d）</text>
+        <text class="ft-note" x="270" y="188" text-anchor="middle">奇异值（权重）</text>
+        <text class="ft-op" x="312" y="124" text-anchor="middle">·</text>
+        <rect x="326" y="72" width="84" height="54" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="326" y="72" width="84" height="18" fill="#1E4FA8"/>
+        <rect x="326" y="90" width="84" height="18" fill="#2C63B8"/>
+        <rect x="326" y="108" width="84" height="18" fill="#6E93CF"/>
+        <text class="ft-p" x="368" y="172" text-anchor="middle">Vᵀ（d×V）</text>
+        <text class="ft-note" x="368" y="188" text-anchor="middle">每行 = 一个方向</text>
+        <text class="ft-note" x="440" y="92">U 的每行 = 一个词的 d 维向量</text>
+        <text class="ft-note" x="440" y="114">Σ 对角线 = 各方向的权重（奇异值）</text>
+        <text class="ft-note" x="440" y="136">Vᵀ 的每行 = 一个上下文方向</text>
+        <text class="ft-note" x="440" y="158">取前 d 个 = 只留最重要的 d 个方向</text>
+        <rect x="24" y="200" width="640" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="36" y="224">M ≈ U Σ Vᵀ　→　只取前 d 项：M_d = U_d Σ_d V_dᵀ</text>
+
+        <!-- 右：奇异值谱 -->
+        <rect x="720" y="8" width="472" height="234" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="736" y="32">② 奇异值谱：为什么只留前 d 个</text>
+        <text class="ft-note" x="736" y="62">奇异值 σ（越大越重要）</text>
+        <rect x="754" y="76" width="24" height="128" rx="2" fill="#1E4FA8"/>
+        <rect x="790" y="100" width="24" height="104" rx="2" fill="#1E4FA8"/>
+        <rect x="826" y="118" width="24" height="86" rx="2" fill="#1E4FA8"/>
+        <rect x="862" y="133" width="24" height="71" rx="2" fill="#1E4FA8"/>
+        <rect x="898" y="146" width="24" height="58" rx="2" fill="#C7D3E3"/>
+        <rect x="934" y="156" width="24" height="48" rx="2" fill="#C7D3E3"/>
+        <rect x="970" y="164" width="24" height="40" rx="2" fill="#C7D3E3"/>
+        <rect x="1006" y="171" width="24" height="33" rx="2" fill="#C7D3E3"/>
+        <rect x="1042" y="177" width="24" height="27" rx="2" fill="#C7D3E3"/>
+        <rect x="1078" y="182" width="24" height="22" rx="2" fill="#C7D3E3"/>
+        <rect x="1114" y="186" width="24" height="18" rx="2" fill="#C7D3E3"/>
+        <rect x="1150" y="189" width="24" height="15" rx="2" fill="#C7D3E3"/>
+        <line x1="742" y1="204" x2="1184" y2="204" stroke="#D6DCE5" stroke-width="1.5"/>
+        <line x1="890" y1="68" x2="890" y2="208" stroke="#C9A227" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <text class="ft-lab" x="898" y="80" fill="#8A6D00">截断 d</text>
+        <text class="ft-lab" x="1184" y="224" text-anchor="end">方向序号 →</text>
+        <text class="ft-good" x="754" y="232">前 d 个：保留（语义主方向）</text>
+        <text class="ft-note" x="960" y="232">长尾：多为噪声</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">做法：计数派的终点</div>
+        <ul>
+          <li>PPMI 矩阵是 V×V（几十万 × 几十万），又大又稀疏</li>
+          <li>做<b>奇异值分解</b>并截断：只留前 d 个主方向（d = 50~300）</li>
+          <li>每个词取 <b>U 的对应一行</b> → d 维稠密向量，即<b>潜在语义分析 LSA</b></li>
+        </ul>
+      </div>
+      <div class="card small card-warn">
+        <div class="h">天花板</div>
+        <ul>
+          <li><b>太贵：</b>几十万阶矩阵做 SVD，时间与内存都吃紧</li>
+          <li><b>词表固定：</b>新词出现就得重建矩阵、重新分解</li>
+          <li><b>语料一变就要推倒重算</b>（不能增量更新）</li>
+          <li>这是“计数派”的终点，也是范式转换的起点</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>低秩近似：</b>只保留前 d 个奇异值，等于用“最重要的 d 个方向”近似整个共现矩阵——奇异值大 = 该方向承载的语义差异多。类比拍照压缩：一张图 = 若干张基础图按权重相加，只留权重最大的几张，图片大体不变、存储骤减。d 越大保真越高，但向量越稀疏难学，<b>d = 50~300 是经验甜点</b>。</div>
+    <div class="qbar">能不能不建矩阵，直接把向量<span class="k">“学”出来</span>？——word2vec 登场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 预测派登场 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">word2vec：从“计数”到“预测”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">计数派（旧）</div>
+        <ul>
+          <li>全语料 → 建共现矩阵 → PPMI → SVD → 向量</li>
+          <li>“先记账，后总结”——矩阵是中间产物，贵且笨</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">预测派（word2vec, 2013）</div>
+        <ul>
+          <li>不建矩阵：词向量直接作为<b>模型参数</b>，用“预测邻居”任务训练</li>
+          <li>向量是任务的<b>副产品</b>——边猜边学</li>
+          <li>Skip-gram：中心词→预测上下文；CBOW：上下文（平均）→预测中心词</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>来源：</b>Mikolov et al. (2013, Google)；官方预训练 300 维 × 300 万词（约 16 亿词语料）。</div>
+    <div class="qbar">思想史地位：<span class="k">自监督学习</span>的第一次大规模成功——监督信号从文本自身免费构造，第 12 讲 BERT 是它的直系后代。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 CBOW ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">CBOW：用上下文猜中心词</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 266" preserveAspectRatio="xMidYMid meet" role="img" aria-label="CBOW 模型结构：四个上下文词的 one-hot 向量经嵌入矩阵 W 查表得到词向量，取平均后经输出矩阵 W′ 与 softmax 预测中心词">
+        <defs>
+          <marker id="c-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="c-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#B03A36"/></marker>
+        </defs>
+
+        <!-- ① 输入层 -->
+        <rect x="8" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 输入层</text>
+        <text class="ft-p" x="24" y="50">上下文词的 one-hot（V 维）</text>
+        <rect x="24" y="68" width="108" height="16" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M42,68 V84 M60,68 V84 M78,68 V84 M96,68 V84 M114,68 V84" stroke="#DCE2EA"/>
+        <rect x="42" y="68" width="18" height="16" fill="#1E4FA8"/>
+        <text class="ft-lab" x="146" y="80">我</text>
+        <rect x="24" y="94" width="108" height="16" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M42,94 V110 M60,94 V110 M78,94 V110 M96,94 V110 M114,94 V110" stroke="#DCE2EA"/>
+        <rect x="78" y="94" width="18" height="16" fill="#1E4FA8"/>
+        <text class="ft-lab" x="146" y="106">自然</text>
+        <rect x="24" y="120" width="108" height="16" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M42,120 V136 M60,120 V136 M78,120 V136 M96,120 V136 M114,120 V136" stroke="#DCE2EA"/>
+        <rect x="24" y="120" width="18" height="16" fill="#1E4FA8"/>
+        <text class="ft-lab" x="146" y="132">语言</text>
+        <rect x="24" y="146" width="108" height="16" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M42,146 V162 M60,146 V162 M78,146 V162 M96,146 V162 M114,146 V162" stroke="#DCE2EA"/>
+        <rect x="96" y="146" width="18" height="16" fill="#1E4FA8"/>
+        <text class="ft-lab" x="146" y="158">处理</text>
+        <text class="ft-note" x="24" y="188">每个词 = V 维稀疏向量</text>
+        <text class="ft-note" x="24" y="204">只有 1 个位置是 1，其余全 0</text>
+        <line x1="226" y1="110" x2="246" y2="110" stroke="#3D7BD9" stroke-width="2" marker-end="url(#c-aw)"/>
+
+        <!-- ② 查表 -->
+        <rect x="250" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="266" y="32">② 查表（投影层）</text>
+        <text class="ft-p" x="266" y="50">one-hot 选一行 → 词向量</text>
+        <rect x="266" y="68" width="80" height="96" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="266" y="68" width="80" height="16" fill="#D8E5F6"/>
+        <rect x="266" y="100" width="80" height="16" fill="#D8E5F6"/>
+        <rect x="266" y="116" width="80" height="16" fill="#D8E5F6"/>
+        <rect x="266" y="148" width="80" height="16" fill="#D8E5F6"/>
+        <path d="M286,68 V164 M306,68 V164 M326,68 V164 M266,84 H346 M266,100 H346 M266,116 H346 M266,132 H346 M266,148 H346" stroke="#DCE2EA"/>
+        <text class="ft-lab" x="266" y="180">W（V×d）</text>
+        <line x1="352" y1="116" x2="372" y2="116" stroke="#3D7BD9" stroke-width="2" marker-end="url(#c-aw)"/>
+        <text class="ft-lab" x="380" y="64">v（d 维）</text>
+        <rect x="380" y="72" width="48" height="12" rx="2" fill="#3D7BD9"/>
+        <path d="M392,72 V84 M404,72 V84 M416,72 V84" stroke="#FFFFFF" stroke-width="1"/>
+        <rect x="380" y="94" width="48" height="12" rx="2" fill="#3D7BD9"/>
+        <path d="M392,94 V106 M404,94 V106 M416,94 V106" stroke="#FFFFFF" stroke-width="1"/>
+        <rect x="380" y="116" width="48" height="12" rx="2" fill="#3D7BD9"/>
+        <path d="M392,116 V128 M404,116 V128 M416,116 V128" stroke="#FFFFFF" stroke-width="1"/>
+        <rect x="380" y="138" width="48" height="12" rx="2" fill="#3D7BD9"/>
+        <path d="M392,138 V150 M404,138 V150 M416,138 V150" stroke="#FFFFFF" stroke-width="1"/>
+        <text class="ft-note" x="266" y="198">one-hot 选行 = 查表（lookup）</text>
+        <text class="ft-note" x="266" y="212">W 的每一行 = 一个词的词向量</text>
+        <line x1="468" y1="110" x2="488" y2="110" stroke="#3D7BD9" stroke-width="2" marker-end="url(#c-aw)"/>
+
+        <!-- ③ 平均 -->
+        <rect x="492" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="508" y="32">③ 求和 / 平均</text>
+        <text class="ft-p" x="508" y="50">投影层：Bag-of-Words</text>
+        <rect x="514" y="74" width="40" height="12" rx="2" fill="#8FB3E0"/>
+        <rect x="514" y="100" width="40" height="12" rx="2" fill="#8FB3E0"/>
+        <rect x="514" y="126" width="40" height="12" rx="2" fill="#8FB3E0"/>
+        <rect x="514" y="152" width="40" height="12" rx="2" fill="#8FB3E0"/>
+        <path d="M556,80 L592,120 M556,106 L592,120 M556,132 L592,120 M556,158 L592,120" stroke="#C7D3E3" stroke-width="1.4"/>
+        <text class="ft-lab" x="596" y="108">h（d 维）</text>
+        <rect x="596" y="114" width="48" height="14" rx="2" fill="#1E4FA8"/>
+        <text class="ft-num" x="508" y="188">h = (1/C) · Σᵢ vᵢ</text>
+        <text class="ft-note" x="508" y="204">C = 上下文词数；顺序无关</text>
+        <line x1="710" y1="110" x2="730" y2="110" stroke="#3D7BD9" stroke-width="2" marker-end="url(#c-aw)"/>
+
+        <!-- ④ 输出 -->
+        <rect x="734" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="750" y="32">④ 输出与 softmax</text>
+        <text class="ft-p" x="750" y="50">u = W′ᵀ h → V 维得分</text>
+        <text class="ft-note" x="750" y="88">P(w | 上下文)：整个词表的概率</text>
+        <rect x="750" y="96" width="160" height="20" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M770,96 V116 M790,96 V116 M810,96 V116 M830,96 V116 M850,96 V116 M870,96 V116 M890,96 V116" stroke="#DCE2EA"/>
+        <rect x="830" y="96" width="20" height="20" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <line x1="840" y1="140" x2="840" y2="120" stroke="#B03A36" stroke-width="2" marker-end="url(#c-ar)"/>
+        <text class="ft-alert" x="750" y="158">↑ 目标词“喜欢”的概率应最大</text>
+        <text class="ft-note" x="750" y="188">softmax 覆盖整个词表（V 类）</text>
+        <text class="ft-note" x="750" y="204">大词表慢 → 下一页用负采样解决</text>
+        <line x1="952" y1="110" x2="972" y2="110" stroke="#3D7BD9" stroke-width="2" marker-end="url(#c-aw)"/>
+
+        <!-- ⑤ 损失 -->
+        <rect x="976" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="992" y="32">⑤ 损失与更新</text>
+        <text class="ft-p" x="992" y="50">让目标词的概率最大</text>
+        <rect x="992" y="66" width="184" height="40" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="1000" y="92">L = −log P(w_t | 上下文)</text>
+        <text class="ft-note" x="992" y="136">① 概率错就罚（交叉熵）</text>
+        <text class="ft-note" x="992" y="158">② 梯度只更新被激活的行</text>
+        <text class="ft-note" x="992" y="180">③ 边猜边学，向量是副产物</text>
+        <text class="ft-note" x="992" y="202">④ 训练完：W 的行就是词向量</text>
+
+        <!-- 底部算例 -->
+        <rect x="8" y="220" width="1184" height="38" rx="8" fill="#FFFBF0" stroke="#E3C86A"/>
+        <text class="ft-p" x="24" y="244">统一算例：句子“我 喜欢 自然语言处理”，窗口 ±2 → 上下文 = 我 / 自然 / 语言 / 处理（C = 4），目标 = “喜欢”；一个窗口就是一个训练样本</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">任务：上下文 → 中心词（多对一）</div>
+        <ul>
+          <li>4 个上下文词各取 one-hot → 查 W 得词向量 → <b>求平均</b>得 h</li>
+          <li>h 经 W′ 与 softmax 得到 V 个词的概率，目标是让“喜欢”的概率最大</li>
+          <li>Bag-of-Words：上下文<b>不看顺序</b>，装一袋平均——所以“我 爱 你”与“你 爱 我”对它没区别</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">特点与代价</div>
+        <ul>
+          <li><b>快</b>：每个窗口只做 1 次预测（1 个训练样本），适合中小语料</li>
+          <li><b>代价</b>：输出层要对整个词表做 softmax，V 很大时很慢（→ 负采样）</li>
+          <li>高频词学得更充分；上下文被平均，细粒度语序信息丢失</li>
+          <li>记忆钩子：CBOW = Continuous <b>Bag</b>-of-Words——“一群人猜你”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">把周围的词装进一个袋子平均一下，<span class="k">去猜中间那个是谁</span>——这就是 CBOW。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 Skip-gram ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Skip-gram：用中心词猜周围词</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 266" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Skip-gram 模型结构：中心词的 one-hot 向量经嵌入矩阵 W 查表得到 v，再分别经输出矩阵 W′ 与 softmax 预测窗口内每个上下文词">
+        <defs>
+          <marker id="s-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="s-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#B03A36"/></marker>
+        </defs>
+
+        <!-- ① 输入层 -->
+        <rect x="8" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 输入层</text>
+        <text class="ft-p" x="24" y="50">中心词的 one-hot（V 维）</text>
+        <rect x="24" y="86" width="108" height="16" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M42,86 V102 M60,86 V102 M78,86 V102 M96,86 V102 M114,86 V102" stroke="#DCE2EA"/>
+        <rect x="78" y="86" width="18" height="16" fill="#1E4FA8"/>
+        <text class="ft-lab" x="146" y="98">喜欢</text>
+        <text class="ft-lab" x="24" y="132">（中心词，只有 1 个）</text>
+        <text class="ft-note" x="24" y="188">输入 = 1 个词（CBOW 是多个）</text>
+        <text class="ft-note" x="24" y="204">one-hot → 查表得到 v_t</text>
+        <line x1="226" y1="94" x2="246" y2="94" stroke="#3D7BD9" stroke-width="2" marker-end="url(#s-aw)"/>
+
+        <!-- ② 查表 -->
+        <rect x="250" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="266" y="32">② 查表（投影层）</text>
+        <text class="ft-p" x="266" y="50">one-hot 选一行 → v_t</text>
+        <rect x="266" y="68" width="80" height="96" rx="3" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <rect x="266" y="116" width="80" height="16" fill="#D8E5F6"/>
+        <path d="M286,68 V164 M306,68 V164 M326,68 V164 M266,84 H346 M266,100 H346 M266,116 H346 M266,132 H346 M266,148 H346" stroke="#DCE2EA"/>
+        <text class="ft-lab" x="266" y="180">W（V×d）</text>
+        <line x1="352" y1="124" x2="372" y2="124" stroke="#3D7BD9" stroke-width="2" marker-end="url(#s-aw)"/>
+        <text class="ft-lab" x="380" y="64">v_t（d 维）</text>
+        <rect x="380" y="116" width="48" height="14" rx="2" fill="#1E4FA8"/>
+        <path d="M392,116 V130 M404,116 V130 M416,116 V130" stroke="#FFFFFF" stroke-width="1"/>
+        <text class="ft-note" x="266" y="198">每个词两套向量：中心词 v、</text>
+        <text class="ft-note" x="266" y="212">上下文 u（工程上取 v）</text>
+        <line x1="468" y1="94" x2="488" y2="94" stroke="#3D7BD9" stroke-width="2" marker-end="url(#s-aw)"/>
+
+        <!-- ③ 一对多 -->
+        <rect x="492" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="508" y="32">③ 一对多：复制 4 份</text>
+        <text class="ft-p" x="508" y="50">同一个 v_t，每个位置各算一次</text>
+        <rect x="514" y="112" width="44" height="14" rx="2" fill="#1E4FA8"/>
+        <path d="M562,119 L594,78 M562,119 L594,104 M562,119 L594,130 M562,119 L594,156" stroke="#3D7BD9" stroke-width="1.6" marker-end="url(#s-aw)"/>
+        <rect x="600" y="70" width="36" height="14" rx="2" fill="#8FB3E0"/>
+        <rect x="600" y="96" width="36" height="14" rx="2" fill="#8FB3E0"/>
+        <rect x="600" y="122" width="36" height="14" rx="2" fill="#8FB3E0"/>
+        <rect x="600" y="148" width="36" height="14" rx="2" fill="#8FB3E0"/>
+        <text class="ft-note" x="508" y="188">k = 2 → 2k = 4 个预测任务</text>
+        <text class="ft-note" x="508" y="204">每个位置独立做一次 V 类分类</text>
+        <line x1="710" y1="94" x2="730" y2="94" stroke="#3D7BD9" stroke-width="2" marker-end="url(#s-aw)"/>
+
+        <!-- ④ softmax ×4 -->
+        <rect x="734" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="750" y="32">④ 每个位置 softmax</text>
+        <text class="ft-p" x="750" y="50">P(w_t+j | 喜欢) → 4 个分布</text>
+        <rect x="750" y="66" width="126" height="18" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M768,66 V84 M786,66 V84 M804,66 V84 M822,66 V84 M840,66 V84 M858,66 V84" stroke="#DCE2EA"/>
+        <rect x="768" y="66" width="18" height="18" fill="#FFF5D9" stroke="#C9A227" stroke-width="1.6"/>
+        <text class="ft-lab" x="884" y="80">我</text>
+        <rect x="750" y="94" width="126" height="18" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M768,94 V112 M786,94 V112 M804,94 V112 M822,94 V112 M840,94 V112 M858,94 V112" stroke="#DCE2EA"/>
+        <rect x="804" y="94" width="18" height="18" fill="#FFF5D9" stroke="#C9A227" stroke-width="1.6"/>
+        <text class="ft-lab" x="884" y="108">自然</text>
+        <rect x="750" y="122" width="126" height="18" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M768,122 V140 M786,122 V140 M804,122 V140 M822,122 V140 M840,122 V140 M858,122 V140" stroke="#DCE2EA"/>
+        <rect x="786" y="122" width="18" height="18" fill="#FFF5D9" stroke="#C9A227" stroke-width="1.6"/>
+        <text class="ft-lab" x="884" y="136">语言</text>
+        <rect x="750" y="150" width="126" height="18" rx="2" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M768,150 V168 M786,150 V168 M804,150 V168 M822,150 V168 M840,150 V168 M858,150 V168" stroke="#DCE2EA"/>
+        <rect x="822" y="150" width="18" height="18" fill="#FFF5D9" stroke="#C9A227" stroke-width="1.6"/>
+        <text class="ft-lab" x="884" y="164">处理</text>
+        <text class="ft-note" x="750" y="188">同一个中心词，4 个目标词</text>
+        <text class="ft-note" x="750" y="204">样本数 = 4 × 窗口数</text>
+        <line x1="952" y1="94" x2="972" y2="94" stroke="#3D7BD9" stroke-width="2" marker-end="url(#s-aw)"/>
+
+        <!-- ⑤ 损失 -->
+        <rect x="976" y="8" width="216" height="204" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="992" y="32">⑤ 损失与更新</text>
+        <text class="ft-p" x="992" y="50">4 个位置各罚一次，求和</text>
+        <rect x="992" y="66" width="184" height="40" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="1000" y="92">L = −Σⱼ log P(w_t+j | w_t)</text>
+        <text class="ft-note" x="992" y="136">① 每个位置都是一次 V 类分类</text>
+        <text class="ft-note" x="992" y="158">② 样本多 → 低频词学得更充分</text>
+        <text class="ft-note" x="992" y="180">③ 代价：训练更慢（同一份被用 4 次）</text>
+        <text class="ft-note" x="992" y="202">④ 训练完：v 就是词向量</text>
+
+        <!-- 底部算例 -->
+        <rect x="8" y="220" width="1184" height="38" rx="8" fill="#FFFBF0" stroke="#E3C86A"/>
+        <text class="ft-p" x="24" y="244">统一算例：句子“我 喜欢 自然语言处理”，窗口 ±2，中心词 = “喜欢” → 分别预测 我 / 自然 / 语言 / 处理；一个中心词 = 4 个训练样本</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">任务与目标</div>
+        <ul>
+          <li>给中心词 c，预测窗口 ±k 内<b>每个</b>上下文词 o（一对多）</li>
+          <li>目标：max Σ<sub>j</sub> log P(w<sub>t+j</sub> | w<sub>t</sub>)；每个位置一次 V 类分类</li>
+          <li>P(o | c) = softmax(u<sub>o</sub>·v<sub>c</sub>)——点积越大越“亲密”</li>
+          <li>每个词两套向量：中心词 v、上下文 u（工程上取 v 作为最终词向量）</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">特点</div>
+        <ul>
+          <li>一个中心词产生 <b>2k</b> 个训练样本（k=2 时 4 个）→ 小语料也能喂饱</li>
+          <li>对<b>低频 / 稀有词</b>学得更好：每次都被当作目标预测一次</li>
+          <li>代价：训练更慢；上下文词序也不区分（每个位置是独立任务）</li>
+          <li>记忆钩子：Skip-gram = “你猜一群人”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">CBOW 正推、Skip-gram 反推——<span class="k">方向相反，目标相同：逼出好向量</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 CBOW vs Skip-gram ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">CBOW vs Skip-gram：一张表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:16%">维度</th><th style="width:42%">CBOW</th><th style="width:42%">Skip-gram</th></tr>
+      <tr><td><b>方向</b></td><td>上下文（平均）→ 中心词（多对一）</td><td>中心词 → 上下文（一对多）</td></tr>
+      <tr><td><b>类比</b></td><td>完形填空</td><td>由一词联想整段话</td></tr>
+      <tr><td><b>训练特性</b></td><td>快、平滑稀疏，高频词 / 大语料友好</td><td>慢、样本多，低频词 / 小语料更稳</td></tr>
+      <tr><td><b>代价</b></td><td>“袋装上下文”，丢失词序信息</td><td>计算量大，输出 softmax 贵</td></tr>
+      <tr><td><b>经验选型</b></td><td>大语料图快</td><td>小语料首选</td></tr>
+    </table>
+    <div class="qbar">记忆钩子：CBOW = Continuous <b>Bag</b>-of-Words——名字里就写着“袋装上下文”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 负采样 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">负采样：把十万分类换成几个二分类</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col">
+        <div class="node">(w(t), w(t+1)) 正样本 ✓</div>
+        <div class="node">(w(t), w₁) 负样本 ✗</div>
+        <div class="node">(w(t), w₂) 负样本 ✗</div>
+        <div class="node">… 共 k 个负样本</div>
+        <div class="lbl">正样本 1 个 + 负样本 k 个</div>
+      </div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">σ(u·v)</div><div class="lbl">logistic 二分类：1 或 0</div></div>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">瓶颈与对策</div>
+        <ul>
+          <li>softmax 分母对<b>全部 V 个词</b>求和——每样本几十万次 exp，不可行</li>
+          <li>正样本 (c,o) 记 <b>1</b>；随机采 <b>k 个噪声词</b>（词频 3/4 次方分布）记 <b>0</b></li>
+          <li>只更新 k+1 个向量：成本 O(V) → <b>O(k)</b>，k≈5~20</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">损失与为何有效</div>
+        <div class="code" style="margin-top:8px;font-size:16px">L = −log σ(u<sub>o</sub>·v<sub>c</sub>)
+    − Σ<sub>i=1..k</sub> log σ(−u<sub>wi</sub>·v<sub>c</sub>)</div>
+        <p style="margin-top:10px">亿次“该不该靠近”的问答雕刻出共现结构；Levy &amp; Goldberg (2014)：负采样<b>隐式分解 PMI 矩阵</b>——与计数派会师。</p>
+      </div>
+    </div>
+    <div class="qbar">光给正例会偷懒，有了“假朋友”才学得会区分——<span class="k">不考全场几十万人，只考几个嫌疑人</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 16b 训练细节 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">word2vec 训练细节：二次采样与层次 softmax</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">二次采样 subsampling</div>
+        <ul>
+          <li>高频词按概率丢弃样本：<b>p = 1 − √(t/f)</b></li>
+          <li><b>f = 词频</b>（该词出现次数 ÷ 语料总词数）；<b>t = 阈值</b>（论文取 10⁻⁵ 量级，gensim 里是 <code>sample</code> 参数）</li>
+          <li>只有 <b>f &gt; t</b> 的词才可能被丢；f ≤ t 时 p ≤ 0，不丢弃</li>
+          <li>例：语料 1000 万词、the 出现 50 万次 → f=0.05；取 t=10⁻⁵ → p=1−√(2×10⁻⁴)≈<b>0.986</b>，即丢掉约 98.6% 的 the 样本</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">层次 softmax：4 个词的 Huffman 树</div>
+        <div class="code" style="margin-top:8px;font-size:14.5px;line-height:1.35">词频 a=5, b=2, c=1, d=1 —— 每次合并最小的两个
+
+          root(9)
+         0/     \1
+      a(5)      u1(4)
+                0/     \1
+             b(2)      u2(2)
+                       0/     \1
+                    c(1)      d(1)
+
+码字：a=0   b=10   c=110   d=111
+P(d) = σ(u_root·v) × σ(u1·v) × σ(u2·v)</div>
+        <p style="margin-top:8px;font-size:17px">高频词短码、低频词长码：4 词的平均二分类次数 ≈ (5×1+2×2+1×3+1×3)/9 ≈ <b>1.67</b> 次，而 V 类全 softmax 要算 V 次——V 大时 O(V) → <b>O(log V)</b>；与负采样互为替代，不叠加。</p>
+      </div>
+    </div>
+    <div class="qbar">加上负采样，这三招把 word2vec 从玩具变成<span class="k">能跑 16 亿词的工程</span>——维度 100–300、窗口 2–10、k=5–20 是经验超参。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17 gensim 实战 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">gensim 实战：20 行训练词向量</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:16.5px;line-height:1.6;padding:14px 20px">
+from gensim.models import Word2Vec
+sents = ["i love deep learning", "i love nlp",
+         "deep learning is fun", "nlp is fun",
+         "the king rules the country", "the queen rules the country"]
+sents = [s.split() for s in sents]
+model = Word2Vec(sents, vector_size=100, window=5, min_count=1,
+                 <b>sg=1</b>, <b>negative=5</b>, epochs=100)   <span class="c"># sg=1: Skip-gram</span>
+model.wv.most_similar(<b>"king"</b>, topn=3)          <span class="c"># → queen / rules / country</span>
+model.wv.similarity("nlp", "learning")           <span class="c"># 应高于 nlp ↔ country</span></div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card small"><div class="h">预期输出</div>
+        <ul>
+          <li>king 的邻居：queen / rules / country</li>
+          <li>similarity(nlp, learning) &gt; similarity(nlp, country)</li>
+        </ul>
+      </div>
+      <div class="card small card-blue"><div class="h">参数旋钮</div>
+        <ul>
+          <li>vector_size 维度 · window 窗口 · epochs 轮数</li>
+          <li>sg 选模型（1=Skip-gram / 0=CBOW）· negative 负采样数</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">vector_size 与 window 是旋钮、<span class="k">sg 决定 CBOW / Skip-gram</span>——这段代码是自学任务与作业 3 的起点。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17b 跨领域应用 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">CBOW / Skip-gram 的跨领域应用</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">word2vec 的本质是一个通用框架：<b>共现关系 → 低维向量</b>——凡能定义“共现/邻近”的对象都能套用。</div>
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>DeepWalk（2014）</div><p>图上<b>随机游走</b>生成“节点句子”，再用 Skip-gram 学节点向量——词向量搬到图网络的起点。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>node2vec（2016）</div><p><b>有偏随机游走</b>（参数 p / q 平衡 BFS 与 DFS），同质性与结构等价性都能抓。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>LINE（2015）</div><p>直接定义<b>一阶 / 二阶邻近度</b>，目标同样是“共现对拉近、非共现对推远”。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>item2vec / doc2vec</div><p>item2vec：用户行为序列当句子，学<b>商品向量</b>做推荐；doc2vec：文档当特殊词，得<b>文档向量</b>。</p></div>
+    </div>
+    <div class="qbar">图节点、商品、文档——<span class="k">凡共现，皆可向量化</span>；CBOW / Skip-gram 是这套迁移的通用引擎。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 17c 句子文档向量 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">句子 / 文档向量的三种做法</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card small"><div class="h"><span class="no">1</span>平均池化（先跑的 baseline）</div>
+        <ul>
+          <li>公式：<code>doc = (1/n) · Σᵢ vᵢ</code>——逐维相加、再除以词数</li>
+          <li>快、无参数；但<b>词序全丢</b>——“我 喜欢 你”与“你 喜欢 我”结果相同</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h"><span class="no">2</span>doc2vec（把文档学成向量）</div>
+        <ul>
+          <li>每篇文档一个<b>可训练向量</b>，与词一起参与预测（PV-DM / PV-DBOW）</li>
+          <li>保留一点词序；代价：新文档要<b>单独优化</b>，不能直接查表</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h"><span class="no">3</span>SIF 加权平均（性价比之王）</div>
+        <ul>
+          <li>词频越高、权重越小：<code>w = a / (a + p(w))</code>，a 常取 1e-3</li>
+          <li>再<b>减去第一主成分</b>去掉“通用成分”；简单却常胜过 LSTM</li>
+        </ul>
+      </div>
+    </div>
+    <table class="ac" style="margin-top:14px">
+      <tr><th style="width:16%">做法</th><th style="width:24%">怎么算</th><th style="width:14%">词序</th><th style="width:20%">新句子 / 新词</th><th style="width:26%">典型用途</th></tr>
+      <tr><td><b>平均池化</b></td><td>逐维平均，无参数</td><td>丢失</td><td>随时可用（新词要有向量）</td><td>分类 / 检索的 baseline</td></tr>
+      <tr><td><b>doc2vec</b></td><td>文档向量参与训练</td><td>部分保留</td><td>新文档要重新优化</td><td>文档聚类、相似推荐</td></tr>
+      <tr><td><b>SIF 加权</b></td><td>词频加权 + 去第一主成分</td><td>丢失</td><td>随时可用</td><td>句子相似度、语义检索</td></tr>
+    </table>
+    <div class="src"><b>怎么选：</b>先跑平均池化当 baseline；只关心句子相似度就用 SIF；数据量大、需要稳定文档表示时用 doc2vec。三者都只把词向量当零件——想把词序真正学进去，要等序列模型（第 8 讲 RNN/LSTM）与上下文表示（第 32 页 ELMo、第 12 讲 BERT）。</div>
+    <div class="qbar">词向量是零件、句子向量是组装——<span class="k">真正的上下文表示要等 ELMo / BERT</span>（第 12 讲）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 19 向量算术机制 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">向量算术：机制、评估与“祛魅”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:150px">
+      <svg viewBox="0 0 1200 150" preserveAspectRatio="xMidYMid meet" role="img" aria-label="向量算术示意：二维玩具坐标系中，男人到女人与国王到王后两段位移平行；右侧给出 king 减 man 加 woman 等于 queen 的手算过程">
+        <defs>
+          <marker id="a-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+        <rect x="8" y="8" width="640" height="134" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="20" y="28">① 二维玩具示意图：两段位移几乎平行</text>
+        <line x1="70" y1="132" x2="620" y2="132" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="70" y1="132" x2="70" y2="40" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="301" y1="97" x2="191" y2="83" stroke="#3D7BD9" stroke-width="2" marker-end="url(#a-aw)"/>
+        <line x1="466" y1="72" x2="356" y2="58" stroke="#3D7BD9" stroke-width="2" marker-end="url(#a-aw)"/>
+        <circle cx="301" cy="97" r="5" fill="#1E4FA8"/>
+        <circle cx="184" cy="82" r="5" fill="#1E4FA8"/>
+        <circle cx="466" cy="72" r="5" fill="#1E4FA8"/>
+        <circle cx="348" cy="57" r="5" fill="#1E4FA8"/>
+        <text class="ft-lab" x="308" y="108">man</text>
+        <text class="ft-lab" x="178" y="74" text-anchor="end">woman</text>
+        <text class="ft-lab" x="472" y="84">king</text>
+        <text class="ft-lab" x="340" y="48" text-anchor="end">queen</text>
+        <text class="ft-cap" x="20" y="118">箭头：man → woman 与 king → queen，方向相同、长度相近——所以能“平移”</text>
+        <rect x="652" y="8" width="540" height="134" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="664" y="28">② 手算一遍：king − man + woman ≈ queen</text>
+        <text class="ft-num" x="664" y="54">v(king)=(0.80, 0.60)　v(man)=(0.45, 0.35)　v(woman)=(0.20, 0.50)</text>
+        <text class="ft-num" x="664" y="78">king − man + woman = (0.80−0.45+0.20, 0.60−0.35+0.50)</text>
+        <text class="ft-num" x="664" y="102">= <tspan font-weight="700" fill="#B08A00">(0.55, 0.75)</tspan> = v(queen) ✓</text>
+        <text class="ft-p" x="664" y="126">含义：把“男人 → 女人”这段位移平移到“国王”上，正好落在“王后”——方向即关系。</text>
+      </svg>
+    </div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card small"><div class="h"><span class="no">1</span>机制：为什么加减法有效</div>
+        <ul>
+          <li>训练把“共现差异”雕刻成方向：<code>v(女人)−v(男人)</code> 与 <code>v(王后)−v(国王)</code> 几乎平行</li>
+          <li>于是把一段位移<b>平移</b>到另一个词上，就落在目标附近</li>
+          <li>评估集：Google analogy 19,544 条（语义 8,869 + 句法 10,675）</li>
+        </ul>
+      </div>
+      <div class="card small card-warn"><div class="h"><span class="no">2</span>边界：它不是每次都灵</div>
+        <ul>
+          <li>语义类比（国家-首都、货币）通常比句法类比（比较级、复数）更稳</li>
+          <li>命中率约 <b>6~7 成</b>（word2vec 原论文约 70%），低频词最差</li>
+          <li>它是<b>统计规律</b>，不是逻辑推理——别把成功类比当成“理解”</li>
+        </ul>
+      </div>
+      <div class="card small card-warn"><div class="h"><span class="no">3</span>祛魅：偏见与硬伤</div>
+        <ul>
+          <li><b>偏见：</b>man : programmer :: woman : homemaker（Bolukbasi 2016）——语料偏见原样进向量（第 14 讲伦理案例）</li>
+          <li><b>硬伤：</b>“苹果”的水果义与公司义挤在一个向量里——静态向量的天花板，下一页给解法</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>使用注意：</b>类比的三个词必须都<b>在词表里</b>；不同语料、不同维度训出来的结果差异很大；类比成功只说明共现结构可以平移，不等于模型“理解”了关系。</div>
+    <div class="qbar">向量是语料的镜子：<span class="k">镜子不只照见知识，也照见偏见</span>——这是第 14 讲伦理议题的入门案例。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19a 词向量去偏 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">词向量去偏：定位、中和、均衡</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:150px">
+      <svg viewBox="0 0 1200 150" preserveAspectRatio="xMidYMid meet" role="img" aria-label="去偏示意：左侧为中和的几何含义（减去沿性别方向的投影分量），右侧为去偏前后中性词与男女相似度的对照条形">
+        <defs>
+          <marker id="d-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1E4FA8"/></marker>
+        </defs>
+        <rect x="8" y="8" width="592" height="134" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="20" y="28">① 中和 = 减掉沿性别方向的分量</text>
+        <line x1="90" y1="120" x2="320" y2="120" stroke="#1E4FA8" stroke-width="2" marker-end="url(#d-aw)"/>
+        <text class="ft-lab" x="326" y="124">性别方向 ĝ</text>
+        <line x1="90" y1="120" x2="250" y2="55" stroke="#3D7BD9" stroke-width="2.4" marker-end="url(#d-aw)"/>
+        <text class="ft-lab" x="256" y="52">w（如：程序员）</text>
+        <line x1="250" y1="120" x2="250" y2="58" stroke="#C7D3E3" stroke-width="1.4" stroke-dasharray="5 4"/>
+        <line x1="90" y1="55" x2="246" y2="55" stroke="#C7D3E3" stroke-width="1.4" stroke-dasharray="5 4"/>
+        <line x1="90" y1="120" x2="90" y2="58" stroke="#B03A36" stroke-width="2.4" marker-end="url(#d-aw)"/>
+        <text class="ft-lab" x="84" y="50" text-anchor="end">w′</text>
+        <text class="ft-cap" x="20" y="136">w = 投影分量 (w·ĝ)ĝ + 垂直分量 w′；中和 = 把投影分量减掉，只留与 ĝ 正交的 w′</text>
+        <rect x="612" y="8" width="580" height="134" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="624" y="28">② 去偏前后：中性词与两性距离趋于相等（示意值）</text>
+        <text class="ft-cap" x="712" y="46">去偏前</text>
+        <text class="ft-cap" x="922" y="46">去偏后</text>
+        <text class="ft-lab" x="624" y="66">程序员–男</text>
+        <rect x="710" y="56" width="67" height="9" rx="2" fill="#C7D3E3"/>
+        <text class="ft-lab" x="783" y="66">0.42</text>
+        <text class="ft-lab" x="896" y="66">→</text>
+        <rect x="920" y="56" width="54" height="9" rx="2" fill="#1E4FA8"/>
+        <text class="ft-lab" x="980" y="66">0.34</text>
+        <text class="ft-lab" x="624" y="88">程序员–女</text>
+        <rect x="710" y="78" width="45" height="9" rx="2" fill="#C7D3E3"/>
+        <text class="ft-lab" x="761" y="88">0.28</text>
+        <text class="ft-lab" x="896" y="88">→</text>
+        <rect x="920" y="78" width="54" height="9" rx="2" fill="#1E4FA8"/>
+        <text class="ft-lab" x="980" y="88">0.34</text>
+        <text class="ft-lab" x="624" y="110">护士–男</text>
+        <rect x="710" y="100" width="50" height="9" rx="2" fill="#C7D3E3"/>
+        <text class="ft-lab" x="766" y="110">0.31</text>
+        <text class="ft-lab" x="896" y="110">→</text>
+        <rect x="920" y="100" width="54" height="9" rx="2" fill="#1E4FA8"/>
+        <text class="ft-lab" x="980" y="110">0.34</text>
+        <text class="ft-lab" x="624" y="132">护士–女</text>
+        <rect x="710" y="122" width="70" height="9" rx="2" fill="#C7D3E3"/>
+        <text class="ft-lab" x="786" y="132">0.44</text>
+        <text class="ft-lab" x="896" y="132">→</text>
+        <rect x="920" y="122" width="54" height="9" rx="2" fill="#1E4FA8"/>
+        <text class="ft-lab" x="980" y="132">0.34</text>
+      </svg>
+    </div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card small"><div class="h"><span class="no">1</span>定位：找出“性别轴”</div>
+        <ul>
+          <li>取多组性别词对的差向量求平均：<code>he − she</code>、<code>man − woman</code>、<code>国王 − 王后</code>……</li>
+          <li>再做归一化，得到统一方向 <b>ĝ</b>（多组平均更稳，单组容易受噪声影响）</li>
+          <li>直觉：ĝ 就是向量空间里“性别”这条轴</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h"><span class="no">2</span>中和：让中性词不带性别</div>
+        <ul>
+          <li>公式：<code>w′ = w − (w·ĝ)ĝ</code>——把 w 在性别方向上的投影减掉</li>
+          <li>结果：w′ 与 ĝ <b>正交</b>，医生、程序员不再偏向任何性别</li>
+          <li>只对<b>中性词</b>做：『母亲 / 父亲』这类本就含性别的词要保留</li>
+        </ul>
+      </div>
+      <div class="card small"><div class="h"><span class="no">3</span>均衡：成对词与中性词等距</div>
+        <ul>
+          <li>目标：<code>‖w′−man‖ ≈ ‖w′−woman‖</code>，即中性词到两边的距离相等</li>
+          <li>去偏前“程序员”更靠近男，去偏后与男/女等距（见上图示意值）</li>
+          <li>成对词本身仍保留性别差异（man ≠ woman），只是不再“牵着”中性词</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>⚠ 局限与提醒：</b>① 去偏后仍可能有<b>残留偏见</b>，用 WEAT 类测试还能探测到；② 去偏会损失一部分与性别相关的真实信息（护理、产科等语料的客观分布）；③ <b>词向量去偏 ≠ 模型去偏</b>——数据侧平衡与应用侧审计同样必要（第 14 讲）；④ 同类方法还有 Hard Debias、INLP 等，效果与代价各不相同。</div>
+    <div class="qbar">词向量是社会语料的统计镜像——<span class="k">去偏是工程手段，不是“洗白”</span>，仍需使用侧审计（第 14 讲伏笔）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 19 GloVe ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GloVe：计数派与预测派的合流</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">要回答的理论问题</div>
+        <ul>
+          <li>计数派：用了<b>全局</b>统计，但不能端到端学</li>
+          <li>预测派：端到端，但只看<b>局部</b>窗口——能否两全？</li>
+          <li>GloVe：把“全局共现计数”与“预测式训练”拼在一起</li>
+        </ul>
+        <p style="margin-top:10px">只用共现矩阵 <b>X<sub>ij</sub></b>（词 j 出现在词 i 上下文中的次数），不再逐句采样。</p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">目标：让点积拟合“共现次数的对数”</div>
+        <div class="code" style="margin-top:8px">目标  J = Σᵢ Σⱼ f(Xᵢⱼ)·( wᵢᵀw̃ⱼ + bᵢ + b̃ⱼ − log Xᵢⱼ )²
+
+权重  f(x) = (x / x_max)^0.75   （x &lt; x_max）
+      f(x) = 1                （x ≥ x_max）
+      α = 0.75，x_max = 100（论文默认）
+
+关系  wᵢᵀw̃ⱼ ≈ log Xᵢⱼ</div>
+      </div>
+    </div>
+    <div class="qbar">单看局部会漏掉全局，单看全局会丢掉预测——<span class="k">GloVe 把两派的长板拼在一起</span>；下一页把公式手算一遍。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 FastText ================= -->
+
+<!-- ================= 19b GloVe 手算（新增） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GloVe 手算：一次梯度更新</span><span class="sec">环节二 · 知识点 · 手算</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">① 例题设定（玩具语料）</div>
+        <ul>
+          <li>3 个词 A / B / C，窗口 1 的共现计数：<b>X<sub>AB</sub>=4、X<sub>AC</sub>=2、X<sub>BC</sub>=1</b>（对称：X<sub>ji</sub>=X<sub>ij</sub>）</li>
+          <li>维度 d=2；α=0.75；<b>x<sub>max</sub>=10</b>（论文默认 100，这里便于手算）；学习率 η=0.1</li>
+          <li>初始参数：w<sub>A</sub>=(0.5, −0.2)、w̃<sub>B</sub>=(0.3, 0.6)，偏置全为 0</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">② 目标值、权重与当前损失（只看 (A,B) 一对）</div>
+        <ul>
+          <li>目标值：log X<sub>AB</sub> = ln 4 = <b>1.386</b></li>
+          <li>当前点积：w<sub>A</sub>ᵀw̃<sub>B</sub> = 0.5×0.3 + (−0.2)×0.6 = <b>0.030</b></li>
+          <li>偏差：r = 0.030 − 1.386 = <b>−1.356</b></li>
+          <li>权重：f(4) = (4/10)<sup>0.75</sup> ≈ <b>0.503</b></li>
+          <li>损失：J<sub>AB</sub> = f·r² = 0.503 × 1.839 ≈ <b>0.925</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="code" style="margin-top:10px;font-size:15px;line-height:1.42">③ 梯度（∂J/∂wᵢ = 2f·r·w̃ⱼ，∂J/∂w̃ⱼ = 2f·r·wᵢ，∂J/∂b = 2f·r）
+   ∂J/∂w_A = 2×0.503×(−1.356)×(0.3, 0.6) = (−0.409, −0.819)
+   ∂J/∂w̃_B = 2×0.503×(−1.356)×(0.5, −0.2) = (−0.682, +0.273)      ∂J/∂b_A = ∂J/∂b̃_B = −1.364
+④ 更新（w ← w − η·∂J/∂w）
+   w_A = (0.5, −0.2) − 0.1×(−0.409, −0.819) = (0.541, −0.118)      w̃_B = (0.3, 0.6) − 0.1×(−0.682, +0.273) = (0.368, 0.573)
+   b_A = b̃_B = 0 − 0.1×(−1.364) = 0.136
+⑤ 复核：点积 = 0.541×0.368 + (−0.118)×0.573 = 0.132      残差 = 0.132 + 0.136 + 0.136 − 1.386 = −0.982
+   损失 = 0.503 × 0.982² ≈ 0.485      （0.925 → 0.485，一次更新降约一半）</div>
+    <div class="qbar">每对 (i,j) 贡献一次梯度：<span class="k">f(X<sub>ij</sub>) 压低低频、截断高频</span>——只让“该学的”共现对主导更新；最终词向量取 <b>w<sub>i</sub> + w̃<sub>i</sub></b>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<section class="slide">
+  <div class="hdr"><span class="t">FastText：让 OOV 也有向量</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">思想：词 = 子词碎片之和</div>
+        <ul>
+          <li>where → <b>&lt;wh wh he er re&gt;</b>；vec(where) = 碎片向量之和</li>
+          <li>未登录新词 = 已知片段的组合 → <b>也能拼出向量</b>，OOV 终结</li>
+          <li>训练框架不变（Skip-gram / CBOW），只换输入单位</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">两个红利与第 4 讲答案</div>
+        <ul>
+          <li>形态共享：run / runs / running 共享 run 片段；中文“研究/研究生”收益大</li>
+          <li>第 4 讲思考题揭晓：<b>dogs 和 dog 不该各立门户</b>——它们共享碎片也共享语义</li>
+          <li>Bojanowski et al. (2016, Facebook)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">没有真词，就用碎片拼一个——<span class="k">子词思想在表示层的重演</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 20b 中文词向量 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文词向量：先分词，再学向量</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">分词是前置工序</div>
+        <ul>
+          <li>中文没空格，word2vec 的“句子”来自<b>分词结果</b></li>
+          <li>分词错误会污染共现统计——南京市长江大桥切错，向量就学错</li>
+          <li>结论：中文词向量的质量上限 = <b>分词质量上限</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">公开资源（实例层）</div>
+        <ul>
+          <li>腾讯 AI Lab 中文词向量：约 800 万词、200 维</li>
+          <li>北师大/人大等语料训练的公开向量，可直接加载复用</li>
+          <li>⚠ 具体版本与链接讲授前核实</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">中文做词向量的第一步不是调参，而是<span class="k">选一个好分词器</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 21 ELMo（原 33 + 34 页合并） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">ELMo：词向量不再查表，而是“现场算”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="ELMo 内部结构：字符级 CNN 词表示、两层双向 LSTM、每个位置 5 个向量加权求和得到该位置的 ELMo 向量">
+        <defs>
+          <marker id="f-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="f-ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#A7B4C6"/></marker>
+        </defs>
+
+        <!-- 左：预训练骨干 -->
+        <rect x="8" y="8" width="708" height="314" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="20" y="28">预训练：字符级 CNN + 2 层双向 LSTM</text>
+        <rect x="402" y="32" width="132" height="266" rx="12" fill="#FFFBF0" stroke="#E3C86A" stroke-width="2"/>
+
+        <!-- 输出行 -->
+        <rect x="118" y="36" width="116" height="30" rx="8" fill="#0E3F8C"/>
+        <rect x="264" y="36" width="116" height="30" rx="8" fill="#0E3F8C"/>
+        <rect x="410" y="36" width="116" height="30" rx="8" fill="#0E3F8C"/>
+        <rect x="556" y="36" width="116" height="30" rx="8" fill="#0E3F8C"/>
+        <text class="ft-cw" x="176" y="56" text-anchor="middle">ELMo₁</text>
+        <text class="ft-cw" x="322" y="56" text-anchor="middle">ELMo₂</text>
+        <text class="ft-cw" x="468" y="56" text-anchor="middle">ELMo₃</text>
+        <text class="ft-cw" x="614" y="56" text-anchor="middle">ELMo₄</text>
+
+        <!-- 第 2 层 -->
+        <rect x="118" y="90" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="264" y="90" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="410" y="90" width="116" height="28" rx="8" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <rect x="556" y="90" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-c" x="176" y="109" text-anchor="middle">h₂F</text>
+        <text class="ft-c" x="322" y="109" text-anchor="middle">h₂F</text>
+        <text class="ft-c" x="468" y="109" text-anchor="middle">h₂F</text>
+        <text class="ft-c" x="614" y="109" text-anchor="middle">h₂F</text>
+        <line x1="238" y1="104" x2="259" y2="104" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="384" y1="104" x2="405" y2="104" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="530" y1="104" x2="551" y2="104" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+
+        <rect x="118" y="122" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="264" y="122" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="410" y="122" width="116" height="28" rx="8" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <rect x="556" y="122" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-c" x="176" y="141" text-anchor="middle">h₂B</text>
+        <text class="ft-c" x="322" y="141" text-anchor="middle">h₂B</text>
+        <text class="ft-c" x="468" y="141" text-anchor="middle">h₂B</text>
+        <text class="ft-c" x="614" y="141" text-anchor="middle">h₂B</text>
+        <line x1="259" y1="136" x2="238" y2="136" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="405" y1="136" x2="384" y2="136" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="551" y1="136" x2="530" y2="136" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+
+        <!-- 第 1 层 -->
+        <rect x="118" y="174" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="264" y="174" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="410" y="174" width="116" height="28" rx="8" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <rect x="556" y="174" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-c" x="176" y="193" text-anchor="middle">h₁F</text>
+        <text class="ft-c" x="322" y="193" text-anchor="middle">h₁F</text>
+        <text class="ft-c" x="468" y="193" text-anchor="middle">h₁F</text>
+        <text class="ft-c" x="614" y="193" text-anchor="middle">h₁F</text>
+        <line x1="238" y1="188" x2="259" y2="188" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="384" y1="188" x2="405" y2="188" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="530" y1="188" x2="551" y2="188" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+
+        <rect x="118" y="206" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="264" y="206" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <rect x="410" y="206" width="116" height="28" rx="8" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <rect x="556" y="206" width="116" height="28" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-c" x="176" y="225" text-anchor="middle">h₁B</text>
+        <text class="ft-c" x="322" y="225" text-anchor="middle">h₁B</text>
+        <text class="ft-c" x="468" y="225" text-anchor="middle">h₁B</text>
+        <text class="ft-c" x="614" y="225" text-anchor="middle">h₁B</text>
+        <line x1="259" y1="220" x2="238" y2="220" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="405" y1="220" x2="384" y2="220" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="551" y1="220" x2="530" y2="220" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+
+        <!-- 输入行：字符级 CNN 得到 x_k -->
+        <rect x="118" y="258" width="116" height="36" rx="8" fill="#FFFFFF" stroke="#9CB8E0" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <rect x="264" y="258" width="116" height="36" rx="8" fill="#FFFFFF" stroke="#9CB8E0" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <rect x="410" y="258" width="116" height="36" rx="8" fill="#FFF5D9" stroke="#C9A227" stroke-width="2"/>
+        <rect x="556" y="258" width="116" height="36" rx="8" fill="#FFFFFF" stroke="#9CB8E0" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <line x1="128" y1="278" x2="224" y2="278" stroke="#E5E7EB" stroke-width="1"/>
+        <line x1="274" y1="278" x2="370" y2="278" stroke="#E5E7EB" stroke-width="1"/>
+        <line x1="420" y1="278" x2="516" y2="278" stroke="#E0CB93" stroke-width="1"/>
+        <line x1="566" y1="278" x2="662" y2="278" stroke="#E5E7EB" stroke-width="1"/>
+        <text class="ft-x" x="176" y="274" text-anchor="middle">x₁</text>
+        <text class="ft-x" x="322" y="274" text-anchor="middle">x₂</text>
+        <text class="ft-x" x="468" y="274" text-anchor="middle">x₃</text>
+        <text class="ft-x" x="614" y="274" text-anchor="middle">x₄</text>
+        <text class="ft-ch" x="176" y="290" text-anchor="middle">他</text>
+        <text class="ft-ch" x="322" y="290" text-anchor="middle">去</text>
+        <text class="ft-ch" x="468" y="290" text-anchor="middle">银 行</text>
+        <text class="ft-ch" x="614" y="290" text-anchor="middle">取 钱</text>
+
+        <!-- 其余位置的层间连接 -->
+        <g stroke="#DCE2EA" stroke-width="1.4" marker-end="url(#f-ag)">
+          <line x1="176" y1="256" x2="176" y2="236"/>
+          <line x1="176" y1="172" x2="176" y2="152"/>
+          <line x1="176" y1="88" x2="176" y2="68"/>
+          <line x1="322" y1="256" x2="322" y2="236"/>
+          <line x1="322" y1="172" x2="322" y2="152"/>
+          <line x1="322" y1="88" x2="322" y2="68"/>
+          <line x1="614" y1="256" x2="614" y2="236"/>
+          <line x1="614" y1="172" x2="614" y2="152"/>
+          <line x1="614" y1="88" x2="614" y2="68"/>
+        </g>
+
+        <!-- 目标位置 k=3 的层间连接 -->
+        <line x1="468" y1="256" x2="468" y2="236" stroke="#3D7BD9" stroke-width="2" marker-end="url(#f-aw)"/>
+        <line x1="468" y1="172" x2="468" y2="152" stroke="#3D7BD9" stroke-width="2" marker-end="url(#f-aw)"/>
+        <line x1="468" y1="88" x2="468" y2="68" stroke="#A7B4C6" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#f-ag)"/>
+
+        <!-- 行标签 -->
+        <text class="ft-g" x="100" y="56" text-anchor="end">输出 ELMo_k</text>
+        <text class="ft-g" x="100" y="109" text-anchor="end">第 2 层 · 前向</text>
+        <text class="ft-g" x="100" y="141" text-anchor="end">第 2 层 · 后向</text>
+        <text class="ft-g" x="100" y="193" text-anchor="end">第 1 层 · 前向</text>
+        <text class="ft-g" x="100" y="225" text-anchor="end">第 1 层 · 后向</text>
+        <text class="ft-g" x="100" y="271" text-anchor="end">字符级 CNN</text>
+        <text class="ft-g" x="100" y="289" text-anchor="end">→ 词表示 x_k</text>
+        <text class="ft-cap" x="20" y="314">黄框列 = 目标位置 k = 3（银行）：x₃、h₁F、h₁B、h₂F、h₂B 共 5 个向量加权求和 → ELMo₃（银行在这一句里的向量）</text>
+
+        <!-- 右：5 个向量加权求和 -->
+        <rect x="728" y="8" width="464" height="314" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="748" y="28">位置 k：2L+1 = 5 个向量 → 加权求和</text>
+        <rect x="748" y="40" width="192" height="32" rx="8" fill="#FFFFFF" stroke="#9CB8E0" stroke-width="1.5" stroke-dasharray="5 3"/>
+        <text class="ft-chip" x="844" y="61" text-anchor="middle">x_k</text>
+        <text class="ft-s" x="950" y="61">s₀</text>
+        <text class="ft-p" x="1000" y="61">字符级 CNN 输出</text>
+        <rect x="748" y="78" width="192" height="32" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-chip" x="844" y="99" text-anchor="middle">h₁F</text>
+        <text class="ft-s" x="950" y="99">s₁</text>
+        <text class="ft-p" x="1000" y="99">第 1 层 前向（偏句法）</text>
+        <rect x="748" y="116" width="192" height="32" rx="8" fill="#E8EFF8" stroke="#3D7BD9" stroke-width="1.5"/>
+        <text class="ft-chip" x="844" y="137" text-anchor="middle">h₁B</text>
+        <text class="ft-s" x="950" y="137">s₂</text>
+        <text class="ft-p" x="1000" y="137">第 1 层 后向</text>
+        <rect x="748" y="154" width="192" height="32" rx="8" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="1.5"/>
+        <text class="ft-chip" x="844" y="175" text-anchor="middle">h₂F</text>
+        <text class="ft-s" x="950" y="175">s₃</text>
+        <text class="ft-p" x="1000" y="175">第 2 层 前向（偏语义）</text>
+        <rect x="748" y="192" width="192" height="32" rx="8" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="1.5"/>
+        <text class="ft-chip" x="844" y="213" text-anchor="middle">h₂B</text>
+        <text class="ft-s" x="950" y="213">s₄</text>
+        <text class="ft-p" x="1000" y="213">第 2 层 后向</text>
+        <rect x="748" y="232" width="424" height="82" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-f" x="764" y="258">ELMo_k = γ · Σⱼ sⱼ hⱼ　（j = 0 … 2L；L = 2 → 5 项）</text>
+        <text class="ft-f2" x="764" y="282">下标：0 = x_k　1、2 = 第 1 层前/后向　3、4 = 第 2 层前/后向</text>
+        <text class="ft-f2" x="764" y="302">s 经 softmax 归一化（Σsⱼ = 1）；γ 为缩放标量，均由下游任务学习</text>
+      </svg>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div class="card small card-warn"><div class="h">为什么需要它</div><p>『存钱去<b>银行</b>』与『坐在河岸』：bank 只有一个向量，语义被平均成中点。</p></div>
+      <div class="card small card-blue"><div class="h">关键：不是“同时看两侧”</div><p>前向、后向是两个<b>独立</b> LM，各看一侧、似然相加；BERT 才同时看两侧。</p></div>
+      <div class="card small"><div class="h">用法与意义</div><p>不取最后一层，按 sⱼ、γ 加权；冻结当特征，预训练 + 下游范式雏形。</p></div>
+    </div>
+    <div class="qbar">一词一向量 → 一句一向量：<span class="k">词向量从『查表』变『现场算』</span>——静态词向量时代落幕，预训练时代开场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 22 可视化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">向量可视化：把 300 维压成 2 维</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="向量可视化示意图：一个词的 300 维向量，经 PCA 线性投影或 t-SNE 非线性降维压成 2 维散点图">
+        <defs>
+          <marker id="v-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+
+        <!-- 上：原空间 = 一串数字 -->
+        <rect x="8" y="8" width="1184" height="104" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="28">① 一个词 = 300 个数（300 维空间里的一个坐标）</text>
+        <text class="ft-w" x="24" y="56">北京</text>
+        <text class="ft-num" x="76" y="56">0.21</text>
+        <text class="ft-num" x="118" y="56">-0.44</text>
+        <text class="ft-num" x="168" y="56">0.08</text>
+        <text class="ft-num" x="218" y="56">…</text>
+        <text class="ft-num" x="250" y="56">0.13</text>
+        <text class="ft-w" x="24" y="76">巴黎</text>
+        <text class="ft-num" x="76" y="76">0.19</text>
+        <text class="ft-num" x="118" y="76">-0.41</text>
+        <text class="ft-num" x="168" y="76">0.11</text>
+        <text class="ft-num" x="218" y="76">…</text>
+        <text class="ft-num" x="250" y="76">0.09</text>
+        <text class="ft-w" x="24" y="96">苹果</text>
+        <text class="ft-num" x="76" y="96">-0.33</text>
+        <text class="ft-num" x="118" y="96">0.12</text>
+        <text class="ft-num" x="168" y="96">-0.27</text>
+        <text class="ft-num" x="218" y="96">…</text>
+        <text class="ft-num" x="250" y="96">0.44</text>
+        <text class="ft-p" x="330" y="76">← 每一行 = 该词的稠密向量（300 个分量）</text>
+        <text class="ft-p" x="700" y="52">人眼只能看 2~3 维：300 个数里看不出『谁离谁近』。</text>
+        <text class="ft-p" x="700" y="76">投影到 2 维 → 变成散点图，能看能讲，但一定有信息损失。</text>
+        <text class="ft-p" x="700" y="100">两种常用做法：PCA（线性）与 t-SNE（非线性）。</text>
+
+        <!-- 分支箭头 -->
+        <line x1="600" y1="112" x2="600" y2="122" stroke="#3D7BD9" stroke-width="2"/>
+        <path d="M600,122 H300 V137" fill="none" stroke="#3D7BD9" stroke-width="2" marker-end="url(#v-aw)"/>
+        <path d="M600,122 H900 V137" fill="none" stroke="#3D7BD9" stroke-width="2" marker-end="url(#v-aw)"/>
+        <text class="ft-arw" x="306" y="134">PCA：线性投影</text>
+        <text class="ft-arw" x="906" y="134">t-SNE：非线性、保邻域</text>
+
+        <!-- 左下：PCA -->
+        <rect x="8" y="140" width="582" height="182" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="164">② PCA：线性投影到 2 维</text>
+        <text class="ft-p" x="24" y="182">取方差最大的两个方向当新坐标轴（PC1、PC2）；快、可复现</text>
+        <line x1="66" y1="196" x2="66" y2="306" stroke="#D6DCE5" stroke-width="1.5"/>
+        <line x1="66" y1="306" x2="568" y2="306" stroke="#D6DCE5" stroke-width="1.5"/>
+        <text class="ft-ax" x="566" y="316" text-anchor="end">PC1（方差最大方向）→</text>
+        <text class="ft-ax" x="58" y="204" text-anchor="end">PC2 ↑</text>
+        <rect x="97" y="239" width="224" height="36" rx="18" transform="rotate(-13 209 257)" fill="#F7DCDA" opacity="0.55" stroke="#D9534F" stroke-width="1.4" stroke-dasharray="6 4"/>
+        <circle cx="118" cy="278" r="5" fill="#2C63B8"/>
+        <circle cx="146" cy="268" r="5" fill="#2C63B8"/>
+        <circle cx="176" cy="258" r="5" fill="#2C63B8"/>
+        <circle cx="206" cy="249" r="5" fill="#2C63B8"/>
+        <circle cx="240" cy="243" r="5" fill="#C0504D"/>
+        <circle cx="270" cy="239" r="5" fill="#C0504D"/>
+        <circle cx="300" cy="236" r="5" fill="#C0504D"/>
+        <circle cx="400" cy="280" r="5" fill="#4C9A5A"/>
+        <circle cx="440" cy="272" r="5" fill="#4C9A5A"/>
+        <circle cx="480" cy="264" r="5" fill="#4C9A5A"/>
+        <text class="ft-lab" x="214" y="238">巴黎</text>
+        <text class="ft-lab" x="308" y="228">国王</text>
+        <text class="ft-lab" x="412" y="272">苹果</text>
+        <text class="ft-alert" x="209" y="206" text-anchor="middle">国家-首都与王室两簇被拉成一条带、粘在一起</text>
+
+        <!-- 右下：t-SNE -->
+        <rect x="610" y="140" width="582" height="182" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="626" y="164">③ t-SNE：非线性降维到 2 维</text>
+        <text class="ft-p" x="626" y="182">让『谁是邻居』在 2 维里尽量不变（轴无刻度含义）；慢、每次结果不同</text>
+        <rect x="650" y="194" width="520" height="112" rx="6" fill="#FFFFFF" stroke="#E9EDF3"/>
+        <line x1="710" y1="220" x2="724" y2="230" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="762" y1="216" x2="742" y2="226" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="708" y1="258" x2="728" y2="248" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="766" y1="258" x2="748" y2="244" stroke="#C7D3E3" stroke-width="1"/>
+        <circle cx="724" cy="230" r="5" fill="#2C63B8"/>
+        <circle cx="742" cy="226" r="5" fill="#2C63B8"/>
+        <circle cx="748" cy="244" r="5" fill="#2C63B8"/>
+        <circle cx="728" cy="248" r="5" fill="#2C63B8"/>
+        <text class="ft-lab" x="688" y="216">中国</text>
+        <text class="ft-lab" x="764" y="212">北京</text>
+        <text class="ft-lab" x="686" y="262">法国</text>
+        <text class="ft-lab" x="768" y="262">巴黎</text>
+        <line x1="894" y1="220" x2="913" y2="230" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="948" y1="216" x2="931" y2="226" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="948" y1="254" x2="925" y2="246" stroke="#C7D3E3" stroke-width="1"/>
+        <circle cx="913" cy="230" r="5" fill="#C0504D"/>
+        <circle cx="931" cy="226" r="5" fill="#C0504D"/>
+        <circle cx="925" cy="246" r="5" fill="#C0504D"/>
+        <text class="ft-lab" x="872" y="216">国王</text>
+        <text class="ft-lab" x="950" y="212">王后</text>
+        <text class="ft-lab" x="952" y="258">王子</text>
+        <line x1="1048" y1="230" x2="1073" y2="242" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="1112" y1="232" x2="1091" y2="238" stroke="#C7D3E3" stroke-width="1"/>
+        <line x1="1112" y1="262" x2="1085" y2="258" stroke="#C7D3E3" stroke-width="1"/>
+        <circle cx="1073" cy="242" r="5" fill="#4C9A5A"/>
+        <circle cx="1091" cy="238" r="5" fill="#4C9A5A"/>
+        <circle cx="1085" cy="258" r="5" fill="#4C9A5A"/>
+        <text class="ft-lab" x="1026" y="226">苹果</text>
+        <text class="ft-lab" x="1114" y="228">香蕉</text>
+        <text class="ft-lab" x="1116" y="266">橘子</text>
+        <text class="ft-good" x="662" y="298">✓ 相似词聚成清晰一团</text>
+        <text class="ft-alert" x="1158" y="298" text-anchor="end">✗ 簇间距离别解读</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card small card-blue"><div class="h">PCA：线性、保全局</div><p>找方差最大的方向当坐标轴；快、可复现，但非线性聚类容易被压扁粘连。</p></div>
+      <div class="card small card-warn"><div class="h">t-SNE：非线性、保邻域</div><p>相似词的邻居关系被保住、聚成清晰一团；慢，簇间距离别解读。</p></div>
+    </div>
+    <div class="qbar">把 300 维压成一张图，<span class="k">“意思相近”第一次变得肉眼可见</span>——现场用 Embedding Projector 喊词查邻居。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 评估 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">两套评估标准：内在看相关，外在看任务</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">内在评估（Intrinsic）：直接测向量本身</div>
+        <ul>
+          <li><b>词相似度：</b>WordSim-353 的 353 对词都有人工 0~10 分，看它与余弦相似度<b>排序是否一致</b></li>
+          <li><b>类比任务：</b>a : b :: c : d，用 <code>a−b+c</code> 找最近邻，看命中率</li>
+          <li>快、便宜、可复现——适合先筛掉明显不行的方法</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">外在评估（Extrinsic）：接到真实任务上</div>
+        <ul>
+          <li>把向量喂给下游任务：文本分类 / NER / 语义检索，看 <b>F1、准确率</b></li>
+          <li>最接近真实用途；代价是慢、要标注数据，结论只对这<b>一个任务</b>成立</li>
+          <li><b>选型以外在为准</b>——作业 3 就是一次外在评估</li>
+        </ul>
+      </div>
+    </div>
+    <table class="ac" style="margin-top:14px">
+      <tr><th style="width:14%">内在任务</th><th style="width:27%">怎么算</th><th style="width:35%">具体例子</th><th style="width:24%">看什么指标</th></tr>
+      <tr>
+        <td><b>词相似度</b><br><span style="font-size:15px;color:#8B97A8">WordSim-353</span></td>
+        <td>取 353 对词的人工分，与向量的 <code>cos(u,v)</code> 比较<b>排序一致性</b></td>
+        <td>tiger–cat 人工 7.35 分（很像）；tiger–book 只有 0.44 分（无关）——向量也该前者远大于后者</td>
+        <td>Spearman ρ<br><span style="font-size:15px;color:#8B97A8">好模型约 0.6~0.8</span></td>
+      </tr>
+      <tr>
+        <td><b>类比</b><br><span style="font-size:15px;color:#8B97A8">Google analogy</span></td>
+        <td>求 <code>a−b+c</code> 的最近邻是否为 d；语义类与句法类各测一半</td>
+        <td>北京 : 中国 :: 巴黎 : ? → <b>法国</b>；good : better :: bad : ? → <b>worse</b></td>
+        <td>命中率<br><span style="font-size:15px;color:#8B97A8">top-1 / top-3</span></td>
+      </tr>
+    </table>
+    <div class="src"><b>怎么读这两套标准：</b>内在评估只回答「向量的几何像不像人的语感」，不回答「在下游任务里有没有用」；所以先用它便宜地筛方法，再用外在任务定稿。名词解释：Spearman ρ 是<b>排序相关系数</b>，越接近 1 说明向量的排序越贴近人工排序；命中率 top-1 指最近邻第一个就是正确答案的比例。数据出处：Finkelstein et al. 2001（WordSim-353）· Mikolov et al. 2013（Google analogy 共 19,544 条：语义 8,869 + 句法 10,675）。</div>
+    <div class="qbar">内在评估管“快”，外在评估管“<span class="k">准</span>”——先用内在筛方法，再用下游任务定稿。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 行业词向量 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">行业里的词向量：为什么要继续预训练</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">通用词向量为什么在行业里“失灵”</div>
+        <ul>
+          <li><b>词表缺失：</b>「北向资金」「STEMI」在通用语料里几乎不出现，根本查不到向量</li>
+          <li><b>同形异义：</b>「盘子」「回调」在日常与金融里意思不同，一个静态向量把两义混在一起</li>
+          <li><b>搭配不同：</b>行业里「心梗」总与「心肌梗死 / 急性 / 支架」共现，通用语料里不是</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">领域继续预训练：四步走</div>
+        <ul>
+          <li>① 收领域语料：研报公告 / 病历与指南（<b>脱敏与合规是前提</b>）</li>
+          <li>② 分词 + 自定义词典：牛市、北向资金、心肌梗死</li>
+          <li>③ 在通用向量上继续训练：<code>model.build_vocab(corpus, update=True)</code> → <code>model.train(...)</code></li>
+          <li>④ 验收：看检索/分类指标，而不是只看相似词好不好看</li>
+        </ul>
+      </div>
+    </div>
+    <table class="ac" style="margin-top:14px">
+      <tr><th style="width:13%">方向</th><th style="width:14%">查询词</th><th style="width:39%">领域向量里应召回的邻居（示例）</th><th style="width:34%">拿来做什么</th></tr>
+      <tr>
+        <td><b>金融科技</b></td><td>北向资金</td>
+        <td>沪股通 / 陆股通 / 净流入 / 外资持股</td>
+        <td>研报与公告的<b>语义检索</b>：找与某概念相近的段落；舆情判读利多利空</td>
+      </tr>
+      <tr>
+        <td><b>智慧健康</b></td><td>心梗</td>
+        <td>心肌梗死 / 急性心肌梗死 / STEMI / 支架</td>
+        <td>病历<b>概念归一</b>：不同写法映射到同一实体；健康问答检索召回（第 15 讲 RAG）</td>
+      </tr>
+    </table>
+    <div class="src"><b>⚠ 提醒：</b>表中邻居词是示意，实际以自己语料训练的结果为准；医疗与金融数据需脱敏、合规审批，且向量本身可能带偏见（本讲前面的去偏内容）。领域预训练不是万能药——它解决的是「词不认识、义不对齐」，句法/推理问题还要靠下游模型。</div>
+    <div class="qbar">通用词向量不懂行业黑话——<span class="k">领域继续预训练是行业 NLP 的第一步</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 24b 平均池化分类 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">词向量到文档：平均池化分类</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:150px">
+      <svg viewBox="0 0 1200 150" preserveAspectRatio="xMidYMid meet" role="img" aria-label="平均池化文本分类流程图：分词、查词向量表、按列求平均得到文档向量、送入分类器">
+        <defs>
+          <marker id="p-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+        <rect x="8" y="10" width="250" height="56" rx="10" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-f" x="20" y="36">① 分词</text>
+        <text class="ft-p" x="20" y="56">这 / 部 / 电影 / 很棒（n = 4）</text>
+        <line x1="262" y1="38" x2="282" y2="38" stroke="#3D7BD9" stroke-width="2" marker-end="url(#p-aw)"/>
+        <rect x="288" y="10" width="280" height="56" rx="10" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-f" x="300" y="36">② 查词向量表</text>
+        <text class="ft-p" x="300" y="56">n 个词 → 一个 n×d 矩阵（d = 100）</text>
+        <line x1="572" y1="38" x2="592" y2="38" stroke="#3D7BD9" stroke-width="2" marker-end="url(#p-aw)"/>
+        <rect x="598" y="10" width="320" height="56" rx="10" fill="#D8E5F6" stroke="#1E4FA8"/>
+        <text class="ft-f" x="610" y="36">③ 平均池化：按列求平均</text>
+        <text class="ft-p" x="610" y="56">doc = (1/n) · Σᵢ vᵢ　→　1×d 文档向量</text>
+        <line x1="922" y1="38" x2="942" y2="38" stroke="#3D7BD9" stroke-width="2" marker-end="url(#p-aw)"/>
+        <rect x="948" y="10" width="244" height="56" rx="10" fill="#0E3F8C"/>
+        <text class="ft-cw" x="960" y="36">④ 分类器 LR / MLP</text>
+        <text class="ft-p" x="960" y="56" fill="#E9F0FA">输出：好评 / 差评</text>
+        <rect x="8" y="76" width="1184" height="70" rx="8" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-p" x="24" y="94">手算示例（把 100 维缩成 3 维看清过程；真实词向量每词 100~300 维）</text>
+        <text class="ft-num" x="24" y="116">v(这)=[0.2, -0.1, 0.4]　v(部)=[0.1, 0.2, 0.0]　v(电影)=[0.6, 0.3, -0.2]　v(很棒)=[0.7, 0.1, 0.5]</text>
+        <text class="ft-num" x="24" y="138">→ 按列求平均：doc = [(0.2+0.1+0.6+0.7)/4, (-0.1+0.2+0.3+0.1)/4, (0.4+0.0-0.2+0.5)/4] = <tspan font-weight="700" fill="#B08A00">[0.4, 0.125, 0.175]</tspan></text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:13.5px;line-height:1.55">
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+
+tokens = ["这", "部", "电影", "很棒"]     <span class="c"># ① 已分词</span>
+vecs   = [wv[t] for t in tokens]          <span class="c"># ② 查表 → 4×100</span>
+doc    = np.mean(vecs, axis=0)            <span class="c"># ③ 平均 → 1×100</span>
+
+clf = LogisticRegression().fit(X, y)      <span class="c"># ④ 离线训练</span>
+print(clf.predict([doc]))                 <span class="c"># ⑤ 好评 / 差评</span></div>
+      <div class="card small card-blue">
+        <div class="h">改进与局限</div>
+        <ul>
+          <li><b>加权平均：</b>TF-IDF / SIF 给重要词更高权重，否定词也能被放大</li>
+          <li><b>换个池化：</b>max-pooling 保留最突出的特征，或把首尾词向量拼接进去</li>
+          <li><b>局限：词序全丢</b>——“不差”与“差”平均后方向相近，情绪判断会翻车</li>
+          <li><b>下一站：</b>序列建模（第 8 讲 RNN/LSTM、第 10 讲注意力）；作业 3 用词向量 + MLP（多层感知机）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">平均池化是词向量最朴素的“消费方式”——<span class="k">词序之痛，正是第 6 讲序列建模的起点</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 25 三个误区 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三个常见误区</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card small card-warn"><div class="h"><span class="no">1</span>以为向量“自带语义”</div>
+        <p>真相：语义<b>来自语料</b>。同一算法换语料（新闻 ↔ 微博），“苹果”的邻居就变了——没有“上帝视角的词向量”。</p>
+        <p>所以：写清“用什么语料、什么方法训的”；换领域就<b>继续预训练</b>。</p></div>
+      <div class="card small card-warn"><div class="h"><span class="no">2</span>以为 word2vec 懂多义</div>
+        <p>真相：<b>一词一向量</b>。查 <code>most_similar("苹果")</code>，水果词与公司词会混在一簇；要分义项得靠 ELMo / BERT。</p>
+        <p>所以：歧义词靠<b>上下文表示</b>（第 12 讲），或用领域词表把义项拆开。</p></div>
+      <div class="card small card-warn"><div class="h"><span class="no">3</span>向量近 = 相关/因果</div>
+        <p>真相：只说明<b>上下文像</b>。<code>similarity("good","bad")</code> 常常也不低（句型相似），但语义相反。</p>
+        <p>所以：把向量当<b>特征</b>而非结论，最终用下游任务指标验收。</p></div>
+    </div>
+    <div class="code" style="margin-top:14px;font-size:15px;line-height:1.6"><span class="c"># 三个可以自己跑的实验（小语料就能复现）</span>
+model.most_similar("苹果")          <span class="c"># ① 水果义与公司义是否混在同一簇里</span>
+model.similarity("good", "bad")     <span class="c"># ② 相似度不低 ≠ 同义：只说明上下文句型像</span>
+model.most_similar("医生")          <span class="c"># ③ 邻居是“医院 / 护士”——相关，不是因果</span></div>
+    <div class="qbar">词向量是<span class="k">语料的影子</span>——影子有多像，取决于语料喂得多好。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 收口对比表 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口：六代表示法对比</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:18%">表示法</th><th style="width:24%">语义来源</th><th style="width:18%">OOV</th><th style="width:16%">上下文</th><th style="width:24%">现状</th></tr>
+      <tr><td><b>one-hot</b></td><td>无（只是编号）</td><td>无解</td><td>无关</td><td>计数特征里仍在用</td></tr>
+      <tr><td><b>共现 + PPMI</b></td><td>全局共现统计</td><td>无解</td><td>窗口共现</td><td>教学与语言学分析</td></tr>
+      <tr><td><b>word2vec</b></td><td>局部窗口预测</td><td>无解</td><td>静态</td><td>检索 / 轻量特征仍在服役</td></tr>
+      <tr><td><b>GloVe</b></td><td>全局计数回归</td><td>无解</td><td>静态</td><td>与 word2vec 同档双雄</td></tr>
+      <tr><td><b>FastText</b></td><td>子词碎片之和</td><td><b>解决</b></td><td>静态</td><td>OOV 多、形态丰富语言</td></tr>
+      <tr><td><b>ELMo</b></td><td>整句双向 LM 隐状态</td><td>字符级打底</td><td><b>动态</b></td><td>预训练范式雏形 → 第 12 讲 BERT</td></tr>
+    </table>
+    <div class="qbar">演进逻辑链：<span class="k">稀疏→稠密、整词→子词、静态→上下文</span>——最后一格直通 BERT。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">gensim 自学任务课后完成，课堂研讨三个认知问题。</div>
+    <ul>
+      <li>自学：gensim 相似度 + king−man+woman 类比</li>
+      <li>研讨：一词一向量 / 中文词向量 / 领域预训练（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 28 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：gensim 词向量</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h"><span class="no">①</span>跑通代码</div><p>照第 23 页训练小词向量，确认向量维度 <b>(100,)</b>。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">②</span>三个查询</div><p><code>most_similar("learning")</code>、<code>most_similar("king")</code>；对比 <code>similarity("nlp","learning")</code> 与 <code>similarity("nlp","country")</code>。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">③</span>挑战：换模型</div><p><code>sg=1</code> 改 <code>0</code> 重训，对比邻居差异——体会 Skip-gram 对小语料的友好。</p></div>
+    </div>
+    <div class="qbar">验收：跑出相似度与类比结果，并能说出<span class="k">“语义相近 = 坐标相近”</span>意味着什么。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个认知问题（10 分钟）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h">Q1 原理追问</div><p>为什么“一词一向量”不够用？举一个真实场景说明它必然出错。</p></div>
+      <div class="card card-blue"><div class="h">Q2 中文题</div><p>中文词向量为什么要在中文语料上单独训，直接用英文翻译版不行吗？</p></div>
+      <div class="card card-blue"><div class="h">Q3 行业题</div><p>金融 / 医疗为什么要在行业语料上继续预训练？给你所在方向一个具体理由。</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个假设、一条演进、一次跃迁。</div>
+    <ul>
+      <li>分布式假设：观其伴，知其义</li>
+      <li>演进：计数派 → 预测派 → 混血 → 上下文派</li>
+      <li>跃迁：一词一向量 → 一句一向量，通向 BERT</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 32 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>公理</div><p>分布式假设：观其伴，知其义——把“意义”的哲学问题换成“分布”的统计问题。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>范式</div><p>计数派建矩阵、预测派学参数；负采样证明两者同根。<b>自监督</b>在此首次大规模成功——直通第 12 讲。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>边界</div><p>一词一向量的天花板（bank/苹果）引爆 ELMo：词向量从“查表”变“现场算”，预训练时代开场。</p></div>
+    </div>
+    <div class="qbar">一句话带走：<span class="k">词向量不来自词典，来自亿万次“谁和谁是邻居”的问答</span>——语义是分布的几何。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">读 word2vec 论文摘要；作业 2 本周截止；下讲让词向量进入网络。</div>
+    <ul>
+      <li>阅读：word2vec 两篇论文摘要 + 半页笔记</li>
+      <li>作业 2：分词与 BPE 对比实验（本周截止）</li>
+      <li>下讲预告：神经网络基础（MLP 文本分类）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 34 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>阅读与笔记</div>
+        <ul>
+          <li>读 word2vec 两篇原论文（Mikolov et al. 2013a / 2013b）摘要与引言</li>
+          <li>半页笔记回答三问：训练瓶颈？负采样简化了什么？类比评估如何分语义/句法？</li>
+          <li>作业 2（分词与 BPE）本周截止，AI 使用须声明</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>选做与下讲预告</div>
+        <ul>
+          <li>选做：Embedding Projector 探索 10K 预训练向量，截一张语义簇图</li>
+          <li>第 6 讲：神经网络基础——MLP 吃下词向量做文本分类</li>
+          <li>思考题：<b>一堆词向量怎么变成文档向量，再变成决策？</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 6 讲 神经网络基础</span>：词向量之后，是网络——作业 3（词向量 + MLP 文本分类）开场。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:16.5px;line-height:1.9">
+      <b>教材与经典文献（原理层）</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed., Ch.6 Vector Semantics) · Firth (1957) 分布式假设<br>
+      Mikolov et al. (2013a/2013b) word2vec 两篇原论文 · Levy &amp; Goldberg (2014) 负采样与 PMI 分解<br>
+      Pennington et al. (2014) GloVe · Bojanowski et al. (2016) FastText · Peters et al. (2018) ELMo · Bolukbasi et al. (2016) 词向量偏见<br>
+      <b>工具与资料（实例层）</b><br>
+      gensim（Word2Vec / KeyedVectors）· Embedding Projector · GoogleNews / 中文预训练词向量（⚠ 版本讲授前核实）
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">分布式假设、CBOW/Skip-gram 与负采样为原理层、长期稳定；工具与预训练向量为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 46</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  /* 把 解析成结构化提示 */
+
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

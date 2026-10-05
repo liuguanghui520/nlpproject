@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第11章 Transformer 原理精讲 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+
+  table.ac.sm{font-size:16px}
+  table.ac.sm th{padding:5px 10px;font-size:16.5px}
+  table.ac.sm td{padding:4px 10px;line-height:1.32}
+  .code.sm{font-size:15.5px;line-height:1.5;padding:10px 14px;margin-top:8px}
+  .code.xs{font-size:14.5px;line-height:1.46;padding:9px 13px;margin-top:8px}
+  .card.tight{padding:12px 16px}
+  .card.tight .h{font-size:21px;margin-bottom:5px}
+  .card.tight p{font-size:18px;line-height:1.42}
+  .card.tight li{font-size:18px;line-height:1.4;margin-top:4px}
+  .grid.tight{gap:12px}
+  .grid.tight2{gap:10px}
+  .qbar.sm{font-size:19px;padding:11px 18px;margin-top:11px}
+  .lead.sm{font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">The Transformer Architecture</div>
+    <div class="cn">Transformer 原理精讲</div>
+    <div class="rule"></div>
+    <div class="sub">第十一章 · 从自注意力到大模型骨架</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 11 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">11</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 10 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1;align-content:stretch">
+      <div class="card tight"><div class="h"><span class="no">1</span>架构</div><p>编码器把源句压成上下文向量，解码器自回归逐词生成；训练用教师强制，推理自由运行。</p></div>
+      <div class="card tight"><div class="h"><span class="no">2</span>瓶颈与突破</div><p>固定向量 c 容量与句长无关 → 长句断崖；注意力保留全部 h_j，每步动态加权读取。</p></div>
+      <div class="card tight"><div class="h"><span class="no">3</span>注意力三步</div><p>打分 e = a(s, h) → softmax 归一化 α → 加权求和 c_t = Σα·h。路径长度 O(1)。</p></div>
+      <div class="card tight"><div class="h"><span class="no">4</span>解码与评估</div><p>greedy / beam（需长度归一化）/ 采样；BLEU = BP × 几何平均 n-gram 精确率。</p></div>
+    </div>
+    <div class="qbar">今天把注意力从<span class="k">“外挂”升级为“主干”</span>：扔掉循环，让每个位置直接看所有位置，并且一次算完整句。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：一篇论文撑起整个大模型时代</div><div class="dd">引用量、BLEU 与参数量；RNN 的两条硬伤；历史脉络</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">整体架构与真实战绩</div><div class="dd">编码器-解码器双塔；每层子层；base/big 配方与 WMT14 BLEU</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">自注意力：Q/K/V 与缩放点积</div><div class="dd">三个线性投影；四步拆解；√d_k 推导；完整手算例；复杂度表</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">多头注意力：让每种关系有专属通道</div><div class="dd">分—治—合；头的分工与消融实验；为什么不是越多越好</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">位置编码与四大组件</div><div class="dd">正弦 / 可学习 / 相对 / RoPE；残差、LayerNorm、Pre-LN、FFN</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">掩码、复杂度与架构范式</div><div class="dd">三种注意力；causal mask；n² 账本与长序列变体；BERT/GPT/T5</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 11 讲 · Transformer 原理精讲</span></div>
+  <div class="content">
+    <div class="lead sm">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>画出编码器-解码器双塔与每层子层</li>
+          <li>写出缩放点积注意力公式并解释每一项</li>
+          <li>解释多头、位置编码、残差 + LN、FFN 的作用</li>
+          <li>说清 causal mask 与 cross-attention</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能手算一遍单头自注意力（含 softmax 与加权）</li>
+          <li>能推导 √d_k 的作用并解释 softmax 饱和</li>
+          <li>能用 PyTorch 搭一个最小 Transformer 块</li>
+          <li>能读注意力热图并判断 mask 是否正确</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>体会“让并行成为可能”的工程审美</li>
+          <li>建立复杂度与显存的量化意识（n² 账本）</li>
+          <li>理解架构范式选择背后的任务需求</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:10px">
+      <div class="card tight"><div class="h">本讲重点</div><p>双塔结构与配方；缩放点积注意力手算；多头；位置编码；残差 + LayerNorm；causal mask；复杂度表。</p></div>
+      <div class="card card-warn tight"><div class="h">本讲难点</div><p>位置编码为何必需；√d_k 的方差推导；为什么 Pre-LN 让深层可训；n² 的显存账。</p></div>
+    </div>
+    <div class="qbar sm">一句话主线：<span class="k">把“按时间步串行”换成“整句一次矩阵乘”</span>——并行是 Transformer 赢的根本原因。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">为什么整个大模型时代，都建立在 2017 年的一个架构上？</div>
+    <ul>
+      <li>一篇论文：引用量、8 位作者与一个时代</li>
+      <li>复习第 8 / 10 讲：RNN 的两条硬伤</li>
+      <li>核心问题：能不能彻底扔掉循环？</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">一篇论文，撑起大模型时代</span><span class="sec">环节一 · 课程导入</span></div>
+  <div class="content">
+    <div class="kpis" style="flex:1">
+      <div class="kpi"><div class="n">10<small>万+</small></div><div class="l">Google Scholar 引用</div><div class="d">Attention Is All You Need（Vaswani 等，2017，NeurIPS）——CS 史上被引最高的论文之一</div></div>
+      <div class="kpi"><div class="n">8</div><div class="l">位作者全部离开 Google</div><div class="d">后来分别创立或加入多家 AI 公司，影响力从论文扩散到整个产业</div></div>
+      <div class="kpi"><div class="n">65<small>M / </small>213<small>M</small></div><div class="l">论文的 base / big 参数量</div><div class="d">而今天的 GPT 系模型是千亿到万亿级——<b>骨架仍是同一个架构</b></div></div>
+      <div class="kpi"><div class="n">1</div><div class="l">个架构，覆盖全部模态</div><div class="d">文本、语音、图像、代码、蛋白质结构——都用同一个注意力骨架</div></div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:16px"><div class="h">一个容易被忽略的事实</div>
+      <p style="font-size:20px">Transformer 在 2017 年最初只是一个<b>机器翻译</b>模型——用来替代 RNN 做 seq2seq。它的通用性是后来者发现的：<b>BERT（2018）说明它可以做理解，GPT（2018）说明它可以做生成，ViT（2020）说明它也能处理图像。</b></p>
+    </div>
+    <div class="qbar sm">今天这一讲是全课程的枢纽：<span class="k">前面所有内容（词向量、语言模型、序列建模）在这里汇合，后面所有内容（预训练、微调、RAG、Agent）都建立在它之上</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么要抛弃 RNN：两条硬伤</span><span class="sec">环节一 · 课程导入 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h"><span class="no">硬伤 1</span>串行计算，无法并行</div>
+        <div class="code xs" style="background:#fff">hₜ = f( hₜ₋₁ , xₜ )     <span class="c">← 第 t 步必须等第 t−1 步</span></div>
+        <ul style="margin-top:8px">
+          <li>GPU 上万核心只能“排队干活”，利用率极低</li>
+          <li>训练时间随句长<b>线性增长</b>；BPTT 还要沿时间轴展开（第 8 讲）</li>
+          <li>后果：<b>无法通过堆数据、堆算力来扩展模型</b>——这在 2017 年数据爆炸的背景下是致命伤</li>
+        </ul>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">硬伤 2</span>长程依赖弱，路径 O(n)</div>
+        <div class="code xs" style="background:#fff">第 1 个词 → 第 500 个词：<span class="c">要穿过 500 步 RNN</span>
+每步都可能衰减 → 梯度消失（第 8 讲）</div>
+        <ul style="margin-top:8px">
+          <li>LSTM 的有效记忆约 200 词量级，<b>只是缓解不是根治</b></li>
+          <li>而第 10 讲的注意力已经证明：信息路径可以是 <b>O(1)</b></li>
+        </ul>
+        <p><b>于是问题变成：既然注意力这么好，为什么还要把 RNN 留在架构里？</b></p>
+      </div>
+    </div>
+    <table class="ac sm" style="margin-top:12px">
+      <tr><th style="width:110px">时间</th><th style="width:230px">工作</th><th>与本课程的关系</th></tr>
+      <tr><td>2014–2015</td><td>Bahdanau / Luong 注意力</td><td>注意力作为 RNN 的“外挂”（第 10 讲）</td></tr>
+      <tr><td><b>2017</b></td><td><b>Transformer</b></td><td><b>注意力升为主干，循环被抛弃</b>——本讲</td></tr>
+      <tr><td>2018</td><td>GPT-1 · BERT</td><td>预训练 + 微调范式（第 12 讲）</td></tr>
+      <tr><td>2019–2020</td><td>T5 · GPT-3</td><td>统一文本到文本；上下文学习与规模效应（第 12、13 讲）</td></tr>
+      <tr><td>2022 至今</td><td>ChatGPT 及后续大模型</td><td>对齐、推理优化、RAG 与 Agent（第 13–16 讲）</td></tr>
+    </table>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从“长什么样”到“怎么算”再到“为什么赢”。</div>
+    <ul>
+      <li>整体架构：双塔六层 · 子层包装 · 超参数配方 · 真实战绩</li>
+      <li>自注意力：Q/K/V · 缩放点积 · √d_k 推导 · 完整手算</li>
+      <li>多头注意力：分—治—合 · 头的分工 · 消融证据</li>
+      <li>四大组件：位置编码 · 残差 · LayerNorm · FFN</li>
+      <li>掩码与泛化：三种注意力 · causal mask · n² 账本 · 长序列变体</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 架构鸟瞰 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">架构鸟瞰：编码器-解码器双塔（论文 Figure 1）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">编码器塔（左）：读懂源句</div>
+        <div class="code xs" style="background:#fff">源 token → Embedding + 位置编码
+        ↓
+┌──────────────────────────────┐
+│  多头自注意力 → Add &amp; LN      │
+│  FFN（逐位置）→ Add &amp; LN      │   × N = 6 层
+└──────────────────────────────┘
+        ↓
+输出 memory（n × 512）→ 供给解码器</div>
+        <p style="margin-top:8px">每层 <b>两个子层</b>；输出是“读懂后”的上下文表示，每个位置都融合了全句信息。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">解码器塔（右）：生成目标句</div>
+        <div class="code xs" style="background:#fff">目标 token（右移一位）→ Embedding + PE
+        ↓
+┌──────────────────────────────┐
+│  ① Masked 多头自注意力 → Add &amp; LN │
+│  ② Cross-Attention  → Add &amp; LN   │ × N = 6 层
+│  ③ FFN（逐位置）     → Add &amp; LN   │
+└──────────────────────────────┘
+        ↓
+      线性层 + softmax → 下一个词分布</div>
+        <p style="margin-top:8px">每层 <b>三个子层</b>（比编码器多一个 cross-attention）；自注意力带掩码，不许偷看未来。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">两塔的唯一区别</div>
+      <p style="font-size:19.5px">结构对称、层数相同、超参数相同。差别只有两处：<b>① 解码器的自注意力带 causal mask；② 解码器多一个 cross-attention 子层（Q 来自解码器，K/V 来自编码器）</b>。记住这两点，Figure 1 就能默画出来。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 编码器层解剖 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">编码器层解剖：两个子层与统一的包装</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">子层包装公式（论文原版 Post-LN）
+
+    SublayerOut = <b>LayerNorm( x + Sublayer( x ) )</b>
+                    └────────── 残差 ──────────┘
+
+  子层 ①  Sublayer = MultiHeadSelfAttention( x )      <span class="c">← 全句互相看</span>
+  子层 ②  Sublayer = FFN( x )                          <span class="c">← 逐位置，不跨位置</span></div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">残差要求维度一致</div>
+        <p>x + Sublayer(x) 要能相加，所以每个子层的输入输出维度必须相同。</p>
+        <p>于是全模型贯穿一个 <b>d_model</b>：base 是 <b>512</b>，big 是 <b>1024</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">编码器的工作是“读懂”</div>
+        <p>自注意力让每个位置看到<b>全句所有位置（双向）</b>，FFN 对每个位置做非线性变换。</p>
+        <p>输出 memory 的每个向量都是“带着全句上下文的词表示”——这就是第 12 讲 BERT 的雏形。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么这个包装关键</div>
+        <p>没有残差：12 层深网络的梯度会衰减到无法训练；没有 LayerNorm：每层输入分布漂移，训练极不稳定。</p>
+        <p><b>残差给通路，LN 给稳定</b>——两者合起来让深层 Transformer 成为可能。</p>
+      </div>
+    </div>
+    <div class="qbar sm">默画要点：<span class="k">两个子层 + 两次 Add &amp; LN + 每层一个残差捷径</span>。考试常要求“写出子层包装公式并说明残差与 LN 各自的作用”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 解码器层解剖 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">解码器层解剖：三个子层与掩码</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:70px">顺序</th><th style="width:230px">子层</th><th>Q / K / V 从哪来</th><th style="width:280px">职责</th></tr>
+      <tr><td><b>①</b></td><td><b>Masked 多头自注意力</b></td><td>Q = K = V = 解码器上一子层（同源）</td><td>基于<b>已生成的内容</b>续写；位置 i 只能看 ≤ i，不许偷看未来</td></tr>
+      <tr><td><b>②</b></td><td><b>Cross-Attention</b>（编码器-解码器注意力）</td><td><b>Q</b> = 解码器上一子层；<b>K / V</b> = 编码器输出 memory</td><td>生成时“回看源句”——这是两塔之间<b>唯一的桥</b></td></tr>
+      <tr><td><b>③</b></td><td><b>FFN</b></td><td>逐位置，不跨位置</td><td>与编码器同构，做非线性特征变换</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">顺序为什么不能乱</div>
+        <p><b>先看自己</b>（已生成的目标序列）→ <b>再看源句</b>（确定该翻译哪部分）→ <b>最后变换</b>（生成表示）。</p>
+        <p>如果先做 cross-attention 再做自注意力，当前生成的内容就无法参与对源句的查询——逻辑颠倒。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">三个易错点</div>
+        <ul>
+          <li>cross-attention 里的 Q 来自<b>解码器</b>，K/V 来自<b>编码器</b>——写反了就完全错了</li>
+          <li>masked 自注意力只在<b>训练</b>时需要掩码；推理时逐词生成，天然看不到未来</li>
+          <li>每个子层都要有自己的 Add &amp; LN，<b>不是三个子层共用一个</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">推理时的完整流程：<span class="k">已生成词 → ①masked 自注意力 → ②查源句 → ③FFN → 线性层 → 下一个词分布</span>，循环直到 EOS（第 10 讲的自回归）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 超参数与战绩 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">关键超参数与真实战绩</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:150px">符号</th><th style="width:110px">base 值</th><th>含义与记忆锚点</th></tr>
+      <tr><td><b>N</b></td><td>6</td><td>编码器 / 解码器各堆 <b>6 层</b></td></tr>
+      <tr><td><b>d_model</b></td><td>512</td><td>模型宽度（残差主干维度），<b>贯穿全模型</b></td></tr>
+      <tr><td><b>h</b></td><td>8</td><td>注意力头数</td></tr>
+      <tr><td><b>d_k = d_v</b></td><td>64</td><td>每头维度 = <b>d_model / h = 512 / 8</b></td></tr>
+      <tr><td><b>d_ff</b></td><td>2048</td><td>FFN 中间层维度 = <b>4 × d_model</b></td></tr>
+      <tr><td>P_drop</td><td>0.1</td><td>Dropout 概率（各子层输出与嵌入层）</td></tr>
+      <tr><td>ε (label smoothing)</td><td>0.1</td><td>标签平滑，防止过度自信、提升 BLEU</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">base vs big</div>
+        <table class="ac sm">
+          <tr><th>配置</th><th>base</th><th>big</th></tr>
+          <tr><td>参数量</td><td><b>65M</b></td><td><b>213M</b></td></tr>
+          <tr><td>d_model / h / d_ff</td><td>512 / 8 / 2048</td><td>1024 / 16 / 4096</td></tr>
+          <tr><td>N（层数）</td><td>6</td><td>6</td></tr>
+          <tr><td>训练</td><td>8×P100，约 12 小时</td><td>8×P100，约 3.5 天</td></tr>
+        </table>
+        <p style="margin-top:6px">注意：big 主要<b>加宽</b>而不是加深——深度保持 6 层。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">WMT14 翻译战绩（BLEU）</div>
+        <table class="ac sm">
+          <tr><th>模型</th><th>英→德</th><th>英→法</th></tr>
+          <tr><td>此前最好（集成）</td><td>26.36</td><td>41.29</td></tr>
+          <tr><td><b>Transformer base</b></td><td><b>27.3</b></td><td><b>38.1</b></td></tr>
+          <tr><td><b>Transformer big</b></td><td><b>28.4</b></td><td><b>41.8</b></td></tr>
+        </table>
+        <p style="margin-top:6px;font-size:18px">英德单模型即超过此前所有已发表结果；英法 big 反超集成系统。而且<b>训练成本只有对手的几分之一</b>——这才是论文最有说服力的地方。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 输入表示 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">输入表示：词嵌入 + 位置编码</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">输入向量（每个位置一个 d_model 维向量）
+
+    输入<sub>i</sub> = Embedding( token<sub>i</sub> ) × <b>√d_model</b>  +  PE( pos<sub>i</sub> )
+                    └────── 语义向量（可学习）──────┘      └─ 位置向量（论文里是固定函数）─┘
+
+    d_model = 512；pos = 0, 1, 2, …（位置下标）</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 词嵌入从哪来</div>
+        <p>子词切分（第 4 讲 BPE/WordPiece）→ 查表得到可学习向量（第 5 讲词向量思想的“静态版”，但这里是从零和模型一起训练）。</p>
+        <p>词表大小约 3–5 万，嵌入表 |V| × d_model。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 为什么要乘 √d_model</div>
+        <p>位置编码的数值在 [−1, 1] 附近；而 d 维随机向量的范数约 <b>√d</b>（方差为 1 时）。</p>
+        <p>若直接相加，位置信号相对太小、容易被淹没。乘 √d_model 让两者<b>量级相当</b>——这是一处典型的工程细节。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">③ 为什么相加而不是拼接</div>
+        <p>拼接会让维度翻倍（512 → 1024），参数量与计算量都增加；相加在经济性上更好。</p>
+        <p>论文的消融显示两者效果相当，于是选择了更经济的相加。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句提醒：<span class="k">token 嵌入是“这个词是什么”，位置编码是“它在第几个位置”</span>——两者相加构成完整的输入表示。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 位置编码的必要性 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么必须有位置编码：置换等变</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-warn tight"><div class="h">自注意力是“位置盲”的</div>
+        <div class="code xs" style="background:#fff">猫 追 鱼   →  输出 A  B  C
+鱼 追 猫   →  输出 C  B  A     <span class="c">← 只是换序！</span>
+
+Attention(Q,K,V) = softmax( QKᵀ / √d_k ) V
+<span style="color:#B03A36">公式里没有任何一项用到绝对位置</span>
+→ 打乱输入行序，输出跟着打乱（置换等变）</div>
+        <p style="margin-top:8px">但「猫追鱼」与「鱼追猫」语义完全不同——<b>语序就是语义</b>，必须显式注入位置。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">三种位置信息来源的对比</div>
+        <table class="ac sm">
+          <tr><th>模型</th><th>位置信息从哪来</th></tr>
+          <tr><td><b>RNN</b></td><td>隐含在<b>计算顺序</b>里——第 t 步自然对应第 t 个词</td></tr>
+          <tr><td><b>CNN</b></td><td>隐含在<b>卷积核的位置</b>里——滑窗天然区分前后</td></tr>
+          <tr><td><b>Transformer</b></td><td>计算本身与顺序无关 → 必须<b>显式注入</b>位置编码</td></tr>
+        </table>
+        <p style="margin-top:8px">这是并行化换来的代价：<b>用一次矩阵乘取代 n 次串行计算，就必须额外告诉模型“谁在前、谁在后”。</b></p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">课堂验证（1 分钟）</div>
+      <p style="font-size:19px">把 Q、K、V 的三行同时交换（1↔3），你会看到 S 与 P 的对应行列也交换，最终输出仍然是 V 的加权混合、只是换了个顺序。<b>“位置盲”是可以通过动手验证的数学事实，不是比喻。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 自注意力直觉 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自注意力直觉：每个位置都在做一次“软检索”</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">Q · Query 查询</div>
+        <p style="font-size:19px">“<b>我想找什么</b>”——每个 token 向全句发出的查询向量。</p>
+        <p>例：生成/理解“鱼”时，它可能想找“谁在追我”。</p>
+        <p>来自输入与 W<sup>Q</sup> 的线性投影。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">K · Key 键</div>
+        <p style="font-size:19px">“<b>我是什么</b>”——用来被别人的 query 匹配的向量。</p>
+        <p>例：“追”这个位置的 key 会与“鱼”的 query 高度匹配。</p>
+        <p>来自输入与 W<sup>K</sup> 的线性投影。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">V · Value 值</div>
+        <p style="font-size:19px">“<b>匹配上之后给什么</b>”——真正被加权取走的信息。</p>
+        <p>例：匹配到“追”之后，把“追赶”这个语义内容按权重取回来。</p>
+        <p>来自输入与 W<sup>V</sup> 的线性投影。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:14px"><div class="h">与第 10 讲注意力的唯一区别</div>
+      <p style="font-size:19.5px">第 10 讲的注意力是 <b>Q 来自解码器、K/V 来自编码器</b>（跨序列对齐）；自注意力是 <b>Q、K、V 全部来自同一个序列</b>——“self”这个词就是这个意思：<b>每个位置查整个句子，包括它自己</b>。</p>
+    </div>
+    <div class="qbar sm">检索三步（与第 10 讲完全同构）：<span class="k">① query 与每个 key 算相似度 → ② softmax 归一化成权重 → ③ 按权重加权取 value</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 Q/K/V 投影 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Q/K/V 从哪来：三个线性投影</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">输入矩阵：X ∈ R<sup>n × d_model</sup>     <span class="c">← n 个 token 的向量堆叠</span>
+
+    Q = X · W<sup>Q</sup>        W<sup>Q</sup> ∈ R<sup>d_model × d_k</sup>
+    K = X · W<sup>K</sup>        W<sup>K</sup> ∈ R<sup>d_model × d_k</sup>
+    V = X · W<sup>V</sup>        W<sup>V</sup> ∈ R<sup>d_model × d_v</sup>
+
+    base 配置： d_model = 512， d_k = d_v = 64</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 三个视角，同一份输入</div>
+        <p>Q/K/V 都不是输入本身，而是<b>同一输入在三个不同投影下的三个视角</b>。</p>
+        <p>这样模型才能分别学习“我想找什么”“我是什么”“我能给什么”——如果直接用 X 当三者，灵活性会大幅下降。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 投影是共享参数</div>
+        <p>W<sup>Q</sup>、W<sup>K</sup>、W<sup>V</sup> 是<b>可学习参数</b>，在所有位置共享（与 RNN 的参数共享同理）。</p>
+        <p>参数量各为 d_model × d_k = 512 × 64 = 32,768；三个加起来不到 10 万。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">两个易错点</div>
+        <ul>
+          <li>以为 Q/K/V 是三个<b>不同的输入</b>——不是，它们来自同一个 X</li>
+          <li>以为 d_k 必须等于 d_model——不是，d_k 由头数决定（512/8 = 64）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">自注意力的“学习能力”几乎全部来自这三组投影矩阵</span>——它们决定了每个位置如何提问、如何被匹配、以及给出什么内容。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 核心公式四步 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">核心公式：缩放点积注意力四步拆解</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">Attention( Q , K , V ) = <b>softmax</b>( Q Kᵀ / <b>√d_k</b> ) · V</div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:70px">步骤</th><th style="width:220px">运算</th><th>含义</th><th style="width:150px">形状（n 个 token）</th></tr>
+      <tr><td><b>①</b></td><td>打分  S = Q Kᵀ</td><td>第 i 个 query 与第 j 个 key 的点积——<b>方向越近分越高</b>（第 5 讲相似度）</td><td>n × n</td></tr>
+      <tr><td><b>②</b></td><td>缩放  S / √d_k</td><td>稳住分布、防止 softmax 饱和，下一页给方差推导</td><td>n × n</td></tr>
+      <tr><td><b>③</b></td><td>归一化  P = softmax(·)</td><td><b>按行</b> softmax——每一行和为 1，是各个 key 的注意力分配比例</td><td>n × n</td></tr>
+      <tr><td><b>④</b></td><td>加权  O = P · V</td><td>每个输出是 V 的<b>凸组合</b>（加权平均）——不会凭空造出新方向</td><td>n × d_v</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:12px">
+      <div class="card card-warn tight"><div class="h">① softmax 是<b>按行</b>做的</div>
+        <p>每一行的分母只属于这一行——即“第 i 个位置如何把注意力分配给所有 j”。</p>
+        <p>做成按列是最常见的实现错误，会让每个位置看到的信息失去归一化。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">② n × n 就是 n² 的来源</div>
+        <p>QKᵀ 要算出 <b>每一对位置</b>的相似度，所以打分矩阵是 n×n。</p>
+        <p>序列长度翻倍，这个矩阵的规模翻 4 倍——这是第 39 页显存账本的根源。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">③ 输出是 V 的凸组合</div>
+        <p>每一行权重非负且和为 1，所以输出永远落在 value 向量张成的凸包内。</p>
+        <p>“注意力不会凭空造出新方向”——这条性质在分析模型表达力时非常有用。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 为什么除以 √d_k ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么除以 √d_k：方差推导（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">三步推导（论文脚注 4）
+
+  设 q、k 的各分量<b>独立</b>、均值 0、方差 1
+
+  ① 点积：q · k = Σ<sub>i=1..d_k</sub> qᵢ kᵢ
+     每一项 qᵢkᵢ 的均值为 0、方差为 1
+
+  ② 独立同分布求和 → 均值为 0，<b>方差为 d_k</b>
+     所以点积的标准差 = √d_k
+     d_k = 64 时：标准差 = <b>√64 = 8</b> → 分数容易达到 ±20 以上
+
+  ③ 除以 √d_k → 方差拉回 <b>1</b>，分布保持在 softmax 的有效区间</div>
+    <div class="grid g2 tight" style="margin-top:14px;flex:1">
+      <div class="card card-warn tight"><div class="h">不缩放会怎样：softmax 饱和</div>
+        <p>分数一大，softmax 就变成近似 one-hot：<b>最大项接近 1，其余接近 0</b>。</p>
+        <p>此时 softmax 的雅可比接近 0 —— <b>梯度趋近于 0，模型学不动</b>。这就是“饱和”。</p>
+        <p>数值上还容易溢出（exp(大数) 直接变 inf），需要额外的数值稳定技巧。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">三个必须澄清的说法</div>
+        <ul>
+          <li><b>不是为了“变快”</b>：除以 √d_k 增加了一次缩放运算，代价是正的</li>
+          <li><b>不是为了“变成概率”</b>：归一化是 softmax 干的，跟缩放无关</li>
+          <li><b>是为了稳住梯度</b>：让 softmax 工作在线性区，梯度能传下去</li>
+        </ul>
+        <p style="margin-top:8px">消融实验：去掉缩放，base 模型在英德上的 BLEU 明显下降——这是论文里被实测验证过的细节。</p>
+      </div>
+    </div>
+    <div class="qbar sm">答题模板：<span class="k">“点积方差为 d_k → 标准差 √d_k → 分数过大使 softmax 饱和、梯度趋近 0 → 除以 √d_k 把方差拉回 1”</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 手算① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">手算自注意力 ①：设定与 Q/K/V 投影</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <div class="lead sm" style="margin:0 0 4px">句子：<b>猫 追 鱼</b>　玩具维度 d = 2（真实模型 d_k = 64，其余步骤完全一样）</div>
+    <div class="code sm" style="margin-top:0">输入矩阵 X（每行一个 token）：
+
+    X = [ [1, 0]    ← 猫
+          [1, 1]    ← 追
+          [0, 1] ]  ← 鱼
+
+投影矩阵（为便于手算而设定）：
+
+    W<sup>Q</sup> = [ [1,0] , [0,1] ]         <span class="c">← 单位阵，所以 Q = X</span>
+
+    W<sup>K</sup> = [ [0,1] , [1,1] ]         <span class="c">← [a,b] → [b, a+b]</span>
+
+    W<sup>V</sup> = [ [2,0] , [1,3] ]         <span class="c">← [a,b] → [2a+b, 3b]</span></div>
+    <table class="ac sm" style="margin-top:12px;flex:1">
+      <tr><th style="width:110px">token</th><th>Q = X·W<sup>Q</sup></th><th>K = X·W<sup>K</sup></th><th>V = X·W<sup>V</sup></th></tr>
+      <tr><td><b>猫</b> [1,0]</td><td>[1, 0]</td><td>[0, 1×1+0 = <b>1</b>] 即 [0, 1]</td><td>[2×1+0, 3×0] = [<b>2</b>, <b>0</b>]</td></tr>
+      <tr><td><b>追</b> [1,1]</td><td>[1, 1]</td><td>[1, 1+1] = [<b>1</b>, <b>2</b>]</td><td>[2×1+1, 3×1] = [<b>3</b>, <b>3</b>]</td></tr>
+      <tr><td><b>鱼</b> [0,1]</td><td>[0, 1]</td><td>[1, 0+1] = [<b>1</b>, <b>1</b>]</td><td>[2×0+1, 3×1] = [<b>1</b>, <b>3</b>]</td></tr>
+    </table>
+    <div class="qbar sm">请先把这三列自己算一遍再翻页——<span class="k">投影是手算题的第一步，也是最容易出错的一步</span>（尤其 W<sup>K</sup> 这种把 [a,b] 变成 [b,a+b] 的写法）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 手算② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">手算自注意力 ②：打分 QKᵀ 与缩放</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">第 ① 步：S = Q Kᵀ（逐格点积）</div>
+        <div class="code xs" style="background:#fff">      k猫        k追        k鱼
+      [0,1]      [1,2]      [1,1]
+q猫 [1,0]   <b>0</b>          1          1
+q追 [1,1]   1          <b>3</b>          2
+q鱼 [0,1]   1          2          <b>1</b>
+
+<span class="c">例：q追·k追 = [1,1]·[1,2] = 1+2 = 3</span>
+<span class="c">例：q猫·k猫 = [1,0]·[0,1] = 0（正交！）</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h">第 ② 步：缩放 S / √d_k</div>
+        <div class="code xs" style="background:#fff">√d_k = √2 ≈ <b>1.414</b>
+
+      k猫     k追     k鱼
+q猫   0      0.707   0.707
+q追   0.707  <b>2.121</b>   1.414
+q鱼   0.707  1.414   0.707</div>
+        <p style="margin-top:8px">缩放把数值控制在 softmax 的有效区间（本例数值本来就小，缩放的威力要在大维度下才体现）。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h">两个值得停下来看的现象</div>
+        <ul>
+          <li><b>对角线不一定最大</b>：“猫·猫”为 0（两个向量正交），说明自注意力<b>不是简单地“关注自己”</b></li>
+          <li><b>“追”行分最高</b>：2.121 明显高于其他位置——追这个 token 的表示与上下文交互最强</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么这样可以表达句法</div>
+        <p>Q/K 是<b>可学习</b>的投影。训练之后，模型可以让“动词”的 query 与“宾语”的 key 天然高匹配，于是注意力矩阵自动呈现出主谓宾的对齐结构。</p>
+        <p>这就是第 10 讲『对齐是涌现的副产品』在自注意力里的版本。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 手算③ + 小练习 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">手算自注意力 ③：softmax 与加权输出</span><span class="sec">环节二 · 知识点讲解 · 手算考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">第 ③ 步：逐行 softmax（每行和 = 1）</div>
+        <div class="code xs" style="background:#fff">猫行 exp[0, .707, .707] = [1.00, 2.028, 2.028]  Σ=5.056
+  → P猫 = [<b>0.198</b>, <b>0.401</b>, <b>0.401</b>]
+
+追行 exp[.707, 2.121, 1.414] = [2.028, 8.342, 4.113]  Σ=14.483
+  → P追 = [<b>0.140</b>, <b>0.576</b>, <b>0.284</b>]
+
+鱼行 exp[.707, 1.414, .707] = [2.028, 4.113, 2.028]  Σ=8.169
+  → P鱼 = [<b>0.248</b>, <b>0.503</b>, <b>0.248</b>]</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">第 ④ 步：O = P · V（加权求和）</div>
+        <div class="code xs" style="background:#fff">o猫 = 0.198[2,0] + 0.401[3,3] + 0.401[1,3]
+    = [0.396+1.203+0.401, 0+1.203+1.203]
+    = [<b>2.000</b>, <b>2.406</b>]
+
+o追 = 0.140[2,0] + 0.576[3,3] + 0.284[1,3]
+    = [<b>2.292</b>, <b>2.580</b>]
+
+o鱼 = 0.248[2,0] + 0.503[3,3] + 0.248[1,3]
+    = [<b>2.253</b>, <b>2.253</b>]</div>
+      </div>
+    </div>
+    <div class="grid g23 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h">课堂小练习（90 秒，独立算完同桌互查）</div>
+        <div class="code xs" style="background:#fff">scores = [0, 2, 1]（未缩放），求 softmax
+
+exp: [1.00, 7.39, 2.72]    Σ = 11.11
+答:  [<b>0.090</b>, <b>0.665</b>, <b>0.245</b>]
+
+<span class="c">观察：最大分 2（是次大的 2 倍）也只拿到 0.665</span>
+<span class="c">softmax 是“软”的；若分数放大到 [0,20,10]，</span>
+<span class="c">结果会变成 [0.000, 0.999, 0.000] —— 饱和</span></div>
+      </div>
+      <div class="card card-deep tight"><div class="h">四步流程收束</div>
+        <p style="font-size:19px"><b>投影 → 打分并缩放 → 行 softmax → 加权 V</b>。</p>
+        <p style="font-size:19px;margin-top:6px">这个顺序在多头、编码器、解码器、cross-attention 里完全一致——区别只在 Q/K/V 从哪来、有没有 mask。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 并行性 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">矩阵形式：一锅端 vs 一步一步</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">RNN：串行 n 步</div>
+        <div class="code xs" style="background:#fff">h₁ → h₂ → h₃ → … → hₙ
+<span class="c">第 t 步必须等第 t−1 步算完</span></div>
+        <p style="margin-top:8px">像<b>传话游戏</b>：一句话要传 n 个人，每个人都要等前一个人说完。</p>
+        <p>GPU 数千核心大多<b>在等待</b>；序列越长越慢；前向与反向的串行深度都是 <b>O(n)</b>。</p>
+        <p>这正是第 8 讲“串行瓶颈”的正式表述。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">自注意力：两步矩阵乘法</div>
+        <div class="code xs" style="background:#fff">S = Q Kᵀ      <span class="c">← n×n 个匹配分数，一次算完</span>
+O = P · V     <span class="c">← 再一次矩阵乘法</span>
+
+串行操作：<b>O(1)</b>   <span class="c">← 序列所有位置同时参与</span></div>
+        <p style="margin-top:8px">整句一次性喂进 GPU，几千个核心<b>同时满载工作</b>。</p>
+        <p>这就是 Transformer 能“吃掉”海量算力、进而支撑大模型规模扩展的<b>根本原因</b>。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:14px"><div class="h">一个必须点明的因果链</div>
+      <p style="font-size:20px">并行 → 同样时间能训练更大的模型 → 模型更大需要更多数据 → 数据更多又需要更大模型……<b>大模型的规模军备竞赛，在工程上是被“可并行”这一条性质打开的。</b>而没有并行，再多的算力也换不来更大的模型。</p>
+    </div>
+    <div class="qbar sm">代价也要说清：<span class="k">用 n² 的计算与显存，换来了 O(1) 的串行深度</span>——这笔交易在 2017 年之后被证明极其划算。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 复杂度表 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Table 1：复杂度与路径长度对比（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:230px">层类型</th><th>每层计算量</th><th style="width:180px">最少串行操作</th><th style="width:170px">最大路径长度</th></tr>
+      <tr><td><b>自注意力</b></td><td><b>O( n² · d )</b></td><td><b>O( 1 )</b></td><td><b>O( 1 )</b></td></tr>
+      <tr><td>循环层（RNN）</td><td>O( n · d² )</td><td>O( n )</td><td>O( n )</td></tr>
+      <tr><td>卷积层</td><td>O( k · n · d² )</td><td>O( 1 )</td><td>O( log<sub>k</sub> n )</td></tr>
+      <tr><td>受限自注意力（邻域 r）</td><td>O( r · n · d )</td><td>O( 1 )</td><td>O( n / r )</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">结论 ① 计算量不是绝对优势</div>
+        <p>n &lt; d 时，O(n²·d) 可能小于 O(n·d²)——所以在<b>短序列</b>上 RNN 的计算量反而更小。</p>
+        <p>Transformer 的优势建立在<b>长序列 + 并行硬件</b>这两个前提上。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">结论 ② 串行与路径完胜</div>
+        <p>串行操作 O(1) 意味着训练可以完全并行——这是工程上的决定性优势。</p>
+        <p>路径长度 O(1) 意味着任意两位置的信息<b>一跳直达</b>，梯度不随距离衰减——这是建模上的决定性优势。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">结论 ③ 表格即权衡</div>
+        <p style="color:#E9F0FA">这张表是全讲最好的教学材料：<b>它同时告诉你收益（后两列）与代价（第一列）</b>。看懂它，就理解了为什么 2017 年之后整个领域换了骨架，也理解了为什么后来所有人都在解决 n²。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 多头定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">多头注意力：定义与公式</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">MultiHead( Q , K , V ) = <b>Concat</b>( head₁ , … , head<sub>h</sub> ) · W<sup>O</sup>
+
+    head<sub>i</sub> = Attention( Q · W<sub>i</sub><sup>Q</sup> ,  K · W<sub>i</sub><sup>K</sup> ,  V · W<sub>i</sub><sup>V</sup> )
+
+    base 配置：h = 8
+    W<sub>i</sub><sup>Q</sup> ∈ R<sup>512 × 64</sup>    W<sub>i</sub><sup>K</sup> ∈ R<sup>512 × 64</sup>    W<sub>i</sub><sup>V</sup> ∈ R<sup>512 × 64</sup>
+    W<sup>O</sup> ∈ R<sup>512 × 512</sup></div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 切分子空间</div>
+        <p>把 512 维切成 <b>8 个 64 维子空间</b>，每个头在各自的子空间里独立做一次完整的注意力。</p>
+        <p>所以“多头”不是复制 8 次，而是<b>把表示空间分成 8 份</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 拼接再融合</div>
+        <p>8 个头的输出（各 n×64）拼接成 n×512，再过一次线性层 <b>W<sup>O</sup></b> 融合。</p>
+        <p>这一步很关键：它让不同头的信息发生<b>交叉组合</b>，而不是简单并列。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">③ 参数量几乎不变</div>
+        <p>8 个 512×64 的投影拼起来，参数量等于一个 512×512 的投影。</p>
+        <p><b>多头不是“8 个独立模型”</b>——它们共享同一份输入与同一份位置信息，只是看不同的子空间。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">把一个大注意力拆成 h 个小注意力，让不同的头去学不同的关系模式，最后再融合</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 多头数据流 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">多头数据流：分 → 治 → 合</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="code xs" style="margin-top:0">x  ( n × 512 )
+│
+├─ head₁ : 投影→64 维 Q/K/V → 注意力 → 输出 n×64 ─┐
+├─ head₂ : 投影→64 维 Q/K/V → 注意力 → 输出 n×64 ─┤
+│   ⋮   （8 个头<b>完全并行、互不干扰</b>）              ├─→ Concat → n×512
+└─ head₈ : 投影→64 维 Q/K/V → 注意力 → 输出 n×64 ─┘        ↓
+                                                        × W<sup>O</sup> ( 512×512 )
+                                                             ↓
+                                                        输出 n×512</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">分：投影到子空间</div>
+        <p>输入 n×512，通过 8 组独立的投影矩阵得到 8 组 Q/K/V，每组维度 n×64。</p>
+        <p>参数 8 × 3 × (512×64) = 786,432（三个投影合计）。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">治：各自做注意力</div>
+        <p>每个头独立执行“打分 → 缩放 → 行 softmax → 加权”，得到 8 个不同的注意力分布。</p>
+        <p><b>8 个头可以完全并行</b>——这是多头在实践中几乎不增加时间开销的原因。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">合：拼接 + 融合</div>
+        <p>8 个 n×64 拼接成 n×512，再经 W^O 融合成 n×512。</p>
+        <p><b>实现提示</b>：不必真的写 8 次循环——把 512 维 reshape 成 8×64，用一次批量矩阵乘完成（PyTorch 的 nn.MultiheadAttention 就是这么做的）。</p>
+      </div>
+    </div>
+    <div class="qbar sm">工程视角：<span class="k">多头是“参数不变、并行度不变，但表达能力变强”的改进</span>——这也是它几乎零成本被所有模型采纳的原因。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 为什么多头 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么多头：让每种关系有专属通道</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">理论：单头是“竞争性”的</div>
+        <p>一个 softmax 的权重和必须为 1——<b>关注了句法就难同时关注指代</b>。</p>
+        <p>例如分析“他把书放在桌子上，因为它太重了”：“它”既要对齐“书”（指代），又要与“太重”建立主谓关系。单个注意力分布要同时装下这两种关系，必然互相挤压。</p>
+        <p>切成 h 个子空间后，每个头<b>独立学一种模式，互不抢权重</b>；低维（64）还起到正则作用。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">实证：BERT 的头确实有分工</div>
+        <p>Clark 等 2019 对 BERT 的注意力头做了系统分析，发现存在功能明确的“专家头”：</p>
+        <table class="ac sm" style="margin-top:6px">
+          <tr><th style="width:150px">头的类型</th><th>行为模式</th></tr>
+          <tr><td><b>位置头</b></td><td>专盯前一个词或下一个词——负责局部顺序</td></tr>
+          <tr><td><b>句法头</b></td><td>对齐句法依存关系（动词↔宾语、名词↔修饰语）</td></tr>
+          <tr><td><b>低频词头</b></td><td>专门关注罕见词或特殊符号，如 [SEP]、句末标点</td></tr>
+        </table>
+        <p style="margin-top:8px">把某些头单独剪掉，模型在特定任务上的表现会明显下降——这从反面说明了分工是真实的。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句话总结</div>
+      <p style="font-size:19.5px">多头不是为了“更大”，而是为了<b>表达更多种关系</b>：一个头只能给出一种注意力分布，而语言里的关系（顺序、句法、指代、共指、语篇）远不止一种。<b>把表示空间分成若干子空间，各自负责一类关系——这是多头最本质的动机。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 头数消融 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">消融证据：头数不是越多越好</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0">
+      <tr><th style="width:130px">头数 h</th><th>1</th><th>4</th><th>8（base）</th><th>16</th><th>32</th></tr>
+      <tr><td><b>每头维度 d_k</b></td><td>512</td><td>128</td><td><b>64</b></td><td>32</td><td>16</td></tr>
+      <tr><td><b>WMT14 英德 dev BLEU</b></td><td>24.9</td><td>25.5</td><td><b>25.8</b></td><td>25.4</td><td>25.4</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">结论 ①：多头确实有效</div>
+        <p>单头比 8 头<b>低 0.9 BLEU</b>——在一个已经很强的系统上，这是相当可观的差距。</p>
+        <p>它证明“分成多个子空间各自学一种关系”这个设计是有实质收益的。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">结论 ②：不是越多越好</div>
+        <p>h=16/32 不再提升，因为<b>每头维度被切得太薄</b>（h=32 时 d_k 只有 16），单个头的表达能力受损。</p>
+        <p>存在一个最优点：维度够宽能表达关系，头够多能容纳多种关系。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">结论 ③：超参数耦合</div>
+        <p style="color:#E9F0FA">头数 h、每头维度 d_k、总宽度 d_model 三者必须匹配（d_k = d_model / h）。<b>不能单独调一个</b>——这提醒我们：调超参数时要想清楚“动的是容量还是结构”。</p>
+      </div>
+    </div>
+    <div class="qbar sm">现代实践：今天的大模型普遍采用 <span class="k">d_k = 64–128</span> 这一量级，头数随宽度同步放大（如 d_model=4096 配 32 头）——遵循的正是这张表揭示的规律。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 正弦位置编码 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正弦位置编码：公式（论文 Sec 3.5）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">PE( pos , 2i )   = <b>sin</b>( pos / 10000<sup> 2i / d_model</sup> )
+PE( pos , 2i+1 ) = <b>cos</b>( pos / 10000<sup> 2i / d_model</sup> )
+
+    pos ：token 的位置（0, 1, 2, 3, …）
+    i   ：维度下标（0 … d_model/2 − 1），base 时 i = 0 … 255
+    d_model = 512 → 256 对 (sin, cos) 维度</div>
+    <div class="grid g2 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">逐项读公式</div>
+        <ul>
+          <li><b>偶数维用 sin、奇数维用 cos</b>——成对出现，保证每个位置都有一组完整的“相位”</li>
+          <li>分母 <b>10000^(2i/d_model)</b> 控制频率：i 越大频率越高、波长越短</li>
+          <li>i = 0 时波长最长（10000·2π ≈ 62832），可以编码极远距离</li>
+          <li>i = 255 时波长最短（约 2π），可以分辨相邻位置</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么用固定函数而不是学出来的</div>
+        <ul>
+          <li><b>零参数</b>：不增加模型容量，也不增加过拟合风险</li>
+          <li><b>可外推</b>：因为它是定义在所有实数位置上的连续函数，测试时可以算到训练时未见过的更长位置</li>
+          <li>论文实测：可学习位置嵌入（25.7）与正弦（25.8）几乎相同，选正弦主要是看重外推性</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">实现提示：<span class="k">pos 与 i 都从 0 开始计数</span>；用外积一次性生成矩阵（pos 向量 × 频率向量）而不是双重循环。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 正弦三直觉 + 可学习 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正弦编码的三个直觉，与可学习方案</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>频率阶梯</div>
+        <p>256 对维度 = <b>256 个不同频率</b>：最快波长 2π（分辨相邻位置），最慢 10000·2π（编码远距离）。</p>
+        <p>像<b>二进制计数器</b>：低位每步翻转、高位很久才动——组合起来唯一表示每个位置。</p>
+        <p>这让每个位置有一个“指纹”，且不同位置的指纹不会重复。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>相对位置可线性表示</div>
+        <p>三角恒等式保证：对任意固定偏移 k，<b>PE(pos+k) 可以写成 PE(pos) 的线性变换</b>（旋转矩阵）。</p>
+        <p>于是模型很容易学到“相隔 3 个词”这类<b>相对距离</b>的规律，而不需要为每个绝对位置单独学习。</p>
+        <p>这条性质是后来 RoPE 旋转位置编码的直接思想源头。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>可学习位置嵌入</div>
+        <p>另一条路：把 PE 做成 <b>n_max × d_model 的参数表</b>（如 512×512），随机初始化，与词嵌入一起端到端学。</p>
+        <p>论文实测：可学习 <b>25.7</b> vs 正弦 <b>25.8</b>——<b>几乎相同</b>。</p>
+        <p>论文选正弦，看重的是外推性。实践提示：可学习表无法处理超出 n_max 的位置。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句工程判断</div>
+      <p style="font-size:19.5px">正弦与可学习在原始规模下效果相当，说明<b>“位置信息必须注入”这一点是本质的，而“用什么方式注入”在中等长度下并不敏感</b>。但当上下文长度成为竞争焦点（几万到几十万 token）时，编码方式就开始决定成败——这就是后面 RoPE、ALiBi 等方案层出不穷的原因。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 相对位置与 RoPE ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">相对位置编码与 RoPE（实例层 · 拓展）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-warn tight"><div class="h">动机：语言规律多是“相对”的</div>
+        <p>“形容词修饰紧邻右侧名词”“代词回指前文”——这些规律<b>与绝对位置无关</b>。</p>
+        <p>绝对编码要对每个位置分别学；<b>相对编码天然跨位置共享</b>，因此更容易外推到更长的序列。</p>
+        <table class="ac sm" style="margin-top:8px">
+          <tr><th style="width:180px">方案</th><th>做法</th></tr>
+          <tr><td><b>Shaw 等 2018</b></td><td>把相对距离当偏置加到打分上：score(i,j) = q<sub>i</sub>·k<sub>j</sub> + q<sub>i</sub>·e<sub>i−j</sub></td></tr>
+          <tr><td><b>T5 相对位置桶</b></td><td>把相对距离分桶，每个桶一个可学习偏置，直接加到 logits 上。<b>实现最简单</b></td></tr>
+        </table>
+      </div>
+      <div class="card card-blue tight"><div class="h">RoPE：旋转位置编码（Su 等 2021）</div>
+        <div class="code xs" style="background:#fff">核心思想：<b>绝对地旋转，相对地度量</b>
+
+位置 pos 的 q、k 各乘旋转矩阵 R(pos·θ)
+
+打分： ( R(m) q )ᵀ ( R(n) k ) = qᵀ <b>R(m − n)</b> k
+                              └─ 只依赖相对距离 m−n ─┘
+
+二维直觉：向量按位置<b>旋转固定角度</b>；
+两向量夹角差只由<b>距离</b>决定
+
+512 维 → 两两分组、多频率旋转（与正弦编码同源）</div>
+        <p style="margin-top:8px"><b>优势</b>：不增加参数；天然具备相对位置性质；可通过调整旋转频率做长度外推。</p>
+        <p><b>现状</b>：今天主流开源大模型（Llama、Qwen、GLM 等）普遍采用 RoPE 或其变体。</p>
+      </div>
+    </div>
+    <div class="qbar sm">本页属于<span class="k">实例层</span>：考试只要求知道“绝对 → 相对 → 旋转”这条演进方向与各自的动机，不要求推导旋转矩阵。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 31 残差连接 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">残差连接：深度网络的梯度高速路</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">一行公式，两个视角
+
+    out = <b>x + Sublayer( x )</b></div>
+    <div class="grid g2 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">前向视角：只学“增量修正”</div>
+        <p>恒等捷径让原始信息<b>无损直达</b>下一层；子层只负责学“需要改动多少”。</p>
+        <p>学 ΔF 比学完整的 F 容易得多——尤其在深层网络里，大部分层的任务其实只是<b>微调</b>表示。</p>
+        <p>直觉类比：修改一份文档比重写一份文档容易。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">反向视角：一条梯度高速路</div>
+        <div class="code xs" style="background:#fff">∂out / ∂x = <b>I</b> + ∂Sublayer / ∂x
+            └─ 单位阵：不经衰减的直达通路 ─┘</div>
+        <p style="margin-top:8px">梯度可以沿单位阵 I <b>无损地</b>回传到很浅的层，不会像纯堆叠那样指数衰减。</p>
+        <p>这与第 8 讲 LSTM 的<b>加法主路</b>（∂Cₜ/∂Cₜ₋₁ ≈ diag(fₜ)）是同一个思想：<b>用加性通路对抗乘性衰减。</b></p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">深度账（现场算一遍）</div>
+      <p style="font-size:19.5px">编码器 = 6 层 × 2 子层 = <b>12 个子层</b>；解码器 = 6 层 × 3 子层 = <b>18 个子层</b>；合计 <b>30 个子层</b>。若把残差拆开，相当于一个 30 层以上的深网络——<b>没有残差，这样的深度几乎不可能稳定训练</b>。而今天的 GPT 系模型动辄几十上百层，靠的正是这条通路。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 LayerNorm ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">LayerNorm：给每层的分布“校准”</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">LN( x ) = γ ⊙ ( x − μ ) / √( σ² + ε )  +  β
+
+    μ, σ² ：对<b>这一个样本的 d_model 维特征</b>统计
+            （不是对 batch 统计 —— 这是 LN 与 BatchNorm 的关键区别）
+    γ, β  ：可学习的缩放 / 平移参数（保住表达力）
+    ε     ：极小常数，防止除零</div>
+    <div class="grid g2 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">手算小例（考点）</div>
+        <div class="code xs" style="background:#fff">x = [1, 2, 3]
+
+μ  = (1+2+3)/3 = <b>2</b>
+σ² = (1+0+1)/3 = <b>0.667</b>   →  σ ≈ 0.816
+
+(x − μ)/σ = [−1.225, 0, 1.225]
+
+若 γ = 1, β = 0 → 输出 = [<b>−1.225, 0, 1.225</b>]
+（均值 0、标准差 1）</div>
+      </div>
+      <div class="card card-blue tight"><div class="h">三个必须说清的问题</div>
+        <ul>
+          <li><b>为什么用 LN 而不是 BN？</b>序列长度可变、batch 内样本差异大；LN 逐样本统计，<b>不依赖 batch</b>，训练与推理行为一致</li>
+          <li><b>γ、β 为什么必需？</b>纯归一化会把表示限制在零均值单位方差，丢失尺度信息；可学习的 γ、β 让模型自己决定要多少归一化</li>
+          <li><b>放在哪？</b>Post-LN（论文原版）放在子层之后；Pre-LN（现代实现）放在子层之前——下一页专门讲这个差别</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar sm">一句话：<span class="k">残差给通路，LayerNorm 给稳定</span>——Transformer 能堆深的两个前提条件。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 33 Pre-LN 与 RMSNorm ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Post-LN vs Pre-LN vs RMSNorm</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-warn tight"><div class="h">Post-LN（论文原版 2017）</div>
+        <div class="code xs" style="background:#fff">out = LN( x + Sublayer( x ) )
+      └─ 归一化放在残差块<b>之后</b> ─┘</div>
+        <p style="margin-top:8px">Xiong 等 2020 用平均场理论证明：初始化时，<b>接近输出层的参数梯度期望偏大</b>，越深越严重。</p>
+        <p>后果：必须使用精细的<b>学习率 warmup</b>（原论文用了 4000 步），否则训练发散。这既拖慢优化，又增加调参负担。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">Pre-LN（现代实现主流）</div>
+        <div class="code xs" style="background:#fff">out = x + Sublayer( LN( x ) )
+           └─ 归一化放在子层<b>之前</b> ─┘</div>
+        <p style="margin-top:8px"><b>优势</b>：梯度尺度更稳定，可以去掉 warmup 或大幅缩短，训练更易收敛，对超参数更宽容。</p>
+        <p><b>代价</b>：在极深的网络里最终效果略逊于调好的 Post-LN——但可以通过加层数弥补。</p>
+        <p><b>现状</b>：今天绝大多数大模型用 Pre-LN。</p>
+      </div>
+    </div>
+    <div class="grid g2 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">RMSNorm：LayerNorm 的瘦身版</div>
+        <div class="code xs" style="background:#fff">LN( x )      = γ ⊙ ( x − μ ) / √(σ² + ε) + β
+RMSNorm( x ) = γ ⊙  x / RMS( x )
+RMS( x )     = √( (1/d) Σ<sub>i</sub> xᵢ² )</div>
+        <p style="margin-top:8px">去掉 re-centering（不减均值），只保留 re-scaling；也去掉了 β。消融发现 <b>re-scaling 才是收益的主要来源</b>，因此 RMSNorm 更省算力、效果相当。</p>
+        <p>今天被 Llama、Qwen、GLM 等主流开源模型采用。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">一个值得记住的规律</div>
+      <p style="font-size:19px;color:#E9F0FA">从 Post-LN 到 Pre-LN，从 LayerNorm 到 RMSNorm，都是同一件事：<b>把“能不能训起来”的负担从“精细调参”转移到“结构设计”上</b>。这也是深度学习工程的一个普遍趋势——让默认配置就能工作。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 FFN ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">FFN：逐位置的两层 MLP</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">FFN( x ) = max( 0 , x W₁ + b₁ ) W₂ + b₂
+            └── ReLU ──┘
+
+    W₁ ∈ R<sup>512 × 2048</sup>    <span class="c">← 升维 4 倍</span>
+    W₂ ∈ R<sup>2048 × 512</sup>    <span class="c">← 降回原维度</span>
+
+    论文注：等价于两个核宽为 1 的卷积（即逐位置、不跨位置）</div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 逐位置</div>
+        <p>每个位置<b>独立</b>做同一个 MLP，<b>不跨位置交互</b>。</p>
+        <p>所以 FFN 不负责“信息搬运”——那是注意力的工作；它负责在每个位置上<b>加工特征</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 中间升维 4 倍</div>
+        <p>512 → 2048 → 512：先升维再做非线性，再降回来。</p>
+        <p>这是经典的“瓶颈式”设计——<b>给非线性变换留出足够空间</b>。4 倍是论文选定的比例，后来大模型多用 8/3 或 4 倍左右。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">③ 参数共享</div>
+        <p>所有位置共享同一套 W₁、W₂——与注意力一样是参数共享。</p>
+        <p>激活函数从 ReLU 演进到 GELU、SwiGLU（第 6 讲与后续章节会提到），但结构不变。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">分工一句话</div>
+      <p style="font-size:20px"><b>注意力负责“在不同位置之间搬运信息”，FFN 负责“在每个位置上加工信息”。</b>两者交替堆叠，构成了 Transformer 层的基本节奏：<b>混合 → 加工 → 混合 → 加工……</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 FFN 参数占比 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">FFN 参数占比：被低估的大户</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="code sm" style="margin-top:0">每层参数账（d_model = 512，d_ff = 2048，现场列式算）
+
+  注意力： 4 × 512²  = 4 × 262,144  = <b>1,048,576 ≈ 105 万</b>
+           <span class="c">（W^Q、W^K、W^V、W^O 四个 512×512 的等效矩阵）</span>
+
+  FFN   ： 2 × 512 × 2048 = 2 × 1,048,576 = <b>2,097,152 ≈ 210 万</b>
+           <span class="c">（W₁ 升维 + W₂ 降维）</span>
+
+  → FFN ≈ 注意力的 <b>2 倍</b>，占每层参数约 <b>2/3</b></div>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 多头切分不改变参数总量</div>
+        <p>8 个 512×64 的投影拼起来，参数量等于一个 512×512 的投影。</p>
+        <p>所以“多头”几乎不增加参数——它改变的是<b>结构</b>而不是规模。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 大模型时代 FFN 占比更高</div>
+        <p>现代大模型的 d_ff 常取 d_model 的 4 倍甚至更多（MoE 里可达数十倍）。</p>
+        <p>结论：<b>当你听到“模型有 70B 参数”时，其中大部分其实在 FFN 里</b>——不在注意力里。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">③ 这就是 MoE 的动机</div>
+        <p style="color:#E9F0FA">既然 FFN 是参数大户，把它换成<b>多个专家</b>、每个 token 只激活其中一两个，就能在参数量暴涨的同时让计算量基本不变——这就是混合专家（MoE）的核心思路，也是今天许多大模型的架构选择。</p>
+      </div>
+    </div>
+    <div class="qbar sm">一个判断题：<span class="k">注意力是 Transformer 的“招牌”，但 FFN 才是参数与计算的大头</span>——读论文时要看清参数表，不要被名字误导。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 36 三种注意力 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三种注意力：一张表钉死区别（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:230px">类型</th><th>Q 来源</th><th>K / V 来源</th><th style="width:200px">可见范围</th><th style="width:150px">职责</th></tr>
+      <tr><td><b>① 编码器自注意力</b></td><td>编码器上一层</td><td>同 Q（同源）</td><td>全部位置，<b>双向</b></td><td>读懂源句</td></tr>
+      <tr><td><b>② 解码器掩码自注意力</b></td><td>解码器上一层</td><td>同 Q（同源）</td><td>仅 <b>≤ 当前位置</b></td><td>基于已生成内容续写</td></tr>
+      <tr><td><b>③ Cross-Attention</b></td><td><b>解码器</b>上一子层</td><td><b>编码器</b>输出 memory</td><td>源句全部位置</td><td>写时回查原文</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px;flex:1">
+      <div class="card card-blue tight"><div class="h">共同点</div>
+        <p>三者的<b>计算公式完全相同</b>：softmax(QKᵀ/√d_k)·V，四步流程一模一样。</p>
+        <p>差别只有两处：<b>Q/K/V 从哪来</b>，以及<b>可见范围（有没有 mask）</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么理解可以双向、生成必须单向</div>
+        <p><b>理解</b>（分类、标注、抽取）时整句都已知，双向能获得更完整的上下文——这是 BERT 的基础。</p>
+        <p><b>生成</b>时第 t 个词的预测不能看到 t 之后的内容，否则就是“抄答案”——这是 GPT 的基础。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">这张表通向三种范式</div>
+        <p style="color:#E9F0FA"><b>只用①</b> → 编码器-only（BERT）；<b>只用②</b> → 解码器-only（GPT）；<b>①+②+③</b> → 编码器-解码器（原始 Transformer、T5）。三种范式在本质上的差别就是<b>这张表的组合方式</b>。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">36</span></div>
+</section>
+
+<!-- ================= 37 Causal Mask ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Causal Mask：不许偷看未来（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">4×4 可见性矩阵（行 = query i，列 = key j）</div>
+        <table class="ac sm">
+          <tr><th>i \ j</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+          <tr><td><b>1</b></td><td>✓</td><td>−∞</td><td>−∞</td><td>−∞</td></tr>
+          <tr><td><b>2</b></td><td>✓</td><td>✓</td><td>−∞</td><td>−∞</td></tr>
+          <tr><td><b>3</b></td><td>✓</td><td>✓</td><td>✓</td><td>−∞</td></tr>
+          <tr><td><b>4</b></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        </table>
+        <p style="margin-top:8px">位置 i 只能看 ≤ i —— <b>下三角允许，上三角禁止</b>。这就是“causal”（因果）的含义：预测只能依赖过去。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">机制：把禁止位置的分数设成 −∞</div>
+        <div class="code xs" style="background:#fff">S = QKᵀ / √d_k
+S = S + mask        <span class="c">mask 中禁止位 = −∞（实现用 −1e9）</span>
+P = softmax( S , dim = −1 )
+
+<span class="c">exp(−∞) = 0 → 禁止位置的权重严格为 0</span>
+<span class="c">每行仍然归一化，和为 1（只在可见位置内分配）</span></div>
+      </div>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-warn tight"><div class="h">易错点 ① 作用位置</div>
+        <p>mask 必须加在 <b>softmax 之前</b>的分数上。如果作用在 softmax 之后的输出上，归一化已经包含了被禁止的位置，权重不再是合法的概率分布。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">易错点 ② 什么时候需要</div>
+        <p>推理时逐词生成，天然看不到未来——<b>不需要 mask</b>。只有训练时整句并行计算，才必须加 mask 防止“抄答案”。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">易错点 ③ padding 也要屏蔽</div>
+        <p>一个 batch 里不同样本长度不同，需要 padding。PAD 位置也必须屏蔽，否则它们会分走注意力权重，损害真实内容的对齐。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 Cross-Attention ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Cross-Attention：两塔之间唯一的桥</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g23 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">接线方式（唯一要点）</div>
+        <div class="code xs" style="background:#fff">Q      ← 解码器上一子层的输出   <span class="c">“我要生成什么”</span>
+K , V  ← 编码器输出 memory      <span class="c">“源句有什么”</span>
+
+score = Q Kᵀ / √d_k  →  softmax  →  加权 V</div>
+        <p style="margin-top:8px"><b>例</b>：编码器读入「猫 追 鱼」，解码器生成到 “tail” 时，query 与三个 key 匹配，<b>“鱼”的分数最高</b>，于是这一步的输出主要由“鱼”的 value 主导——模型因此写出了“尾巴”。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">权重就是一张软对齐矩阵</div>
+        <p>cross-attention 的注意力权重天然是一个<b>目标位置 × 源位置</b>的矩阵——正是第 10 讲那张对齐热图。</p>
+        <p><b>无需任何对齐标注</b>，对齐在训练中自动涌现。这是『jointly learning to align』在 Transformer 里的延续。</p>
+        <p>工程价值：翻译系统可以直接输出这张矩阵做漏译排查与术语一致性检查。</p>
+      </div>
+    </div>
+    <div class="grid g3 tight" style="margin-top:12px;flex:1">
+      <div class="card card-blue tight"><div class="h">① 唯一的桥</div>
+        <p>删掉 cross-attention，解码器就<b>完全看不到源句</b>——它会变成一个纯语言模型，只会续写不会翻译。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 不加 causal mask</div>
+        <p>源句是<b>全部已知</b>的，所以 cross-attention 不需要 causal mask，每个目标位置都能看到完整源句。</p>
+        <p>但仍需屏蔽源句的 padding 位置。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">③ 与自注意力的区别</div>
+        <p>自注意力是『自己看自己』（Q/K/V 同源）；cross-attention 是『解码器看编码器』（Q 与 K/V 异源）。</p>
+        <p>公式一样，接线不同——这也是为什么理解『Q/K/V 从哪来』比记公式更重要。</p>
+      </div>
+    </div>
+  </div>
+  <div class="qbar sm">呼应第 10 讲：<span class="k">cross-attention 就是 Bahdanau 注意力的 Transformer 版本</span>——只不过主干从 RNN 换成了自注意力。</div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">38</span></div>
+</section>
+
+<!-- ================= 39 复杂度账本 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">复杂度账本：n² 到底贵在哪</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>计算量 O(n² · d)</div>
+        <p>每层每头要算 <b>n×n 个分数</b>，每个分数是 d_k 维点积。</p>
+        <p>n = 512、d = 512 时：512² × 512 ≈ <b>1.3 亿</b>次乘加 / 层。</p>
+        <p>量大，但<b>形状规整</b>——GPU 一次矩阵乘法就能吞下，实际耗时并不夸张。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>串行操作 O(1)</div>
+        <p>并行度完美，训练吞吐高——<b>计算不是瓶颈的主体</b>。</p>
+        <p>这正是 Table 1 第二列的结论：自注意力用更多的计算量换来了几乎为零的串行深度。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h"><span class="no">3</span>显存才是真瓶颈</div>
+        <p>打分矩阵 P 是 <b>n × n</b>：每个头一份、每一层一份，而且<b>全部要存下来供反向传播使用</b>。</p>
+        <p>所以长序列的核心约束是<b>显存</b>而不是算力——这也解释了为什么后来的工作（FlashAttention 等）主攻“少读写显存”而不是“少算”。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:14px"><div class="h">一个直觉</div>
+      <p style="font-size:19.5px">n² 的可怕之处不在“算得慢”，而在“<b>存不下</b>”：序列长度翻倍，需要存的注意力矩阵面积翻 <b>4 倍</b>。序列长度翻 4 倍，显存需求翻 <b>16 倍</b>。这就是为什么“上下文长度”会成为大模型的关键指标，也是为什么长上下文如此昂贵。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">39</span></div>
+</section>
+
+<!-- ================= 40 显存量级算例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">量级算例：上下文变长，显存怎么爆</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:150px">序列长 n</th><th>n²（打分矩阵元素数）</th><th>每头显存（fp16）</th><th>8 头 / 层</th><th>6 层合计</th></tr>
+      <tr><td><b>512</b>（论文规模）</td><td>262,144 ≈ 26 万</td><td>≈ 0.5 MB</td><td>≈ 4 MB</td><td>≈ 24 MB　<b>无压力</b></td></tr>
+      <tr><td><b>4,096</b>（常见上下文）</td><td>1,678 万</td><td>≈ 34 MB</td><td>≈ 268 MB</td><td>≈ <b>1.6 GB</b>　开始吃紧</td></tr>
+      <tr><td><b>32,768</b>（长文档）</td><td>10.7 亿</td><td>≈ 2 GB</td><td>≈ 16 GB</td><td>≈ <b>96 GB</b>　单卡放不下</td></tr>
+      <tr><td><b>131,072</b>（超长上下文）</td><td>172 亿</td><td>≈ 34 GB</td><td>≈ 275 GB</td><td>≈ <b>1.6 TB</b>　必须换算法</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px">
+      <div class="card card-blue tight"><div class="h">四个读数</div>
+        <p>n 翻倍 → 显存翻 <b>4 倍</b>；n 翻 8 倍（512→4096）→ 显存约翻 <b>64 倍</b>。</p>
+        <p>这就是“上下文长度”为什么是昂贵的资源。</p>
+      </div>
+      <div class="card card-warn tight"><div class="h">这还只是其中一项</div>
+        <p>上表只算了<b>注意力矩阵本身</b>；实际显存还包括激活值、权重、优化器状态（Adam 需要两份动量）。</p>
+        <p>真实训练的长上下文开销还要再乘几倍。</p>
+      </div>
+      <div class="card card-deep tight"><div class="h">工程含义</div>
+        <p style="color:#E9F0FA">长上下文不是“把 n 调大”这么简单，它需要算法层面的改造。<b>这也解释了为什么第 14 讲的推理优化（KV Cache、PagedAttention）与 FlashAttention 会成为大模型工程的核心内容。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">40</span></div>
+</section>
+
+<!-- ================= 41 破解 n² ================= -->
+<section class="slide" content-notes="">
+  <div class="hdr"><span class="t">破解 n²：少算 vs 算得聪明（概念）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">路线一：少算（算法近似）</div>
+        <p>不是每对 token 都需要交互——<b>只算一部分</b>：</p>
+        <ul>
+          <li><b>稀疏化</b>：跨步 / 滑窗 / 全局 token 模式，把 O(n²) 降到 O(n√n) 或 O(n)。代表：Sparse Transformer（Child 2019）、Longformer、BigBird</li>
+          <li><b>循环缓存</b>：缓存前段隐状态供后段使用，训短推长。代表：Transformer-XL（Dai 2019）</li>
+          <li>代价：牺牲一部分“任意两位置直连”的表达能力，可能损失质量</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">路线二：算得聪明（IO 优化）</div>
+        <p>不改数学，只改<b>显存读写方式</b>：</p>
+        <ul>
+          <li><b>FlashAttention</b>（Dao 等 2022）：用分块（tiling）把计算留在 GPU 片上 SRAM，大幅减少与 HBM 之间的读写</li>
+          <li>它是<b>精确注意力</b>——结果与标准注意力数学等价，不牺牲质量</li>
+          <li>论文的核心洞察：<b>注意力算法应该是“IO 感知”的</b>——理论 FLOPs 不是瓶颈，显存读写才是</li>
+          <li>代价：需要专门的 CUDA 实现，不像改一行代码那么简单</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">两条路线的思维差别</div>
+      <p style="font-size:19.5px">路线一问：<b>能不能不算那么多？</b>（改算法，牺牲表达）　路线二问：<b>能不能算得更省？</b>（不改算法，改内存访问）</p>
+      <p style="font-size:19px;margin-top:6px">在真实硬件上，第二类工作常常更划算——因为大部分性能瓶颈根本不在算术，而在数据搬运。<b>这是一个非常值得工程方向学生记住的判断。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">41</span></div>
+</section>
+
+<!-- ================= 42 长序列代表工作 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">长序列代表工作一览（概念层）</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:250px">方法（年份）</th><th>一句话思想</th><th style="width:230px">每层复杂度</th></tr>
+      <tr><td><b>Sparse Transformer</b>（Child 等 2019）</td><td>跨步局部 + 汇总位置，两种稀疏模式的并集</td><td>O( n√n )</td></tr>
+      <tr><td><b>Transformer-XL</b>（Dai 等 2019）</td><td>段级循环：缓存前段隐状态供后段使用 + 相对位置编码</td><td>段内 O(n²) + 缓存</td></tr>
+      <tr><td><b>Longformer</b>（Beltagy 等 2020）</td><td>滑动窗口局部注意力 + 少量全局 token；标准自注意力的<b>直接替代</b></td><td><b>O( n )</b> 线性</td></tr>
+      <tr><td>BigBird（2020）</td><td>随机 + 局部 + 全局三种稀疏模式的组合，并给出理论完备性证明</td><td>O( n )</td></tr>
+      <tr><td>Performer / Linformer（2020）</td><td>用核方法（Performer）或低秩近似（Linformer）逼近 softmax 注意力</td><td>O( n )</td></tr>
+      <tr><td><b>FlashAttention</b>（Dao 等 2022）</td><td><b>精确</b>注意力 + IO 感知的分块实现，减少 HBM 读写</td><td>O( n² ) 计算，但显存大幅降低、实测更快</td></tr>
+      <tr><td>RoPE 外推与位置插值（2021+）</td><td>不改注意力，只改位置编码的表达方式，让模型能外推到更长上下文</td><td>不变</td></tr>
+    </table>
+    <div class="grid g2 tight" style="margin-top:12px">
+      <div class="card card-blue tight"><div class="h">从这张表能读出什么</div>
+        <p><b>2019–2022 是长序列的攻关期</b>，路线从“稀疏近似”逐渐转向“精确 + IO 优化”，最终 FlashAttention 成为事实标准。</p>
+        <p>这说明：<b>当一个约束（n²）成为全领域的瓶颈时，会有大量方案涌现，而最终的赢家往往不是理论上最优的，而是工程上最实用的。</b></p>
+      </div>
+      <div class="card card-warn tight"><div class="h">本页属于“实例层”</div>
+        <p>方法名称与年份会随技术演进变化，考试只要求知道<b>两条技术路线（少算 / 算得聪明）与代表方法的思路</b>，不要求记住具体复杂度。</p>
+        <p>详细内容在第 14 讲推理优化里还会展开。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">42</span></div>
+</section>
+
+<!-- ================= 43 三种范式 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三种架构范式：BERT / GPT / T5（考点）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:170px">范式</th><th style="width:220px">结构</th><th style="width:180px">注意力可见性</th><th style="width:230px">训练目标</th><th>擅长</th></tr>
+      <tr><td><b>Encoder-only</b><br>BERT（2018/2019）</td><td>只留编码器（12 层）</td><td><b>双向全可见</b></td><td>完形填空 MLM：随机遮住词再预测</td><td>分类 / NER / 匹配 / 检索（<b>理解</b>）</td></tr>
+      <tr><td><b>Decoder-only</b><br>GPT（2018）</td><td>只留解码器（层数更多）</td><td><b>causal 单向</b>（下三角）</td><td>预测下一个词（自回归语言模型）</td><td>对话 / 写作 / 生成 / 代码——<b>今天的主流</b></td></tr>
+      <tr><td><b>Encoder-Decoder</b><br>原始 Transformer · T5（2019）</td><td>两塔都在</td><td>编码器双向 + 解码器因果 + <b>cross-attention</b></td><td>文本到文本（span 填空、翻译等）</td><td>翻译 / 摘要 / 结构化生成等<b>序列到序列</b>任务</td></tr>
+    </table>
+    <div class="grid g3 tight" style="margin-top:14px">
+      <div class="card card-blue tight"><div class="h">为什么 encoder-only 适合理解</div>
+        <p>理解任务里整句都已知，双向注意力能让每个位置获得<b>最完整的上下文</b>——“银行”在 river bank 与 bank account 里的意思需要左右都看。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么 decoder-only 成了主流</div>
+        <p>它天然适合<b>自回归生成</b>，且训练目标（预测下一词）不需要任何标注，可以直接吃海量互联网文本。</p>
+        <p>更重要的是：<b>同一个模型可以通过提示完成理解与生成两类任务</b>，无需为每个任务改结构。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h">为什么 encoder-decoder 仍有用</div>
+        <p>当输入与输出是两个明确区分的序列（翻译、摘要）时，双塔 + cross-attention 的结构归纳偏置仍然有价值。</p>
+        <p>T5 把所有任务统一成“文本到文本”，是这种范式的集大成。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">43</span></div>
+</section>
+
+<!-- ================= 44 可见性对比 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">可见性对比：为什么 decoder-only 成主流</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">编码器（BERT）全可见</div>
+        <div class="code xs" style="background:#fff">    1  2  3
+1   ✓  ✓  ✓
+2   ✓  ✓  ✓
+3   ✓  ✓  ✓
+<span class="c">每个位置看到所有位置（含自己）</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h">解码器（GPT）下三角</div>
+        <div class="code xs" style="background:#fff">    1  2  3
+1   ✓  ✗  ✗
+2   ✓  ✓  ✗
+3   ✓  ✓  ✓
+<span class="c">位置 i 只能看 ≤ i（不许偷看未来）</span></div>
+      </div>
+    </div>
+    <div class="grid g23 tight" style="margin-top:12px;flex:1">
+      <div class="code sm" style="margin-top:0">Cross-Attention：列全开（源句全部可见）
+
+       源句 K →   1  2  3
+目标 Q ↓
+   1           ✓  ✓  ✓
+   2           ✓  ✓  ✓
+   3           ✓  ✓  ✓
+
+<span class="c">每个目标位置都能看到源句的所有位置</span>
+<span class="c">（不加 causal mask，但要屏蔽 padding）</span></div>
+      <div class="card card-deep tight"><div class="h">一句判断</div>
+        <p style="font-size:19.5px">可见性是<b>任务需求</b>决定的，不是模型能力决定的。</p>
+        <p style="font-size:19px;margin-top:6px">理解任务不给双向，是浪费信息；生成任务给双向，就是抄答案。<b>同一套公式，靠一张掩码矩阵区分出两种完全不同的使用方式——这是 Transformer 设计中最优雅的一处。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">44</span></div>
+</section>
+
+<!-- ================= 45 四支柱 + 为什么赢 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口：四支柱 + 一地基，与为什么取代 RNN</span><span class="sec">环节二 · 知识点讲解 · 复习索引</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="card card-blue tight"><div class="h">四支柱 + 一地基</div>
+        <ul>
+          <li><b>柱 1 自注意力</b>：任意两位置一跳直达，路径 O(1)、训练全并行——治 RNN 两条硬伤的主武器</li>
+          <li><b>柱 2 多头</b>：h 个低维子空间并行学不同关系；消融显示单头掉 0.9 BLEU</li>
+          <li><b>柱 3 位置编码</b>：给“位置盲”的注意力装序号；正弦 → 可学习 → 相对 → RoPE</li>
+          <li><b>柱 4 残差 + LayerNorm</b>：30 个子层能稳定深堆（残差给通路、LN 给稳定）</li>
+          <li><b>地基 FFN</b>：逐位置加工信息，占每层参数约 2/3——被低估的大户</li>
+        </ul>
+      </div>
+      <div class="card card-deep tight"><div class="h">为什么取代 RNN：三条根因</div>
+        <p style="font-size:19px"><b>① 训练可并行（工程根因）</b><br>串行操作 O(1)：整句一次矩阵乘算完，GPU 利用率碾压 RNN——<b>同样时间能训大得多的模型</b>。</p>
+        <p style="font-size:19px;margin-top:8px"><b>② 长程依赖根治（建模根因）</b><br>最大路径 O(1)：信息一跳直达、梯度不随距离衰减——LSTM 只能缓解的问题被<b>结构性</b>解决。</p>
+        <p style="font-size:19px;margin-top:8px"><b>③ 可解释可分析（科研根因）</b><br>注意力权重是可读矩阵，可以画热图、分析头分工——这让研究迭代速度大幅加快。</p>
+    </div>
+    </div>
+    <div class="card card-warn tight" style="margin-top:12px"><div class="h">代价也要记住</div>
+      <p style="font-size:19px">显存与计算按 <b>n²</b> 增长；长上下文昂贵；需要位置编码补语序；注意力权重不等于严格解释。<b>没有免费的午餐——Transformer 用平方级的资源消耗，买来了可并行与短路径。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">45</span></div>
+</section>
+
+<!-- ================= 46 易错点排雷 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">易错点排雷（考点清单）</span><span class="sec">环节二 · 知识点讲解 · 考点</span></div>
+  <div class="content">
+    <table class="ac sm" style="margin-top:0;flex:1">
+      <tr><th style="width:330px">误区</th><th>纠正</th><th style="width:280px">一句话记忆</th></tr>
+      <tr><td>“注意力知道词序”</td><td>自注意力是<b>置换等变</b>的，语序全靠位置编码注入</td><td>没有 PE，注意力是“位置盲”的</td></tr>
+      <tr><td>“mask 作用于输出”</td><td>必须加在 <b>softmax 之前</b>的分数上（−∞）</td><td>先遮分数，再归一化</td></tr>
+      <tr><td>“除以 √d_k 是为了快 / 变概率”</td><td>是为了<b>防止 softmax 饱和、稳住梯度</b></td><td>点积方差 d_k → 标准差 √d_k</td></tr>
+      <tr><td>“多头 = 多个独立模型”</td><td>是<b>切分同一份输入的子空间</b>，参数总量几乎不变</td><td>分空间，不分模型</td></tr>
+      <tr><td>“softmax 按列做”</td><td>必须<b>按行</b>：每个 query 对所有 key 分配权重</td><td>行是 query，列是 key</td></tr>
+      <tr><td>“cross-attention 的 Q 来自编码器”</td><td><b>Q 来自解码器</b>，<b>K/V 来自编码器</b></td><td>谁要生成，谁提问</td></tr>
+    </table>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">自检方法</div>
+      <p style="font-size:19px">每写下一个张量，都问三个问题：<b>它的形状是什么？它的行代表什么、列代表什么？它是从哪来的？</b>六个误区里有四个都是因为没弄清“行与列”或“来源”。</p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">46</span></div>
+</section>
+
+<!-- ================= 47 公式速查卡 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲公式速查卡</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="margin-top:0">
+      <div class="code xs" style="margin-top:0">【核心运算】
+  ① Attention(Q,K,V) = softmax( Q Kᵀ / √d_k ) · V
+  ② Q = X W<sup>Q</sup> , K = X W<sup>K</sup> , V = X W<sup>V</sup>
+  ③ MultiHead = Concat( head₁ … head<sub>h</sub> ) W<sup>O</sup>
+     head<sub>i</sub> = Attention( Q W<sub>i</sub><sup>Q</sup>, K W<sub>i</sub><sup>K</sup>, V W<sub>i</sub><sup>V</sup> )
+
+【输入】
+  ④ 输入<sub>i</sub> = Embedding( token<sub>i</sub> ) × √d_model + PE( pos<sub>i</sub> )
+  ⑤ PE(pos,2i)   = sin( pos / 10000<sup>2i/d_model</sup> )
+     PE(pos,2i+1) = cos( pos / 10000<sup>2i/d_model</sup> )
+
+【掩码】
+  ⑥ S = S + mask（禁止位 = −∞），再 softmax
+     causal mask：位置 i 只能看 j ≤ i</div>
+      <div class="code xs" style="margin-top:0">【组件与包装】
+  ⑦ 前馈：FFN(x) = max(0, xW₁ + b₁) W₂ + b₂
+     W₁ ∈ R<sup>512×2048</sup>，W₂ ∈ R<sup>2048×512</sup>
+
+  ⑧ Post-LN：out = LayerNorm( x + Sublayer(x) )
+     Pre-LN ：out = x + Sublayer( LayerNorm(x) )
+
+  ⑨ LayerNorm(x) = γ ⊙ (x − μ)/√(σ² + ε) + β
+     RMSNorm(x)  = γ ⊙ x / RMS(x)
+
+【base 配方（考点）】
+  ⑩ N = 6 ｜ d_model = 512 ｜ h = 8 ｜ d_k = d_v = 64
+     d_ff = 2048 ｜ P_drop = 0.1 ｜ 参数量 65 M
+
+【复杂度（Table 1）】
+  ⑪ 自注意力：计算 O(n²·d)，串行 O(1)，路径 O(1)
+     RNN    ：计算 O(n·d²)，串行 O(n)，路径 O(n)</div>
+    </div>
+    <div class="qbar sm">复习建议：<span class="k">把这一页与第 10 讲的公式速查合在一起抄成一页卡片</span>——第 12–16 讲的所有内容都建立在这些公式之上。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">47</span></div>
+</section>
+
+<!-- ================= 48 学院视角 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">学院视角：Transformer 在两个方向上的落地</span><span class="sec">环节二 · 知识点讲解</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h">① 金融科技</div>
+        <ul>
+          <li><b>长文档理解</b>：年报、招股书、监管文件的编码与分类/抽取（动辄上万 token，需要长上下文变体）</li>
+          <li><b>金融时间序列</b>：把交易日当作序列位置，用注意力捕捉跨期依赖（比 RNN 更好地建模长跨度关联）</li>
+          <li><b>事件驱动分析</b>：新闻事件序列之间用注意力建立关联，识别事件传导路径</li>
+          <li><b>多模态报表</b>：表格 + 文本 + 图表的跨模态注意力</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h">② 智慧健康</div>
+        <ul>
+          <li><b>电子病历长序列建模</b>：几千到上万 token 的病程记录——正是 Longformer/FlashAttention 这类工作的用武之地</li>
+          <li><b>多模态医学数据</b>：影像 patch（ViT 思路）+ 报告文本的跨模态注意力</li>
+          <li><b>生理信号建模</b>：心电、脑电、步态的序列注意力，捕捉异常片段</li>
+          <li><b>医学文献检索</b>：编码器双塔结构做语义检索与重排</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">三个共同特征</div>
+      <p style="font-size:19.5px"><b>① 序列长</b>——文档级输入或长时间跨度信号，n² 的代价在这里最明显。<b>② 跨模态</b>——注意力天然支持不同模态之间的对齐（图像区域 ↔ 报告词）。<b>③ 要可解释</b>——注意力权重可以作为人工审查的依据，这对医疗与金融的合规场景有实际价值。<b>但也必须提醒：注意力权重只是诊断线索，不是因果证据。</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">48</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">课后手算 + 搭建最小模块，课堂研讨三个设计问题。</div>
+    <ul>
+      <li>自学：手算自注意力 · 搭最小 Transformer 块 · 验证 √d_k 与 mask</li>
+      <li>研讨：为何抛弃 RNN · 位置编码为何不可省 · Pre-LN 为何重要（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 50 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：手算 + 搭一个最小 Transformer 块</span><span class="sec">环节三 · 实践自学（课后完成）</span></div>
+  <div class="content">
+    <div class="grid g2 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>手算自注意力（必做）</div>
+        <div class="code xs" style="background:#fff">X = [[1,0],[1,1],[0,1]]      <span class="c"># 猫 追 鱼</span>
+W^Q = I  W^K = [[0,1],[1,1]]  W^V = [[2,0],[1,3]]
+
+① Q/K/V 投影（三行三列都要写）
+② S = QKᵀ，再除以 √2
+③ 逐行 softmax（每行和必须 = 1）
+④ O = P·V
+（参考答案见第 19–21 页，请自己算完再对）</div>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>搭最小 Transformer 块（必做）</div>
+        <div class="code xs" style="background:#fff">import torch, torch.nn as nn
+d_model, nhead = 512, 8
+attn = nn.MultiheadAttention(d_model, nhead, batch_first=True)
+ffn  = nn.Sequential(nn.Linear(d_model, 2048), nn.ReLU(),
+                     nn.Linear(2048, d_model))
+ln1, ln2 = nn.LayerNorm(d_model), nn.LayerNorm(d_model)
+x = torch.randn(2, 10, d_model)      <span class="c"># batch=2, n=10</span>
+a, w = attn(x, x, x)                 <span class="c"># 自注意力</span>
+x = ln1(x + a)                       <span class="c"># 残差 + LN</span>
+x = ln2(x + ffn(x))
+print(x.shape, w.shape)              <span class="c"># (2,10,512) (2,10,10)</span></div>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>√d_k 实验（必做）</div>
+        <p>取 d_k = 64，生成随机 Q、K，分别计算 softmax(QKᵀ) 与 softmax(QKᵀ/√64)。</p>
+        <p>记录：①最大权重；②分布是否接近 one-hot；③ softmax 输出对分数的梯度范数（<code>torch.autograd.grad</code>）。</p>
+        <p><b>预期</b>：不缩放时最大权重接近 1、梯度接近 0。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">4</span>mask 验证（必做）</div>
+        <div class="code xs" style="background:#fff">n = 4
+mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
+P = torch.softmax(torch.randn(n, n).masked_fill(mask, -1e9), -1)
+print(P.triu(1).sum())   <span class="c"># 上三角应为 0</span>
+print(P.sum(-1))         <span class="c"># 每行应为 1</span>
+print(P.triu(1).sum())                    <span class="c"># 应为 0</span></div>
+      </div>
+    </div>
+    <div class="qbar sm">验收：<span class="k">手算四步（含 Q/K/V 与 softmax）+ 可运行代码 + 三组实验观察（分布形状、梯度范数、mask 结果）</span>。全部 CPU 即可完成。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">50</span></div>
+</section>
+
+<!-- ================= 51 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个设计问题（10 分钟）</span><span class="sec">环节三 · 研讨 · 答案课堂揭示</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">Q1</span>为什么必须抛弃 RNN？</div>
+        <p style="font-size:20px">RNN 的两条硬伤分别是什么？如果只允许你说一条最重要的理由，你选哪条，<b>为什么</b>？</p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：想一想“算得快”与“能扩展”哪个更根本；GPU 上是哪个资源在闲置？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q2</span>位置编码为什么不可省？</div>
+        <p style="font-size:20px">自注意力公式里没有任何位置项。请说明：<b>打乱输入顺序会发生什么？为什么这很致命？</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：置换等变是什么意思？“猫追鱼”和“鱼追猫”的输出会怎样？</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">Q3</span>Pre-LN 为什么重要？</div>
+        <p style="font-size:20px">Post-LN 与 Pre-LN 只差一个 LayerNorm 的位置，<b>为什么会导致“必须 warmup”与“可以不 warmup”的差别？</b></p>
+        <p style="font-size:16.5px;color:#8B97A8">提示：梯度尺度在浅层与深层是否一致？把归一化放在残差之后还是之前，梯度会经过什么？</p>
+      </div>
+    </div>
+    <div class="qbar sm">讨论 5′ · 分享 3′ · 点评 2′　｜　<span class="k">每组至少给一问定出结论并准备辩护</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">51</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个公式、一个架构、一个结论。</div>
+    <ul>
+      <li>一个公式：Attention(Q,K,V) = softmax(QKᵀ/√d_k)·V</li>
+      <li>一个架构：双塔六层 · 四支柱一地基</li>
+      <li>一个结论：可并行 + 短路径 + 可解释 → 大模型骨架</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 54 本讲小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">1</span>核心运算</div>
+        <p><b>Attention(Q,K,V) = softmax(QKᵀ/√d_k)·V</b>；四步：投影 → 打分并缩放 → 行 softmax → 加权 V。</p>
+        <p>√d_k 防饱和稳梯度；<b>多头是分空间，不是分模型</b>（参数量几乎不变，表达力更强）。</p>
+        <p>三种注意力公式相同，区别只在 <b>Q/K/V 从哪来 + 可见范围</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">2</span>架构组件</div>
+        <p><b>双塔各 6 层</b>：编码器 2 子层、解码器 3 子层（多 cross-attention）。base 配方 512 / 8 / 64 / 2048。</p>
+        <p><b>位置编码</b>解决置换等变；<b>残差给通路、LayerNorm 给稳定</b>；<b>FFN 逐位置加工</b>，占每层参数约 2/3。</p>
+        <p>causal mask 必须加在 softmax <b>之前</b>。</p>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">3</span>为什么赢</div>
+        <p><b>串行 O(1)</b> → 训练可并行（工程根因）；<b>路径 O(1)</b> → 长程依赖根治（建模根因）；<b>注意力矩阵可分析</b> → 研究迭代快（科研根因）。</p>
+        <p>代价：显存与计算按 <b>n²</b> 增长，长上下文昂贵。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">一句话带走</div>
+      <p style="font-size:21px">Transformer 用<b>平方级的资源消耗</b>，买来了<b>可并行与短路径</b>。这笔交易在 2017 年被证明极其划算——它打开了大模型的规模时代。今天你听过的每一个大模型，骨架都是这一讲的这几十个公式。</p>
+    </div>
+    <div class="qbar sm">复习索引：<span class="k">手算自注意力 · √d_k 推导 · 多头 · 位置编码 · 残差与 LayerNorm · causal mask 与 cross-attention · base 配方 · Table 1 复杂度</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">54</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">手算与实现为主线，下讲进入预训练时代。</div>
+    <ul>
+      <li>手算：自注意力四步（含 Q/K/V 与行 softmax）</li>
+      <li>实现：最小 Transformer 块 + √d_k 与 mask 验证</li>
+      <li>预告：第 12 讲 预训练语言模型 GPT 与 BERT</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 56 作业与预告 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业与预告</span></div>
+  <div class="content">
+    <div class="grid g3 tight" style="flex:1">
+      <div class="card card-blue tight"><div class="h"><span class="no">必做 1</span>手算</div>
+        <ul>
+          <li>用第 19–21 页数据完整走四步：Q/K/V 投影 → 打分缩放 → 行 softmax → 加权 V</li>
+          <li>换一组投影矩阵（或换一组 token 向量）重算一遍，验证你掌握的是方法而不是答案</li>
+          <li>完成课堂小练习 scores = [0,2,1] 的 softmax 并解释结果</li>
+        </ul>
+      </div>
+      <div class="card card-blue tight"><div class="h"><span class="no">必做 2</span>实现与实验</div>
+        <ul>
+          <li>写一个最小 Transformer 块（多头自注意力 + FFN + 残差 + LayerNorm），跑通并打印形状</li>
+          <li><b>√d_k 实验</b>：比较缩放与不缩放时 softmax 的分布与梯度范数</li>
+          <li><b>mask 验证</b>：加 causal mask 后检查上三角权重为 0、每行和为 1</li>
+        </ul>
+      </div>
+      <div class="card tight"><div class="h"><span class="no">选做</span>加分实验</div>
+        <p>读论文 Figure 1，在不看资料的情况下<b>默画</b>编码器与解码器结构图，标注每层的输入输出形状。</p>
+        <p>再用 PyTorch 的 <code>nn.TransformerEncoderLayer</code> 对比自己的实现，列出三处你实现不同或没有实现的地方（如 dropout、激活函数、Pre/Post-LN）。</p>
+      </div>
+    </div>
+    <div class="card card-deep tight" style="margin-top:12px"><div class="h">下讲预告 · 第 12 讲 预训练语言模型：GPT 与 BERT</div>
+      <p style="font-size:19px">今天我们把架构拆完了。下讲要回答一个更关键的问题：<b>为什么这个架构能吃下整个互联网的文本</b>？预训练 + 微调范式、GPT 的自回归目标、BERT 的掩码语言模型、以及『预训练 + 提示』如何把 NLP 带进大模型时代。</p>
+      <p style="font-size:18.5px;margin-top:6px">思考题：<b>为什么『预测下一个词』（GPT）与『完形填空』（BERT）这两种训练目标，会导出两种不同的能力与两种不同的使用方式？</b></p>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">56</span></div>
+</section>
+
+<!-- ================= 57 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:96px">
+    <div class="cn" style="font-size:42px">参考资料与致谢</div>
+    <div class="rule" style="margin:18px 0 20px"></div>
+    <div class="meta" style="font-size:15.5px;line-height:1.72">
+      <b>教材与经典文献（原理层）</b><br>
+      Vaswani et al. (2017) Attention Is All You Need · Bahdanau et al. (2015) 注意力源头 · Luong et al. (2015) 注意力变体<br>
+      Shaw et al. (2018) 相对位置编码 · Su et al. (2021) RoPE 旋转位置编码 · Raffel et al. (2019) T5 相对位置桶<br>
+      Xiong et al. (2020) Post-LN 与 Pre-LN 的理论分析 · Zhang &amp; Sennrich (2019) RMSNorm<br>
+      Child et al. (2019) Sparse Transformer · Dai et al. (2019) Transformer-XL · Beltagy et al. (2020) Longformer · Dao et al. (2022) FlashAttention<br>
+      Clark et al. (2019) BERT 注意力头分析 · Devlin et al. (2019) BERT · Radford et al. (2018) GPT · Raffel et al. (2019) T5<br>
+      <b>课程与工具（实例层）</b><br>
+      《动手学深度学习》D2L 中文版（注意力机制、自注意力与位置编码、Transformer 章）<br>
+      《The Annotated Transformer》（逐步实现教程）· Jay Alammar《The Illustrated Transformer》· PyTorch 官方文档（nn.MultiheadAttention / nn.TransformerEncoderLayer）
+    </div>
+    <div class="foot" style="position:static;margin-top:16px">缩放点积注意力、多头、位置编码、残差与 LayerNorm 为原理层、长期稳定；长序列变体、位置编码方案与框架 API 为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 56</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

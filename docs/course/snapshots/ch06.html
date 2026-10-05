@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第6章 神经网络基础 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .figwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin-top:8px}
+  .figwrap svg{width:100%;height:100%;font-family:var(--sans)}
+  .figwrap .ft-t{font-size:16px;font-weight:700;fill:var(--navy)}
+  .figwrap .ft-p{font-size:13px;fill:var(--sub)}
+  .figwrap .ft-note{font-size:12px;fill:var(--sub)}
+  .figwrap .ft-lab{font-size:11.5px;fill:var(--sub)}
+  .figwrap .ft-num{font-family:Consolas,"Courier New",monospace;font-size:13.5px;fill:#16315F}
+  .figwrap .ft-good{font-size:12.5px;fill:#3F7D4F}
+  .figwrap .ft-alert{font-size:12.5px;fill:#B03A36}
+  .figwrap .ft-cw{font-size:14px;font-weight:700;fill:#fff}
+  .figwrap .ft-th{font-size:13px;font-weight:700;fill:#FFFFFF}
+  .figwrap .ft-out{font-size:15px;font-weight:700;fill:var(--navy)}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Neural Network Foundations</div>
+    <div class="cn">神经网络基础</div>
+    <div class="rule"></div>
+    <div class="sub">第六章 · 从感知机到训练循环</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 6 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">06</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 5 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>分布式假设</div><p>观其伴，知其义——词的语义由上下文分布决定。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>word2vec 三件套</div><p>CBOW / Skip-gram / 负采样：用“预测邻居”把向量逼出来。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>改进与上下文派</div><p>GloVe 合流、FastText 补 OOV、ELMo 让词向量随语境变。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>留下的问题</div><p>一堆词向量，怎么变成“好评 / 差评”的决策？——今天回答。</p></div>
+    </div>
+    <div class="qbar">词向量已经就位，今天给它们接上<span class="k">“会学习的网络”</span>——从表示到决策的最后一公里。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：你已经在用神经网络</div><div class="dd">天文数字背后的朴素零件，线性模型的三道天花板</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">零件与结构</div><div class="dd">神经元、感知机、XOR 之困、MLP 与万能近似定理</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">激活函数与损失函数</div><div class="dd">Sigmoid→Tanh→ReLU→GELU/SiLU；MSE、交叉熵与对比损失</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">怎么学：反向传播与优化</div><div class="dd">训练四步、链式法则手算、autograd、SGD→Adam</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">怎么学不坏：泛化与护栏</div><div class="dd">过拟合诊断、L1/L2、Dropout、早停、初始化与归一化</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">落到 NLP：文本分类与作业 3</div><div class="dd">Embedding+池化+MLP、训练循环、自学任务与研讨</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 6 讲 · 神经网络基础</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说出神经元 = 加权求和 + 非线性激活</li>
+          <li>讲清训练四步：前向 → 损失 → 反向 → 更新</li>
+          <li>区分常用激活、损失函数与五种正则手段</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能手算两层网络的前向与一次反向传播</li>
+          <li>能用 PyTorch 搭 MLP 并跑通训练循环</li>
+          <li>能读训练/验证曲线，诊断并处理过拟合</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>理解自动微分“把求导变成工程”的意义</li>
+          <li>养成“先过拟合小数据”的实验纪律</li>
+          <li>建立“调参即实验管理”的工程习惯</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>神经元与 MLP 结构；反向传播的链式法则与手算；Adam 优化器与训练循环。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>梯度“连乘”的消失/爆炸直觉；万能近似定理“存在 ≠ 可找到”；过拟合与正则的取舍。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">神经网络不神秘——它就在你的手机里，也藏在大模型的天文数字背后。</div>
+    <ul>
+      <li>你已经在用神经网络：推荐、输入法、大模型</li>
+      <li>核心问题：机器如何“学会”一个函数？</li>
+      <li>线性模型的三道天花板：XOR、特征交互、非线性边界</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">你已经在用神经网络</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">四个日常场景</div>
+        <ul>
+          <li><b>短视频推荐</b>：排序模型决定你刷到什么</li>
+          <li><b>输入法联想</b>：语言模型预测下一个词</li>
+          <li><b>手机相册</b>：图像识别自动分类人脸与场景</li>
+          <li><b>大模型对话</b>：Transformer 里的每一层都是神经网络</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">一组体量感</div>
+        <ul>
+          <li>GPT-3：<b>1750 亿</b>参数（2020）</li>
+          <li>现代大模型：万亿级参数、万卡集群训练</li>
+          <li>但基本零件只有一个：<b>加权求和 + 非线性</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>来源：</b>GPT-3 参数量见 Brown et al. (2020)；大模型规模随版本变化，⚠ 讲授前更新实例层。</div>
+    <div class="qbar">天文数字 ≠ 新魔法——<span class="k">再大的网络，也是把小零件叠起来</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">核心问题：机器如何“学会”一个函数？</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="figwrap">
+      <svg viewBox="0 0 1200 268" preserveAspectRatio="xMidYMid meet" role="img" aria-label="示意图：最上方是学习闭环（样本、模型、预测、损失、调参）；下方三张小图分别是 XOR 线性不可分、特征交互的真值表、以及同心圆式的非线性边界">
+        <defs>
+          <marker id="m-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="m-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#D9534F"/></marker>
+        </defs>
+
+        <!-- ① 学习闭环 -->
+        <rect x="8" y="8" width="1184" height="88" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="30">① 机器学习 = 找一个函数 f：用数据把 f 调到尽量对</text>
+        <rect x="24" y="38" width="150" height="32" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="99" y="58" text-anchor="middle">样本 (x, y)</text>
+        <line x1="176" y1="54" x2="194" y2="54" stroke="#3D7BD9" stroke-width="2" marker-end="url(#m-aw)"/>
+        <rect x="200" y="38" width="200" height="32" rx="8" fill="#D8E5F6" stroke="#1E4FA8"/>
+        <text class="ft-p" x="300" y="58" text-anchor="middle">模型 f（参数 W, b）</text>
+        <line x1="402" y1="54" x2="420" y2="54" stroke="#3D7BD9" stroke-width="2" marker-end="url(#m-aw)"/>
+        <rect x="426" y="38" width="170" height="32" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="511" y="58" text-anchor="middle">预测 ŷ = f(x)</text>
+        <line x1="598" y1="54" x2="616" y2="54" stroke="#3D7BD9" stroke-width="2" marker-end="url(#m-aw)"/>
+        <rect x="622" y="38" width="160" height="32" rx="8" fill="#FFF5D9" stroke="#C9A227"/>
+        <text class="ft-p" x="702" y="58" text-anchor="middle">损失 L(ŷ, y)</text>
+        <path d="M702,70 V84 H300 V74" fill="none" stroke="#D9534F" stroke-width="1.8" marker-end="url(#m-ar)"/>
+        <text class="ft-note" x="800" y="58" fill="#B03A36">↺ 反向传播：按损失调整参数（这就是“学习”）</text>
+
+        <!-- ② XOR -->
+        <rect x="8" y="106" width="392" height="152" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="22" y="126">② XOR：一条直线分不开</text>
+        <circle cx="306" cy="121" r="5" fill="#1E4FA8"/>
+        <text class="ft-lab" x="316" y="126">类 A</text>
+        <circle cx="352" cy="121" r="5" fill="#C0504D"/>
+        <text class="ft-lab" x="362" y="126">类 B</text>
+        <line x1="60" y1="140" x2="60" y2="238" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="60" y1="238" x2="370" y2="238" stroke="#D6DCE5" stroke-width="1.2"/>
+        <text class="ft-lab" x="376" y="242">x₁</text>
+        <text class="ft-lab" x="54" y="144" text-anchor="end">x₂</text>
+        <line x1="66" y1="191" x2="240" y2="238" stroke="#3D7BD9" stroke-width="1.8"/>
+        <line x1="150" y1="149" x2="370" y2="208" stroke="#3D7BD9" stroke-width="1.8"/>
+        <line x1="60" y1="157" x2="350" y2="235" stroke="#D9534F" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <circle cx="90" cy="230" r="6" fill="#1E4FA8"/>
+        <circle cx="330" cy="165" r="6" fill="#1E4FA8"/>
+        <circle cx="330" cy="230" r="6" fill="#C0504D"/>
+        <circle cx="90" cy="165" r="6" fill="#C0504D"/>
+        <text class="ft-alert" x="66" y="253">✗ 一条直线：必分错</text>
+        <text class="ft-good" x="200" y="253">✓ 两条线：围出中间类</text>
+
+        <!-- ③ 特征交互 -->
+        <rect x="412" y="106" width="388" height="152" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="426" y="126">③ 特征交互：单独出现 ≠ 同时出现</text>
+        <rect x="426" y="140" width="358" height="96" fill="#FFFFFF" stroke="#C7D3E3"/>
+        <path d="M426,164 H784 M426,188 H784 M426,212 H784 M546,140 V236 M666,140 V236" stroke="#DCE2EA"/>
+        <text class="ft-lab" x="432" y="158">词「尼日利亚」</text>
+        <text class="ft-lab" x="552" y="158">词「西联汇款」</text>
+        <text class="ft-lab" x="672" y="158">判定</text>
+        <text class="ft-lab" x="480" y="181" text-anchor="middle">✓</text>
+        <text class="ft-lab" x="600" y="181" text-anchor="middle">✗</text>
+        <text class="ft-lab" x="720" y="181" text-anchor="middle">正常邮件</text>
+        <text class="ft-lab" x="480" y="205" text-anchor="middle">✗</text>
+        <text class="ft-lab" x="600" y="205" text-anchor="middle">✓</text>
+        <text class="ft-lab" x="720" y="205" text-anchor="middle">正常邮件</text>
+        <text class="ft-lab" x="480" y="229" text-anchor="middle">✓</text>
+        <text class="ft-lab" x="600" y="229" text-anchor="middle">✓</text>
+        <text class="ft-alert" x="720" y="230" text-anchor="middle">垃圾邮件</text>
+        <text class="ft-note" x="426" y="253">线性模型只会加权求和，抓不出“同时出现”这类组合特征</text>
+
+        <!-- ④ 非线性边界 -->
+        <rect x="812" y="106" width="380" height="152" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="826" y="126">④ 真实数据：边界几乎不是直线</text>
+        <circle cx="990" cy="190" r="34" fill="none" stroke="#3D7BD9" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <line x1="912" y1="158" x2="1068" y2="222" stroke="#D9534F" stroke-width="1.8" stroke-dasharray="6 4"/>
+        <circle cx="1038" cy="190" r="5" fill="#C0504D"/>
+        <circle cx="1024" cy="156" r="5" fill="#C0504D"/>
+        <circle cx="990" cy="142" r="5" fill="#C0504D"/>
+        <circle cx="956" cy="156" r="5" fill="#C0504D"/>
+        <circle cx="942" cy="190" r="5" fill="#C0504D"/>
+        <circle cx="956" cy="224" r="5" fill="#C0504D"/>
+        <circle cx="990" cy="238" r="5" fill="#C0504D"/>
+        <circle cx="1024" cy="224" r="5" fill="#C0504D"/>
+        <circle cx="1010" cy="190" r="5" fill="#1E4FA8"/>
+        <circle cx="990" cy="170" r="5" fill="#1E4FA8"/>
+        <circle cx="970" cy="190" r="5" fill="#1E4FA8"/>
+        <circle cx="990" cy="210" r="5" fill="#1E4FA8"/>
+        <text class="ft-alert" x="826" y="253">✗ 一条直线：最多切一半</text>
+        <text class="ft-good" x="960" y="253">✓ 曲线（多层）：可分</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card small">
+        <div class="h">机器学习的本质：找函数</div>
+        <ul>
+          <li>给一堆样本 (x, y)，让模型学到一个函数 <b>f</b>，使 ŷ = f(x) 尽量接近 y</li>
+          <li>“学”= 反复比较预测与真值、按损失调整参数（就是上图那个回路）</li>
+          <li>线性模型 y = Wx + b 只能画直线/超平面——于是有了下面三道天花板</li>
+        </ul>
+      </div>
+      <div class="card small card-warn">
+        <div class="h">三道天花板与出路</div>
+        <ul>
+          <li><b>① XOR：</b>一条直线必分错，两条线围出中间的类（隐藏层干的就是这件事）</li>
+          <li><b>② 特征交互：</b>“尼日利亚”+“西联汇款”同现才是垃圾邮件，线性模型抓不住</li>
+          <li><b>③ 非线性边界：</b>真实数据要曲线 → 堆多层 + 非线性（见后文 MLP 与万能近似定理）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">出路：<span class="k">堆多层 + 非线性</span>——把“一条线”变成“任意形状的边界”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">一个零件（神经元）→ 一套结构（MLP）→ 一套学习机制（反向传播 + 优化）→ 一组护栏（正则化）。</div>
+    <ul>
+      <li>零件与结构：神经元、感知机、XOR、MLP、万能近似</li>
+      <li>激活与损失：Sigmoid/Tanh/ReLU/GELU、MSE/交叉熵/对比损失</li>
+      <li>学习机制与护栏：训练四步、手算反传、autograd、Adam、正则化</li>
+      <li>NLP 落地：Embedding + 池化 + MLP 文本分类（作业 3 骨架）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 人工神经元 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">人工神经元：最小零件</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col"><div class="node">x₁</div><div class="node">x₂</div><div class="node">x₃</div><div class="lbl">输入</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">Σ wᵢxᵢ + b</div><div class="lbl">加权求和 + 偏置</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">σ(·)</div><div class="lbl">非线性激活</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">a</div><div class="lbl">输出</div></div>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card">
+        <div class="h">两步与手算</div>
+        <ul>
+          <li>z = Σwᵢxᵢ + b（权重 = 特征重要性，b = 阈值）</li>
+          <li>a = σ(z)（引入非线性）</li>
+          <li>手算：x=(1.0, 0.5)、w=(0.5, −0.3)、b=0 → z=0.35 → ReLU(0.35)=<b>0.35</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">一句话抓住本质</div>
+        <ul>
+          <li>没有 σ，多层叠加仍等价于一层线性映射</li>
+          <li>σ 让网络能“弯”——非线性是深度的灵魂</li>
+          <li>神经网络 = 把这个小单元叠很多层</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">神经网络不神秘——<span class="k">就是把“加权求和 + 非线性”叠很多层</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 感知机 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">感知机（1958）：最早的“学习单元”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:300px">
+      <svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：感知机结构示意，输入乘权重求和加偏置后经阶跃函数输出；右：AND、OR、NOT 逻辑门的逐行计算表">
+        <defs>
+          <marker id="p-aw2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+
+        <!-- 左：感知机结构 -->
+        <rect x="8" y="8" width="592" height="284" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 一个感知机：加权求和 + 阶跃</text>
+        <text class="ft-lab" x="80" y="74" text-anchor="middle">输入取 0 / 1</text>
+        <circle cx="80" cy="100" r="20" fill="#FFFFFF" stroke="#3D7BD9" stroke-width="1.6"/>
+        <text class="ft-out" x="80" y="106" text-anchor="middle">x₁</text>
+        <circle cx="80" cy="165" r="20" fill="#FFFFFF" stroke="#3D7BD9" stroke-width="1.6"/>
+        <text class="ft-out" x="80" y="171" text-anchor="middle">x₂</text>
+        <circle cx="80" cy="213" r="20" fill="#FFF5D9" stroke="#C9A227" stroke-width="1.6"/>
+        <text class="ft-out" x="80" y="219" text-anchor="middle">1</text>
+        <text class="ft-lab" x="30" y="218" text-anchor="end">偏置</text>
+        <line x1="100" y1="100" x2="266" y2="140" stroke="#9CB8E0" stroke-width="1.8"/>
+        <line x1="100" y1="165" x2="266" y2="152" stroke="#9CB8E0" stroke-width="1.8"/>
+        <line x1="100" y1="213" x2="266" y2="168" stroke="#9CB8E0" stroke-width="1.8"/>
+        <text class="ft-out" x="170" y="96">w₁</text>
+        <text class="ft-out" x="170" y="190">w₂</text>
+        <text class="ft-out" x="170" y="238">b</text>
+        <circle cx="300" cy="155" r="34" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="2"/>
+        <text class="ft-t" x="300" y="163" text-anchor="middle">Σ</text>
+        <line x1="334" y1="155" x2="392" y2="155" stroke="#3D7BD9" stroke-width="2" marker-end="url(#p-aw2)"/>
+        <text class="ft-lab" x="363" y="147" text-anchor="middle">z = Σwᵢxᵢ + b</text>
+        <line x1="396" y1="128" x2="396" y2="186" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="396" y1="186" x2="486" y2="186" stroke="#D6DCE5" stroke-width="1.2"/>
+        <path d="M396,172 H441 V146 H486" fill="none" stroke="#1E4FA8" stroke-width="2"/>
+        <text class="ft-lab" x="441" y="122" text-anchor="middle">sign(z)：z≥0 → +1，否则 −1</text>
+        <line x1="490" y1="155" x2="518" y2="155" stroke="#3D7BD9" stroke-width="2" marker-end="url(#p-aw2)"/>
+        <circle cx="545" cy="155" r="23" fill="#0E3F8C"/>
+        <text class="ft-cw" x="545" y="161" text-anchor="middle">ŷ</text>
+        <text class="ft-lab" x="545" y="196" text-anchor="middle">±1（或 1 / 0）</text>
+        <text class="ft-note" x="396" y="218">本质：一条直线（超平面）分两类</text>
+        <rect x="24" y="244" width="552" height="36" rx="8" fill="#FFFBF0" stroke="#E3C86A"/>
+        <text class="ft-num" x="36" y="268">学习规则：w ← w + η(y − ŷ)·x　（错了才调，对了不动）</text>
+
+        <!-- 右：逻辑门的逐行计算 -->
+        <rect x="616" y="8" width="576" height="284" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="632" y="32">② 逻辑门 = 选对 w 和 b：逐行算一遍</text>
+        <rect x="632" y="56" width="544" height="32" fill="#1E4FA8"/>
+        <text class="ft-th" x="677" y="76" text-anchor="middle">输入 (x₁, x₂)</text>
+        <text class="ft-th" x="797" y="76" text-anchor="middle">AND：z = x₁+x₂−1.5</text>
+        <text class="ft-th" x="907" y="76" text-anchor="middle">输出</text>
+        <text class="ft-th" x="1017" y="76" text-anchor="middle">OR：z = x₁+x₂−0.5</text>
+        <text class="ft-th" x="1134" y="76" text-anchor="middle">输出</text>
+        <rect x="632" y="88" width="544" height="32" fill="#FFFFFF"/>
+        <rect x="632" y="120" width="544" height="32" fill="#F0F5FC"/>
+        <rect x="632" y="152" width="544" height="32" fill="#FFFFFF"/>
+        <rect x="632" y="184" width="544" height="32" fill="#F0F5FC"/>
+        <path d="M722,56 V216 M872,56 V216 M942,56 V216 M1092,56 V216 M632,88 H1176 M632,120 H1176 M632,152 H1176 M632,184 H1176" stroke="#DCE2EA"/>
+        <text class="ft-num" x="677" y="109" text-anchor="middle">(0, 0)</text>
+        <text class="ft-num" x="797" y="109" text-anchor="middle">0+0−1.5 = −1.5</text>
+        <text class="ft-out" x="907" y="109" text-anchor="middle" fill="#8B97A8">0</text>
+        <text class="ft-num" x="1017" y="109" text-anchor="middle">0+0−0.5 = −0.5</text>
+        <text class="ft-out" x="1134" y="109" text-anchor="middle" fill="#8B97A8">0</text>
+        <text class="ft-num" x="677" y="141" text-anchor="middle">(0, 1)</text>
+        <text class="ft-num" x="797" y="141" text-anchor="middle">0+1−1.5 = −0.5</text>
+        <text class="ft-out" x="907" y="141" text-anchor="middle" fill="#8B97A8">0</text>
+        <text class="ft-num" x="1017" y="141" text-anchor="middle">0+1−0.5 = 0.5</text>
+        <text class="ft-out" x="1134" y="141" text-anchor="middle">1</text>
+        <text class="ft-num" x="677" y="173" text-anchor="middle">(1, 0)</text>
+        <text class="ft-num" x="797" y="173" text-anchor="middle">1+0−1.5 = −0.5</text>
+        <text class="ft-out" x="907" y="173" text-anchor="middle" fill="#8B97A8">0</text>
+        <text class="ft-num" x="1017" y="173" text-anchor="middle">1+0−0.5 = 0.5</text>
+        <text class="ft-out" x="1134" y="173" text-anchor="middle">1</text>
+        <text class="ft-num" x="677" y="205" text-anchor="middle">(1, 1)</text>
+        <text class="ft-num" x="797" y="205" text-anchor="middle">1+1−1.5 = 0.5</text>
+        <text class="ft-out" x="907" y="205" text-anchor="middle">1</text>
+        <text class="ft-num" x="1017" y="205" text-anchor="middle">1+1−0.5 = 1.5</text>
+        <text class="ft-out" x="1134" y="205" text-anchor="middle">1</text>
+        <text class="ft-note" x="632" y="238">NOT：w=(−1)、b=0.5 → z = −x + 0.5；输入 0 → 0.5 → 1，输入 1 → −0.5 → 0（单输入）</text>
+        <text class="ft-note" x="632" y="260">NAND：w=(−1,−1)、b=1.5 → 只有两个都是 1 时才输出 0（下一页拼 XOR 要用）</text>
+        <text class="ft-good" x="632" y="282">规律：b 越负越“苛刻”——AND 要两个都到齐，OR 一个就够</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">结构：一条线分两类</div>
+        <ul>
+          <li>z = Σwᵢxᵢ + b，再过阶跃 → <b>线性分类器</b>：直线一侧判 1、另一侧判 0</li>
+          <li>偏置 b = 恒为 1 的那路输入的权重，相当于把直线<b>平移</b>（调阈值）</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">学习规则：梯度下降的雏形</div>
+        <ul>
+          <li><b>w ← w + η(y − ŷ)·x</b>：对了不更新，错了就往正确方向调一步（η 为学习率）</li>
+          <li>阶跃<b>不可导</b>——所以后来换成 Sigmoid / ReLU + 反向传播（本讲后半段）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">感知机 = 画一条直线分两类——<span class="k">“错了就调一点”</span>正是今天梯度下降的雏形。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 XOR 与寒冬 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">XOR 之困：四个样本击垮一个领域</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">XOR 真值表</div>
+        <ul>
+          <li>(0,0) → 0　　(0,1) → 1</li>
+          <li>(1,0) → 1　　(1,1) → 0</li>
+          <li>正例在一条对角线两端、负例在另一条——<b>任何直线都会分错</b></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="h">历史后果</div>
+        <ul>
+          <li>1969 年 Minsky &amp; Papert《Perceptrons》证明单层感知机无法表示 XOR</li>
+          <li>神经网络研究进入第一次<b>寒冬</b>（约 1974–1980）</li>
+          <li>1986 年反向传播被重新发现，才有第二次复兴</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">单层只能<span class="k">画一条直线</span>，而世界往往不是线性的——出路在下一页。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 MLP 解 XOR ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">MLP：加一层，XOR 立刻可解</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col"><div class="node">x₁</div><div class="node">x₂</div><div class="lbl">输入层</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node">h₁ = OR</div><div class="node">h₂ = AND</div><div class="lbl">隐藏层（2 个神经元）</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">y = h₁ AND NOT h₂</div><div class="lbl">输出层</div></div>
+    </div>
+    <table class="ac" style="flex:1;margin-top:12px">
+      <tr><th style="width:16%">输入</th><th style="width:20%">h₁ = OR</th><th style="width:20%">h₂ = AND</th><th style="width:26%">h₁ AND NOT h₂</th><th style="width:18%">XOR</th></tr>
+      <tr><td>(0,0)</td><td>0</td><td>0</td><td>0</td><td><b>0 ✓</b></td></tr>
+      <tr><td>(0,1)</td><td>1</td><td>0</td><td>1</td><td><b>1 ✓</b></td></tr>
+      <tr><td>(1,0)</td><td>1</td><td>0</td><td>1</td><td><b>1 ✓</b></td></tr>
+      <tr><td>(1,1)</td><td>1</td><td>1</td><td>0</td><td><b>0 ✓</b></td></tr>
+    </table>
+    <div class="qbar">参数计数：4 + 2 + 2 + 1 = <span class="k">9 个参数</span>——同样的神经元，换一层组合就能学会 XOR。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 为什么必须非线性 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">为什么必须非线性：100 层 ≡ 1 层</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">代数论证</div>
+        <ul>
+          <li>没有激活：W₂(W₁x) = <b>(W₂W₁)x</b>——两个矩阵可合并成一个</li>
+          <li>推到 100 层：W₁₀₀···W₁ 仍是一个矩阵</li>
+          <li>所以没有非线性，<b>100 层 ≡ 1 层</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">几何论证</div>
+        <ul>
+          <li>隐藏层把原始空间<b>变换/弯折</b>到新空间</li>
+          <li>第一层画两条线（OR / AND），第二层组合成 XOR 边界</li>
+          <li>在新空间里，XOR 变得<b>线性可分</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">非线性是<span class="k">深度的灵魂</span>——没有它，网络再深也只是一次线性变换。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 万能近似定理 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">万能近似定理：能学 ≠ 学得会</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">定理说了什么</div>
+        <ul>
+          <li>隐藏层<b>足够宽</b> + 一个非线性激活 → 可逼近任意连续函数，误差任意小</li>
+          <li>Cybenko (1989)、Hornik (1991)</li>
+          <li>MLP 不是“只能学简单函数”——理论上什么都能学</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">定理没说什么（易错点）</div>
+        <ul>
+          <li>只说“<b>存在</b>”这样的权重——不保证训练能找到</li>
+          <li>不告诉你需要多宽、多少数据、多少算力</li>
+          <li>工程现实：梯度消失、鞍点、优化困难才决定成败</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">定理保证<span class="k">“能学”</span>，工程要解决<span class="k">“学得会”</span>——ReLU、初始化、归一化都是为此。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 激活① sigmoid/tanh ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">激活①：Sigmoid 与 Tanh</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:280px">
+      <svg viewBox="0 0 1200 280" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：Sigmoid 与 Tanh 的函数曲线，两端为饱和区；右：两条导数曲线，Sigmoid 导数峰值 0.25、Tanh 导数峰值 1，两端都趋近 0">
+        <!-- 左：函数曲线 -->
+        <rect x="8" y="8" width="588" height="264" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 两条曲线：都是 S 形，两端饱和</text>
+        <rect x="90" y="60" width="78" height="170" fill="#FFF5D9" opacity="0.6"/>
+        <rect x="481" y="60" width="79" height="170" fill="#FFF5D9" opacity="0.6"/>
+        <line x1="90" y1="77" x2="560" y2="77" stroke="#E5E7EB" stroke-dasharray="4 3"/>
+        <line x1="90" y1="213" x2="560" y2="213" stroke="#E5E7EB" stroke-dasharray="4 3"/>
+        <line x1="90" y1="145" x2="560" y2="145" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="325" y1="60" x2="325" y2="230" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="90,144.8 129.2,144.5 168.3,143.8 207.5,141.8 246.7,136.9 285.8,126.7 325,111 364.2,95.3 403.3,85.1 442.5,80.2 481.7,78.2 520.8,77.5 560,77.2" fill="none" stroke="#1E4FA8" stroke-width="2.4"/>
+        <polyline points="90,213 207.5,212.7 246.7,210.6 285.8,196.8 325,145 364.2,93.2 403.3,79.4 442.5,77.3 560,77" fill="none" stroke="#C0504D" stroke-width="2.4"/>
+        <line x1="100" y1="68" x2="124" y2="68" stroke="#1E4FA8" stroke-width="2.4"/>
+        <text class="ft-note" x="130" y="72" fill="#1E4FA8">σ(x)：输出 (0,1)，不是零中心</text>
+        <line x1="100" y1="88" x2="124" y2="88" stroke="#C0504D" stroke-width="2.4"/>
+        <text class="ft-note" x="130" y="92" fill="#C0504D">tanh(x)：输出 (−1,1)，零中心</text>
+        <text class="ft-lab" x="84" y="81" text-anchor="end">1</text>
+        <text class="ft-lab" x="84" y="149" text-anchor="end">0</text>
+        <text class="ft-lab" x="84" y="217" text-anchor="end">−1</text>
+        <text class="ft-lab" x="90" y="244" text-anchor="middle">−6</text>
+        <text class="ft-lab" x="207" y="244" text-anchor="middle">−3</text>
+        <text class="ft-lab" x="325" y="244" text-anchor="middle">0</text>
+        <text class="ft-lab" x="442" y="244" text-anchor="middle">3</text>
+        <text class="ft-lab" x="560" y="244" text-anchor="middle">6</text>
+        <text class="ft-lab" x="129" y="74" text-anchor="middle" fill="#8A6D00">饱和区</text>
+        <text class="ft-lab" x="520" y="74" text-anchor="middle" fill="#8A6D00">饱和区</text>
+        <text class="ft-note" x="24" y="258">两头压平 → 导数趋 0；σ 的输出恒为正，会让下一层输入整体偏移（收敛更慢）</text>
+
+        <!-- 右：导数曲线 -->
+        <rect x="612" y="8" width="580" height="264" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="628" y="32">② 看导数：为什么梯度会消失</text>
+        <rect x="694" y="60" width="78" height="160" fill="#FFF5D9" opacity="0.6"/>
+        <rect x="1085" y="60" width="79" height="160" fill="#FFF5D9" opacity="0.6"/>
+        <line x1="694" y1="75" x2="1164" y2="75" stroke="#E5E7EB" stroke-dasharray="4 3"/>
+        <line x1="694" y1="220" x2="1164" y2="220" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="929" y1="60" x2="929" y2="220" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="694,219.6 772.7,217.4 811.9,213.5 851,204.8 890.2,191.5 929,183.8 968.2,191.5 1007,204.8 1046,213.5 1085,217.4 1164,219.6" fill="none" stroke="#1E4FA8" stroke-width="2.4"/>
+        <polyline points="694,219.8 772.7,219.8 811.9,218.6 851,209.7 890.2,159.1 929,75 968.2,159.1 1007,209.7 1046,218.6 1085,219.8 1164,219.8" fill="none" stroke="#C0504D" stroke-width="2.4"/>
+        <circle cx="929" cy="183.8" r="4" fill="#1E4FA8"/>
+        <circle cx="929" cy="75" r="4" fill="#C0504D"/>
+        <line x1="700" y1="66" x2="724" y2="66" stroke="#1E4FA8" stroke-width="2.4"/>
+        <text class="ft-note" x="730" y="70" fill="#1E4FA8">σ′(x)：峰值仅 0.25</text>
+        <line x1="700" y1="86" x2="724" y2="86" stroke="#C0504D" stroke-width="2.4"/>
+        <text class="ft-note" x="730" y="90" fill="#C0504D">tanh′(x)：峰值 1，但两端照样归 0</text>
+        <text class="ft-lab" x="688" y="79" text-anchor="end">1</text>
+        <text class="ft-lab" x="688" y="188" text-anchor="end">0.25</text>
+        <text class="ft-lab" x="688" y="224" text-anchor="end">0</text>
+        <text class="ft-lab" x="694" y="240" text-anchor="middle">−6</text>
+        <text class="ft-lab" x="929" y="240" text-anchor="middle">0</text>
+        <text class="ft-lab" x="1164" y="240" text-anchor="middle">6</text>
+        <text class="ft-alert" x="628" y="258">两端饱和：导数趋 0 → 反向传播一路连乘，梯度越传越小（梯度消失）</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small">
+        <div class="h">Sigmoid</div>
+        <ul>
+          <li>σ(x)=1/(1+e⁻ˣ)，输出 (0,1)，可当概率</li>
+          <li>至今用于二分类输出层与 LSTM 门控</li>
+          <li>毛病：两端饱和、<b>非零中心</b>；导数最大仅 0.25</li>
+        </ul>
+      </div>
+      <div class="card small">
+        <div class="h">Tanh</div>
+        <ul>
+          <li>tanh(x)=2σ(2x)−1，输出 (−1,1)，<b>零中心</b></li>
+          <li>实践中优于 Sigmoid，早期 RNN 常用</li>
+          <li>但两端照样饱和——梯度消失问题没根治</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">连乘直觉：每层乘一个 ≤0.25 的因子，10 层就是 <span class="k">0.25¹⁰ ≈ 百万分之一</span>——梯度消失。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 激活② ReLU ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">激活②：ReLU 与 Dead ReLU</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:260px">
+      <svg viewBox="0 0 1200 260" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：ReLU、Leaky ReLU 与 GELU 三条曲线对比；右：Dying ReLU 示意，神经元落在负区间时斜率为 0、权重不再更新">
+        <!-- 左：三条曲线 -->
+        <rect x="8" y="8" width="588" height="244" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="32">① 三条曲线：ReLU / Leaky ReLU / GELU</text>
+        <line x1="90" y1="190" x2="560" y2="190" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="304" y1="56" x2="304" y2="214" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="100,190 304,190 345,170 386,150 427,130 468,110 509,90 550,70" fill="none" stroke="#1E4FA8" stroke-width="2.4"/>
+        <polyline points="100,200 223,194 304,190 345,170 386,150 427,130 468,110 509,90 550,70" fill="none" stroke="#2C63B8" stroke-width="2" stroke-dasharray="7 4"/>
+        <polyline points="100,190.8 141,191.8 223,196.4 264,196.2 304,190 345,176.2 386,156.4 468,111.8 550,70.2" fill="none" stroke="#4C9A5A" stroke-width="2.2"/>
+        <line x1="120" y1="68" x2="144" y2="68" stroke="#1E4FA8" stroke-width="2.4"/>
+        <text class="ft-note" x="150" y="72" fill="#1E4FA8">ReLU = max(0, x)：负区间恒为 0</text>
+        <line x1="120" y1="88" x2="144" y2="88" stroke="#2C63B8" stroke-width="2.4"/>
+        <text class="ft-note" x="150" y="92" fill="#2C63B8">Leaky ReLU：负区间斜率 0.1（不断流）</text>
+        <line x1="120" y1="108" x2="144" y2="108" stroke="#4C9A5A" stroke-width="2.4"/>
+        <text class="ft-note" x="150" y="112" fill="#4C9A5A">GELU：平滑过渡（BERT / GPT 在用）</text>
+        <text class="ft-lab" x="98" y="74" text-anchor="end">3</text>
+        <text class="ft-lab" x="98" y="154" text-anchor="end">1</text>
+        <text class="ft-lab" x="98" y="194" text-anchor="end">0</text>
+        <text class="ft-lab" x="141" y="230" text-anchor="middle">−2</text>
+        <text class="ft-lab" x="304" y="230" text-anchor="middle">0</text>
+        <text class="ft-lab" x="468" y="230" text-anchor="middle">2</text>
+        <text class="ft-note" x="24" y="242">正区间导数恒为 1 → 不饱和、梯度不消失（对比 σ′ 峰值只有 0.25）</text>
+
+        <!-- 右：Dying ReLU -->
+        <rect x="612" y="8" width="580" height="244" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="628" y="32">② Dying ReLU：神经元怎么“死掉”</text>
+        <line x1="700" y1="190" x2="1150" y2="190" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="920" y1="56" x2="920" y2="214" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="700,190 920,190 993,150 1066,110 1140,70" fill="none" stroke="#1E4FA8" stroke-width="2.4"/>
+        <circle cx="773" cy="190" r="6" fill="#D9534F"/>
+        <text class="ft-note" x="712" y="96">① 这路的加权和长期为负</text>
+        <text class="ft-note" x="712" y="118">② 负区间斜率恒为 0</text>
+        <text class="ft-alert" x="712" y="140">③ 梯度 0 → 权重永不更新</text>
+        <text class="ft-alert" x="700" y="228">红点：输入永远为负 → 这个神经元“死”了（不会再复活）</text>
+        <text class="ft-lab" x="688" y="194" text-anchor="end">0</text>
+        <text class="ft-lab" x="920" y="230" text-anchor="middle">x = 0</text>
+        <text class="ft-lab" x="1140" y="64" text-anchor="end">正区间：斜率 1</text>
+        <text class="ft-good" x="628" y="242">缓解：Leaky / PReLU 给小斜率 · 好初始化（He）· 小学习率 · 或直接上 GELU</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small card-blue">
+        <div class="h">优点：为什么它改变了深度学习</div>
+        <ul>
+          <li>正区间导数<b>恒为 1</b>——不饱和、不消失梯度</li>
+          <li>计算极简：一个 max，比 Sigmoid 快很多</li>
+          <li>稀疏激活：负区间置 0，网络天然稀疏</li>
+          <li>2012 AlexNet 用它首次成功训练深层网络（收敛快约 6×）</li>
+        </ul>
+      </div>
+      <div class="card small card-warn">
+        <div class="h">毛病：Dying ReLU</div>
+        <ul>
+          <li>负区间导数恒 0——输入长期为负的神经元<b>永远学不到</b></li>
+          <li>缓解：Leaky ReLU / PReLU（负区间给个小斜率）</li>
+          <li>再配合适的初始化与较小学习率</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">默认先用 ReLU；<span class="k">若大量神经元“死掉”，再换 Leaky / GELU</span>——这就是自学任务的实验。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 激活③ GELU/SiLU ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">激活③：GELU / SiLU 与收口表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:250px">
+      <svg viewBox="0 0 1200 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：GELU 与 SiLU 函数曲线对比及两者差值曲线（最大差约 0.19，出现在 x 约正负 2）；右：两者的对比要点">
+        <rect x="8" y="8" width="612" height="234" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="30">① 曲线对比：像，但不重合（最大差 0.19）</text>
+        <line x1="80" y1="155" x2="550" y2="155" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="315" y1="50" x2="315" y2="165" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="80,155 139,155.1 197,156.1 256,159 286,158.9 315,155 344,146.4 374,134 433,106.1 491,80.1 550,55" fill="none" stroke="#1E4FA8" stroke-width="2.2"/>
+        <polyline points="80,156.8 139,158.6 197,161 240,162 256,161.7 286,159.7 315,155 344,147.2 374,136.7 433,111 491,83.6 550,56.8" fill="none" stroke="#C0504D" stroke-width="2" stroke-dasharray="6 4"/>
+        <line x1="433" y1="106.1" x2="433" y2="111" stroke="#8A6D00" stroke-width="1.6"/>
+        <text class="ft-lab" x="441" y="112" fill="#8A6D00">x=2 处差 0.19</text>
+        <line x1="95" y1="64" x2="119" y2="64" stroke="#1E4FA8" stroke-width="2.2"/>
+        <text class="ft-note" x="125" y="68" fill="#1E4FA8">GELU(x)=x·Φ(x)：门是正态 CDF</text>
+        <line x1="95" y1="84" x2="119" y2="84" stroke="#C0504D" stroke-width="2.2"/>
+        <text class="ft-note" x="125" y="88" fill="#C0504D">SiLU(x)=x·σ(x)：门是 logistic</text>
+        <text class="ft-lab" x="74" y="59" text-anchor="end">4</text>
+        <text class="ft-lab" x="74" y="109" text-anchor="end">2</text>
+        <text class="ft-lab" x="74" y="159" text-anchor="end">0</text>
+        <text class="ft-lab" x="80" y="176" text-anchor="middle">−4</text>
+        <text class="ft-lab" x="197" y="176" text-anchor="middle">−2</text>
+        <text class="ft-lab" x="315" y="176" text-anchor="middle">0</text>
+        <text class="ft-lab" x="433" y="176" text-anchor="middle">2</text>
+        <text class="ft-lab" x="550" y="176" text-anchor="middle">4</text>
+        <line x1="80" y1="215" x2="550" y2="215" stroke="#D6DCE5" stroke-width="1.2"/>
+        <polyline points="80,197 139,180.5 197,166.8 256,187.5 315,215 374,187.5 433,166.8 491,180.5 550,197" fill="none" stroke="#8A6D00" stroke-width="2"/>
+        <text class="ft-lab" x="74" y="190" text-anchor="end">差值</text>
+        <text class="ft-lab" x="433" y="162" text-anchor="middle" fill="#8A6D00">峰值 0.19（|x|≈2）</text>
+
+        <rect x="636" y="8" width="556" height="234" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="652" y="30">② 区别到底在哪：门函数不同</text>
+        <text class="ft-note" x="652" y="56">同：都是门控式 f(x)=x·门(x)；都平滑、无饱和</text>
+        <text class="ft-note" x="652" y="78">同：x=0 处值与斜率都一样（0 与 0.5）</text>
+        <text class="ft-note" x="652" y="104">异① 门：GELU 用 Φ（0 处斜率 0.399）</text>
+        <text class="ft-note" x="652" y="124">　　　SiLU 用 σ（0.25）——GELU 的门更陡</text>
+        <text class="ft-note" x="652" y="150">异② 负区间谷底：SiLU −0.28（x≈−1.28）</text>
+        <text class="ft-note" x="652" y="170">　　　GELU −0.17（x≈−0.75）→ 更像软 ReLU</text>
+        <text class="ft-note" x="652" y="196">异③ 计算：SiLU 一个 sigmoid；GELU 要 erf，</text>
+        <text class="ft-note" x="652" y="216">　　　常用 tanh 近似（误差约 0.02）</text>
+        <text class="ft-good" x="960" y="104">关系：GELU ≈ x·σ(1.702x)</text>
+        <text class="ft-good" x="960" y="124">≈ 把 SiLU 的门加陡 1.7 倍</text>
+        <text class="ft-good" x="960" y="150">同档、可互换，但不是同一函数</text>
+      </svg>
+    </div>
+    <table class="ac" style="margin-top:12px">
+      <tr><th>激活</th><th>输出范围</th><th>梯度问题</th><th>零中心</th><th>代表模型</th></tr>
+      <tr><td><b>Sigmoid</b></td><td>(0,1)</td><td>严重饱和</td><td>否</td><td>二分类输出、LSTM 门</td></tr>
+      <tr><td><b>Tanh</b></td><td>(−1,1)</td><td>饱和</td><td>是</td><td>早期 RNN</td></tr>
+      <tr><td><b>ReLU</b></td><td>[0,∞)</td><td>正区间无</td><td>否</td><td>AlexNet、VGG</td></tr>
+      <tr><td><b>GELU</b></td><td>(−0.17,∞)</td><td>平滑无饱和</td><td>近似（门=Φ，更陡）</td><td>BERT、GPT-2/3、T5</td></tr>
+      <tr><td><b>SiLU</b></td><td>(−0.28,∞)</td><td>平滑无饱和</td><td>近似（门=σ）</td><td>Llama、PaLM、Mistral</td></tr>
+    </table>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 17b GELU vs SiLU 实战版图 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">GELU 还是 SiLU：现代 LLM 用哪个多？</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:160px">
+      <svg viewBox="0 0 1200 160" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：标准 FFN 结构（一个激活加两个矩阵）；右：门控 FFN 结构（SwiGLU 或 GeGLU，多一条门控支路，隐层按三分之二缩放）">
+        <defs>
+          <marker id="f-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+
+        <!-- 左：标准 FFN -->
+        <rect x="8" y="8" width="548" height="144" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="30">① 标准 FFN：一个激活 + 两个矩阵</text>
+        <rect x="20" y="58" width="32" height="36" rx="6" fill="#FFFFFF" stroke="#9CB8E0"/>
+        <text class="ft-p" x="36" y="81" text-anchor="middle">x</text>
+        <line x1="54" y1="76" x2="64" y2="76" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="66" y="58" width="104" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="118" y="81" text-anchor="middle">W₁：d→4d</text>
+        <line x1="172" y1="76" x2="182" y2="76" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="184" y="58" width="104" height="36" rx="8" fill="#FFF5D9" stroke="#C9A227"/>
+        <text class="ft-p" x="236" y="81" text-anchor="middle">激活：GELU</text>
+        <line x1="290" y1="76" x2="300" y2="76" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="302" y="58" width="104" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="354" y="81" text-anchor="middle">W₂：4d→d</text>
+        <line x1="408" y1="76" x2="418" y2="76" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="420" y="58" width="64" height="36" rx="8" fill="#0E3F8C"/>
+        <text class="ft-cw" x="452" y="81" text-anchor="middle">输出</text>
+        <text class="ft-note" x="24" y="138">每个 token 独立过一次；隐层 4d（d = 模型维度）</text>
+
+        <!-- 右：门控 FFN -->
+        <rect x="576" y="8" width="616" height="144" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="592" y="30">② 门控 FFN：SwiGLU / GeGLU（多一条门控支路）</text>
+        <rect x="588" y="74" width="32" height="36" rx="6" fill="#FFFFFF" stroke="#9CB8E0"/>
+        <text class="ft-p" x="604" y="97" text-anchor="middle">x</text>
+        <line x1="622" y1="92" x2="634" y2="70" stroke="#3D7BD9" stroke-width="1.8"/>
+        <line x1="634" y1="70" x2="638" y2="68" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="622" y1="92" x2="638" y2="112" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="640" y="48" width="104" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="692" y="71" text-anchor="middle">W₁：d→m</text>
+        <line x1="746" y1="66" x2="756" y2="66" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="758" y="48" width="140" height="36" rx="8" fill="#FFF5D9" stroke="#C9A227"/>
+        <text class="ft-p" x="828" y="71" text-anchor="middle">门：SiLU 或 GELU</text>
+        <rect x="640" y="96" width="104" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="692" y="119" text-anchor="middle">W₃：d→m</text>
+        <line x1="898" y1="68" x2="924" y2="80" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <line x1="746" y1="114" x2="924" y2="102" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <circle cx="940" cy="90" r="18" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="1.6"/>
+        <text class="ft-p" x="940" y="96" text-anchor="middle">⊙</text>
+        <line x1="958" y1="90" x2="966" y2="90" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="968" y="72" width="104" height="36" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-p" x="1020" y="95" text-anchor="middle">W₂：m→d</text>
+        <line x1="1072" y1="90" x2="1082" y2="90" stroke="#3D7BD9" stroke-width="1.8" marker-end="url(#f-aw)"/>
+        <rect x="1086" y="72" width="64" height="36" rx="8" fill="#0E3F8C"/>
+        <text class="ft-cw" x="1118" y="95" text-anchor="middle">输出</text>
+        <text class="ft-note" x="592" y="138">m =(2/3)·4d ≈ 2.67d：缩小隐层，保持参数量与标准 FFN 相当；通常去掉偏置</text>
+      </svg>
+    </div>
+    <table class="ac" style="margin-top:12px">
+      <tr><th style="width:22%">阵营</th><th style="width:34%">代表模型</th><th style="width:44%">说明</th></tr>
+      <tr>
+        <td><b>GELU</b><br><span style="font-size:15px;color:#8B97A8">非门控 FFN</span></td>
+        <td>BERT / RoBERTa · GPT-2 / GPT-3 · Falcon / MPT</td>
+        <td>编码器时代与早期 decoder 的主流；一个激活 + 两个矩阵，最省事</td>
+      </tr>
+      <tr>
+        <td><b>GeGLU</b><br><span style="font-size:15px;color:#8B97A8">GELU 做门控</span></td>
+        <td>T5 v1.1 · Gemma</td>
+        <td>与 SwiGLU 同档：两者都优于“普通 FFN + GELU”，彼此差距很小</td>
+      </tr>
+      <tr>
+        <td><b>SwiGLU</b><br><span style="font-size:15px;color:#8B97A8">SiLU 做门控</span></td>
+        <td>PaLM · LLaMA 1/2/3 · Mistral / Mixtral · Qwen · DeepSeek · Yi</td>
+        <td>当前开源 decoder 的<b>事实标准</b>；按 2/3 缩放隐层以对齐参数量</td>
+      </tr>
+    </table>
+    <div class="src"><b>怎么读这张表：</b>① 真正被比较的是 SwiGLU vs GeGLU（Shazeer 2020《GLU Variants Improve Transformer》）——两者都优于“普通 FFN + GELU”，彼此差距很小；② 所以 GELU 不是输在“曲线不好”，而是更多出现在<b>不做门控</b>的老一代架构里；③ 闭源模型（GPT-4 / Claude / Gemini）未公开激活细节，不计入；④ 实操建议：新模型直接上 SwiGLU，GeGLU 等价备选，BERT 式编码器沿用 GELU。</div>
+    <div class="qbar">现代 LLM 里 SiLU 用得更多——但差距来自<span class="k">门控结构（SwiGLU / GeGLU）</span>，不是 GELU 与 SiLU 那条 0.19 的曲线差。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 18 损失① MSE ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">损失函数①：MSE——最直观的尺子</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">公式与直觉</div>
+        <ul>
+          <li>L = (1/n)·Σ(ŷᵢ − yᵢ)²</li>
+          <li>预测与真实差多少，平方后平均</li>
+          <li>用途：<b>回归</b>（预测连续数值）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">为什么用平方不用绝对值</div>
+        <ul>
+          <li>平方在 0 处<b>可导</b>（绝对值不可导）——梯度下降需要可导</li>
+          <li><b>放大</b>大误差——预测越离谱惩罚越重</li>
+          <li>NLP 里用得少，但它是理解所有损失的起点</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">损失是<span class="k">“离正确答案有多远”</span>的一把尺子——网络的一切努力，都是为了这个数变小。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 损失② 交叉熵 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">损失函数②：交叉熵——分类的标配</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:14px;line-height:1.6">三分类手算：logits z = (2.0, 0.5, 0.1)，真实类别 = 第 1 类（y = (1, 0, 0)）
+① softmax：e²=7.389　e^0.5=1.649　e^0.1=1.105　Σ=10.143 → p = (0.729, 0.163, 0.109)
+② 交叉熵：L = −[1·log0.729 + 0·log0.163 + 0·log0.109] = <b>−log0.729 ≈ 0.317</b>   <span class="c"># 只有正确类那一项活着</span>
+③ 梯度：∂L/∂z = p − y = <b>(−0.271, 0.163, 0.109)</b>              <span class="c"># 三项之和 = 0</span>
+④ 对照「自信地错」：p = (0.01, 0.01, 0.98) → L = <b>−log0.01 ≈ 4.61</b>；同样情况下 MSE 只有 0.65</div>
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">公式与直觉</div>
+        <ul>
+          <li><b>L = −Σ yᵢ·log pᵢ</b>；y 是真实标签、p 是预测概率</li>
+          <li>one-hot 下只剩正确类那一项：<b>L = −log p_正确</b></li>
+          <li>0.9 → 0.105；0.5 → 0.693；0.01 → <b>4.605</b>——越错惩罚越猛（对数放大）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">为什么分类不用 MSE</div>
+        <ul>
+          <li>MSE 配 sigmoid/softmax：梯度被饱和压小，收敛慢</li>
+          <li>交叉熵梯度干净——配 softmax 时化简为 <b>p − y</b></li>
+          <li>PyTorch：<code>nn.CrossEntropyLoss()</code> 内部含 softmax，<b>传 logits</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">交叉熵惩罚的正是<span class="k">“对正确答案的不自信”</span>——越不自信，罚得越狠。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 softmax+CE ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">softmax + 交叉熵：黄金组合</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:14px;line-height:1.6"><span class="c"># ① 直接算：logits 一大就溢出</span>
+z = (1000, 1001, 1002)              <span class="c"># e^1002 = inf → p = inf/inf = NaN，训练直接崩</span>
+<span class="c"># ② 减去最大 logit：数学上恒等、数值上安全</span>
+z′ = z − max(z) = (−2, −1, 0)       <span class="c"># 最大项变 0，其余全是负数（每项 ≤ 1）</span>
+e^z′ = (0.135, 0.368, 1.000)  Σ = 1.503  →  p = <b>(0.090, 0.245, 0.665)</b>   <span class="c"># 与精确解一致</span>
+<span class="c"># ③ 交叉熵在对数域直接算，别先算概率再取 log</span>
+−log p_正确 = logsumexp(z) − z_正确        <span class="c"># = log_softmax，避免 log(0) 与精度损失</span></div>
+    <div class="grid g3" style="flex:1;margin-top:12px">
+      <div class="card small card-warn">
+        <div class="h">为什么必须减 max</div>
+        <ul>
+          <li>直接算 e^z 会溢出：float32 在 <b>z &gt; 88</b> 就是 inf，fp16 更早（z &gt; 11）</li>
+          <li><code>softmax(z) = softmax(z − max z)</code> 是<b>恒等变换</b>——分子分母同乘 e<sup>−m</sup></li>
+          <li>减完后最大指数为 0、分母落在 [1, K]，<b>永不溢出</b></li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">为什么不能“先算概率再取 log”</div>
+        <ul>
+          <li>概率可能小到 1e-8，float32 里有效数字已经丢了一截，log 会把误差放大</li>
+          <li>概率下溢成 0 时 <code>log(0) = −inf</code>，loss 直接炸</li>
+          <li>正确做法：对数域直接算 <code>log p = z − logsumexp(z)</code>（即 log_softmax）</li>
+        </ul>
+      </div>
+      <div class="card small card-warn">
+        <div class="h">工程三条铁律</div>
+        <ul>
+          <li>传给 <code>nn.CrossEntropyLoss()</code> 的必须是 <b>logits</b>——它内部已含 log_softmax，别再加 softmax</li>
+          <li>要概率用 softmax、要 log 概率用 log_softmax，<b>别手写 log(softmax(…))</b></li>
+          <li>出现 NaN 先查：双重 softmax / 学习率过大 / 硬 0-1 标签（label smoothing 兜底）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">softmax 管“变成概率”，交叉熵管“量化差距”——<span class="k">合起来梯度干净得像一句自然语言</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 损失③ 选型 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">损失函数③：对比损失与选型表</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:200px">
+      <svg viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid meet" role="img" aria-label="左：向量空间中相似对被拉近、不相似对被推到 margin 之外；右：相似对与不相似对的损失随距离 d 变化的曲线；下方说明 d、y、m 的含义">
+        <defs>
+          <marker id="cl-aw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="cl-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#C0504D"/></marker>
+        </defs>
+
+        <!-- 左：嵌入空间示意 -->
+        <rect x="8" y="8" width="552" height="136" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="24" y="30">① 图示：在向量空间里“谁和谁像”</text>
+        <circle cx="150" cy="100" r="45" fill="#FFFBF0" stroke="#C9A227" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text class="ft-lab" x="150" y="48" text-anchor="middle" fill="#8A6D00">margin m</text>
+        <line x1="157" y1="97" x2="178" y2="87" stroke="#3D7BD9" stroke-width="2" marker-end="url(#cl-aw)"/>
+        <line x1="158" y1="98" x2="392" y2="74" stroke="#C0504D" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#cl-ar)"/>
+        <circle cx="150" cy="100" r="7" fill="#1E4FA8"/>
+        <circle cx="185" cy="85" r="7" fill="#3F7D4F"/>
+        <circle cx="400" cy="70" r="7" fill="#C0504D"/>
+        <text class="ft-lab" x="122" y="124" text-anchor="end">句子 A</text>
+        <text class="ft-lab" x="196" y="82">句子 B（同义）</text>
+        <text class="ft-lab" x="410" y="66">句子 C（无关）</text>
+        <text class="ft-note" x="24" y="136">相似对：把 d 拉小</text>
+        <text class="ft-note" x="230" y="136">不相似对：推到 m 之外（d ≥ m 不罚）</text>
+
+        <!-- 右：两条损失曲线 -->
+        <rect x="576" y="8" width="616" height="136" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-t" x="592" y="30">② 损失随距离 d 怎么变（示例 m = 1）</text>
+        <line x1="660" y1="132" x2="1140" y2="132" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="660" y1="44" x2="660" y2="132" stroke="#D6DCE5" stroke-width="1.2"/>
+        <line x1="960" y1="44" x2="960" y2="136" stroke="#C9A227" stroke-width="1.6" stroke-dasharray="6 4"/>
+        <text class="ft-lab" x="966" y="56" fill="#8A6D00">m</text>
+        <polyline points="660,65.3 720,89.3 780,108 840,121.3 900,129.3 960,132 1020,132 1140,132" fill="none" stroke="#C0504D" stroke-width="2.2"/>
+        <polyline points="660,132 720,129.3 780,121.3 840,108 900,89.3 960,65.3 990,52" fill="none" stroke="#1E4FA8" stroke-width="2.2"/>
+        <circle cx="960" cy="132" r="4" fill="#C0504D"/>
+        <text class="ft-lab" x="654" y="50" text-anchor="end">损失</text>
+        <text class="ft-lab" x="1140" y="126" text-anchor="end">d（距离）→</text>
+        <text class="ft-alert" x="668" y="146">不相似对 y=0：d ≥ m 后损失归零</text>
+        <text class="ft-good" x="990" y="146">相似对 y=1：L = d²</text>
+
+        <!-- 符号说明 -->
+        <rect x="8" y="152" width="1184" height="40" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-note" x="24" y="170">d = ‖f(x₁) − f(x₂)‖₂：两段文本过同一个编码器 f 得到两个向量，再算它们的欧氏距离——d 越小表示越“像”</text>
+        <text class="ft-note" x="24" y="188">y ∈ {0,1}：这对样本是否相似（1 = 相似）；m = margin（超参，常取 1~2）——不相似对推到 m 之外就不再受罚</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1">
+      <div class="card small card-blue">
+        <div class="h">公式怎么读</div>
+        <ul>
+          <li><b>L = y·d² + (1−y)·max(m−d, 0)²</b></li>
+          <li>相似对（y=1）：只剩 <b>d²</b>——d 越大罚越重，一直把两点拉近</li>
+          <li>不相似对（y=0）：只剩 <b>max(m−d, 0)²</b>——推到 m 之外就不再罚</li>
+        </ul>
+      </div>
+      <div class="card small" style="padding:10px 12px">
+        <table class="ac">
+          <tr><th style="width:20%">任务</th><th style="width:22%">输出层</th><th style="width:24%">损失</th><th style="width:34%">典型场景</th></tr>
+          <tr><td><b>回归</b></td><td>线性</td><td>MSE</td><td>评分、质量估计</td></tr>
+          <tr><td><b>二分类</b></td><td>sigmoid</td><td>BCE</td><td>垃圾邮件、情感</td></tr>
+          <tr><td><b>多分类</b></td><td>softmax</td><td>交叉熵</td><td>主题分类、下一词</td></tr>
+          <tr><td><b>对比学习</b></td><td>双塔</td><td>对比损失</td><td>检索、聚类、去重</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="src"><b>实践与应用：</b>随机负例通常太容易，需要<b>难负例挖掘</b>（批量内负例是检索训练的常用技巧）；同族还有 Triplet（锚点-正例-负例，只要求相对距离差一个 margin）与 InfoNCE（一个正例 + 多个负例 + 温度，CLIP / SimCLR 用的就是它）；典型落地：Sentence-BERT、SimCSE、RAG 嵌入模型（检索、聚类、去重）。</div>
+    <div class="qbar">损失与输出层是<span class="k">配套选</span>的——选错组合，梯度不是消失就是爆炸。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 训练四步 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">训练四步：网络就是这样学会的</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">①</span>前向</div><p>输入过网络，得到预测 <b>ŷ</b>——<code>model(x)</code></p></div>
+      <div class="card"><div class="h"><span class="no">②</span>损失</div><p>预测与真实比，算出标量损失——<code>loss_fn(ŷ, y)</code></p></div>
+      <div class="card"><div class="h"><span class="no">③</span>反向</div><p>算每个参数的梯度——<code>loss.backward()</code></p></div>
+      <div class="card"><div class="h"><span class="no">④</span>更新</div><p>优化器按梯度调整参数——<code>optimizer.step()</code></p></div>
+    </div>
+    <div class="qbar">四步循环千万遍——<span class="k">网络就在“预测 → 挨批 → 改自己”中学会规律</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 前向传播 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">第一步：前向传播——数据怎么流</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">公式与 PyTorch</div>
+        <ul>
+          <li>z^(l) = W^(l)·a^(l−1) + b^(l)（加权求和）</li>
+          <li>a^(l) = σ(z^(l))（非线性激活）</li>
+          <li>PyTorch 一行：<code>y = model(x)</code></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">shape 流（batch=32）</div>
+        <div class="code" style="margin-top:8px;font-size:15px">x          [32, 4]
+Linear(4,8) → [32, 8]
+ReLU        → [32, 8]
+Linear(8,3) → [32, 3]
+softmax     → 三类概率</div>
+      </div>
+    </div>
+    <div class="qbar">shape 是调试的<span class="k">第一信息</span>——维度对不上，报错会直接指向出问题的层。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 前向算例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">前向传播：完整算例（记住这组数）</span><span class="sec">环节二 · 知识点（期中可考）</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1;align-items:stretch">
+      <div style="display:flex;flex-direction:column;min-height:0">
+        <div class="code" style="margin-top:0;font-size:16px;line-height:1.8">
+输入   x = (1.0, 0.5)          目标 y = 1
+第一层 W1 = [[0.5, -0.3], [0.2, 0.8]]，b1 = (0, 0)，激活 ReLU
+第二层 W2 = (1.0, -0.5)，b2 = 0，损失 L = ½(o - y)²
+
+z1 = 0.5×1.0 + (-0.3)×0.5 = <b>0.35</b>
+z2 = 0.2×1.0 + 0.8×0.5  = <b>0.60</b>
+h  = ReLU(z) = (<b>0.35, 0.60</b>)
+o  = 1.0×0.35 + (-0.5)×0.60 = <b>0.05</b>
+L  = ½×(0.05 - 1)² = <b>0.45125</b></div>
+        <div class="card small card-blue" style="margin-top:12px">
+          <div class="h">读图顺序</div>
+          <p>x₁, x₂ → <b>加权求和</b> → <b>ReLU</b> → h₁, h₂ → <b>第二层</b> → o → <b>与 y 比较</b> → L：左侧每个式子，对应右图里的一次箭头。</p>
+        </div>
+      </div>
+      <div class="figwrap" style="margin-top:0">
+        <svg viewBox="0 0 500 470" preserveAspectRatio="xMidYMid meet" role="img" aria-label="2-2-1 神经网络结构图：输入 x₁=1.0、x₂=0.5 经第一层加权求和与 ReLU 得到 h₁=0.35、h₂=0.60，再经第二层得到输出 o=0.05，与目标 y=1 比较得到损失 L=0.45125">
+          <defs>
+            <marker id="fwd-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/>
+            </marker>
+          </defs>
+          <rect x="6" y="6" width="488" height="458" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+          <text class="ft-t" x="24" y="34">网络结构：2–2–1 的前向数值流</text>
+          <text class="ft-lab" x="24" y="54">同一组数在网络中的位置——自下而上，一层层算出来</text>
+
+          <!-- 层级标签 -->
+          <text class="ft-lab" x="24" y="97">损失（标量）</text>
+          <text class="ft-lab" x="24" y="195">输出层（1 维）</text>
+          <text class="ft-lab" x="24" y="299">隐藏层（2 维，ReLU）</text>
+          <text class="ft-lab" x="24" y="399">输入层（2 维）</text>
+
+          <!-- 连接线：箭头方向 = 前向传播 -->
+          <line x1="175" y1="364" x2="175" y2="326" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="200" y1="377" x2="300" y2="312" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="300" y1="377" x2="200" y2="312" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="325" y1="364" x2="325" y2="326" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="193" y1="270" x2="231" y2="218" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="307" y1="270" x2="269" y2="218" stroke="#9CB8E0" stroke-width="1.8" marker-end="url(#fwd-arr)"/>
+          <line x1="250" y1="160" x2="250" y2="122" stroke="#3D7BD9" stroke-width="2" marker-end="url(#fwd-arr)"/>
+
+          <!-- 权重与中间量标注 -->
+          <rect x="196" y="331" width="108" height="24" rx="6" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="250" y="348" text-anchor="middle">W₁·x + b₁ = z</text>
+          <rect x="170" y="228" width="44" height="20" rx="5" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="192" y="242" text-anchor="middle" style="font-size:12px">w=1.0</text>
+          <rect x="286" y="228" width="58" height="20" rx="5" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="315" y="242" text-anchor="middle" style="font-size:12px">w=−0.5</text>
+          <text class="ft-lab" x="262" y="146">L = ½(o − y)²</text>
+
+          <!-- 损失 L -->
+          <rect x="170" y="68" width="160" height="48" rx="10" fill="#0E3F8C"/>
+          <text class="ft-cw" x="250" y="98" text-anchor="middle">L = 0.45125</text>
+          <text class="ft-lab" x="342" y="97">y = 1（目标）</text>
+
+          <!-- 输出 o -->
+          <circle cx="250" cy="190" r="30" fill="#0E3F8C"/>
+          <text class="ft-cw" x="250" y="186" text-anchor="middle">o</text>
+          <text class="ft-num" x="250" y="205" text-anchor="middle" style="font-size:12px;fill:#E9F0FA">0.05</text>
+
+          <!-- 隐藏层 h -->
+          <circle cx="175" cy="294" r="30" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="2"/>
+          <text class="ft-out" x="175" y="289" text-anchor="middle">h₁</text>
+          <text class="ft-num" x="175" y="308" text-anchor="middle">0.35</text>
+          <circle cx="325" cy="294" r="30" fill="#D8E5F6" stroke="#1E4FA8" stroke-width="2"/>
+          <text class="ft-out" x="325" y="289" text-anchor="middle">h₂</text>
+          <text class="ft-num" x="325" y="308" text-anchor="middle">0.60</text>
+          <text class="ft-lab" x="366" y="289">z 都是正数</text>
+          <text class="ft-lab" x="366" y="307">→ ReLU 后不变</text>
+
+          <!-- 输入层 x -->
+          <circle cx="175" cy="394" r="30" fill="#FFFFFF" stroke="#3D7BD9" stroke-width="1.8"/>
+          <text class="ft-out" x="175" y="389" text-anchor="middle">x₁</text>
+          <text class="ft-num" x="175" y="408" text-anchor="middle">1.0</text>
+          <circle cx="325" cy="394" r="30" fill="#FFFFFF" stroke="#3D7BD9" stroke-width="1.8"/>
+          <text class="ft-out" x="325" y="389" text-anchor="middle">x₂</text>
+          <text class="ft-num" x="325" y="408" text-anchor="middle">0.5</text>
+          <text class="ft-lab" x="366" y="398">x = (1.0, 0.5)</text>
+
+          <!-- 底部说明 -->
+          <rect x="20" y="428" width="460" height="30" rx="8" fill="#E8EFF8"/>
+          <text class="ft-lab" x="250" y="448" text-anchor="middle">前向：自下而上——每层的数 = 上一层的数加权求和后再激活</text>
+        </svg>
+      </div>
+    </div>
+    <div class="qbar">损失 0.45125 不算小——<span class="k">该怪谁、怪多少？</span>下一页用反向传播做“责任分配”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 BP① 链式法则 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">反向传播①：链式法则与“责任分配”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g23" style="flex:1;align-items:stretch">
+      <div style="display:flex;flex-direction:column;min-height:0;justify-content:space-between">
+        <div class="card small">
+          <div class="h">方向反了过来</div>
+          <ul>
+            <li>前向：输入 → 输出（上一页图）；反向：输出 → 输入（本页图）</li>
+            <li>链式法则：<b>∂L/∂x = (∂L/∂y)·(∂y/∂x)</b></li>
+            <li>每个节点只算<b>局部梯度</b>，再乘上游传回的梯度</li>
+          </ul>
+        </div>
+        <div class="card small card-blue">
+          <div class="h">得到什么</div>
+          <ul>
+            <li>每个权重“该往哪调、调多少”：符号定方向、大小定步子</li>
+            <li>深层网络的坑：连乘很多层后梯度可能<b>消失或爆炸</b></li>
+            <li>第 8 讲 RNN / BPTT 会再遇这个问题</li>
+          </ul>
+        </div>
+        <div class="card small">
+          <div class="h">反传一趟做三件事</div>
+          <ul>
+            <li>① 接过<b>上游梯度</b>（从 L 开始往回）</li>
+            <li>② 乘本层的<b>局部导数</b>（本例 ReLU′ = 1）</li>
+            <li>③ 每层就地收下参数梯度 ∂L/∂W、∂L/∂b</li>
+          </ul>
+        </div>
+      </div>
+      <div class="figwrap" style="margin-top:0">
+        <svg viewBox="0 0 500 470" preserveAspectRatio="xMidYMid meet" role="img" aria-label="2-2-1 神经网络反向传播结构图：梯度从损失 L=0.45125 出发，沿红色箭头反向逐层回传，∂L/∂o=−0.95，乘第二层权重后 ∂L/∂h=(−0.95, 0.475)，再乘 ReLU 导数得到 ∂L/∂z，并在每层收集参数梯度 ∂L/∂W₂、∂L/∂W₁">
+          <defs>
+            <marker id="bwd-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#D9534F"/>
+            </marker>
+          </defs>
+          <rect x="6" y="6" width="488" height="458" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+          <text class="ft-t" x="24" y="34">反向结构：梯度沿原路往回传</text>
+          <text class="ft-lab" x="24" y="54">与上一页同一骨架，箭头方向反过来</text>
+          <text class="ft-lab" x="494" y="54" text-anchor="end" style="fill:#B03A36">红色 = 反传得到的梯度</text>
+
+          <!-- 层级标签 -->
+          <text class="ft-lab" x="24" y="97">损失 L（标量）</text>
+          <text class="ft-lab" x="24" y="195">输出 o（1 维）</text>
+          <text class="ft-lab" x="24" y="299">隐藏 h（2 维，ReLU）</text>
+          <text class="ft-lab" x="24" y="395">输入 x（2 维）</text>
+
+          <!-- 反向箭头：由 L 逐层往回 -->
+          <line x1="250" y1="116" x2="250" y2="157" stroke="#D9534F" stroke-width="2" marker-end="url(#bwd-arr)"/>
+          <line x1="232" y1="214" x2="193" y2="269" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+          <line x1="268" y1="214" x2="307" y2="269" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+          <line x1="175" y1="324" x2="175" y2="359" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+          <line x1="200" y1="311" x2="300" y2="372" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+          <line x1="300" y1="311" x2="200" y2="372" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+          <line x1="325" y1="324" x2="325" y2="359" stroke="#D9534F" stroke-width="1.8" marker-end="url(#bwd-arr)"/>
+
+          <!-- 链式因子：乘的是同一组权重 -->
+          <rect x="170" y="228" width="44" height="20" rx="5" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="192" y="242" text-anchor="middle" style="font-size:12px">w=1.0</text>
+          <rect x="286" y="228" width="58" height="20" rx="5" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="315" y="242" text-anchor="middle" style="font-size:12px">w=−0.5</text>
+          <rect x="188" y="331" width="124" height="24" rx="6" fill="#FFFFFF" stroke="#D6DCE5"/>
+          <text class="ft-num" x="250" y="348" text-anchor="middle" style="fill:#B03A36">∂L/∂z = ∂L/∂h</text>
+
+          <!-- 损失 L：反向起点 -->
+          <rect x="170" y="68" width="160" height="48" rx="10" fill="#0E3F8C"/>
+          <text class="ft-cw" x="250" y="98" text-anchor="middle">L = 0.45125</text>
+          <text class="ft-lab" x="342" y="97" style="fill:#B03A36">反向从这里出发</text>
+
+          <!-- 输出层梯度 -->
+          <circle cx="250" cy="190" r="30" fill="#0E3F8C"/>
+          <text class="ft-cw" x="250" y="186" text-anchor="middle" style="font-size:11px;fill:#FFC7C1">∂L/∂o</text>
+          <text class="ft-cw" x="250" y="206" text-anchor="middle" style="font-size:13px;fill:#FFC7C1">−0.95</text>
+
+          <!-- 第二层参数梯度 -->
+          <text class="ft-num" x="356" y="244" style="font-size:11px;fill:#B03A36">∂L/∂W₂ = ∂L/∂o ⊗ h</text>
+          <text class="ft-num" x="356" y="260" style="font-size:11px;fill:#B03A36">∂L/∂b₂ = ∂L/∂o</text>
+
+          <!-- 隐藏层梯度 -->
+          <circle cx="175" cy="294" r="30" fill="#D8E5F6" stroke="#D9534F" stroke-width="2"/>
+          <text class="ft-num" x="175" y="290" text-anchor="middle" style="font-size:11px;fill:#B03A36">∂L/∂h₁</text>
+          <text class="ft-num" x="175" y="309" text-anchor="middle" style="fill:#B03A36">−0.95</text>
+          <circle cx="325" cy="294" r="30" fill="#D8E5F6" stroke="#D9534F" stroke-width="2"/>
+          <text class="ft-num" x="325" y="290" text-anchor="middle" style="font-size:11px;fill:#B03A36">∂L/∂h₂</text>
+          <text class="ft-num" x="325" y="309" text-anchor="middle" style="fill:#B03A36">0.475</text>
+          <text class="ft-num" x="366" y="291" style="fill:#B03A36">ReLU′(z) = 1</text>
+          <text class="ft-lab" x="366" y="309">（z 都是正数）</text>
+
+          <!-- 第一层参数梯度 -->
+          <text class="ft-num" x="356" y="346" style="font-size:11px;fill:#B03A36">∂L/∂W₁ = ∂L/∂z ⊗ x</text>
+          <text class="ft-num" x="356" y="362" style="font-size:11px;fill:#B03A36">∂L/∂b₁ = ∂L/∂z</text>
+
+          <!-- 输入层梯度 -->
+          <circle cx="175" cy="390" r="30" fill="#FFFFFF" stroke="#D9534F" stroke-width="1.8"/>
+          <text class="ft-num" x="175" y="386" text-anchor="middle" style="font-size:11px;fill:#B03A36">∂L/∂x₁</text>
+          <text class="ft-num" x="175" y="405" text-anchor="middle" style="fill:#B03A36">−0.38</text>
+          <circle cx="325" cy="390" r="30" fill="#FFFFFF" stroke="#D9534F" stroke-width="1.8"/>
+          <text class="ft-num" x="325" y="386" text-anchor="middle" style="font-size:11px;fill:#B03A36">∂L/∂x₂</text>
+          <text class="ft-num" x="325" y="405" text-anchor="middle" style="fill:#B03A36">0.665</text>
+          <text class="ft-lab" x="366" y="387">输入端的梯度</text>
+          <text class="ft-lab" x="366" y="405">（训练不用）</text>
+
+          <!-- 底部说明 -->
+          <rect x="20" y="424" width="460" height="36" rx="8" fill="#E8EFF8"/>
+          <text class="ft-lab" x="250" y="440" text-anchor="middle">反向：自上而下——上游梯度 × 本地导数，一层层往回传</text>
+          <text class="ft-num" x="250" y="456" text-anchor="middle" style="font-size:11px;fill:#B03A36">每层就地收下 ∂L/∂W、∂L/∂b；数值下一页面完整手算</text>
+        </svg>
+      </div>
+    </div>
+    <div class="qbar">反向传播不神秘——<span class="k">就是链式法则在一张计算图上从终点往回乘</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 27 BP② 计算图 + 完整手算（原 26/27 两页合并） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">反向传播②：计算图 + 完整手算（期中可考）</span><span class="sec">环节二 · 知识点（期中可考）</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:190px">
+      <svg viewBox="0 0 1200 196" preserveAspectRatio="xMidYMid meet" role="img" aria-label="计算图与数值：输入 x=(1.0, 0.5) 经线性层得 z=(0.35, 0.60)，经 ReLU 得 h，再经输出层得 o=0.05，与目标 y=1 比较得到损失 L=0.45125；前向缓存中间值，反向从 L 逆序回传梯度，∂L/∂o=−0.95、∂L/∂z=(−0.95, 0.475)、∂L/∂x=(−0.38, 0.665)">
+        <defs>
+          <marker id="cg-fwd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+          <marker id="cg-bwd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#D9534F"/></marker>
+        </defs>
+        <rect x="8" y="6" width="1184" height="184" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+        <text class="ft-lab" x="24" y="32" style="fill:#1E4FA8">前向：按箭头算出 z、h、o、L，并把中间值缓存下来——反向要用</text>
+
+        <!-- 算子方块 -->
+        <rect x="44" y="44" width="168" height="60" rx="9" fill="#FFFFFF" stroke="#3D7BD9" stroke-width="1.8"/>
+        <text class="ft-out" x="128" y="70" text-anchor="middle">输入 x</text>
+        <text class="ft-num" x="128" y="92" text-anchor="middle">(1.0, 0.5)</text>
+        <rect x="282" y="44" width="168" height="60" rx="9" fill="#E8EFF8" stroke="#BFD2EC" stroke-width="1.8"/>
+        <text class="ft-out" x="366" y="70" text-anchor="middle">z = W₁·x + b₁</text>
+        <text class="ft-num" x="366" y="92" text-anchor="middle">(0.35, 0.60)</text>
+        <rect x="520" y="44" width="168" height="60" rx="9" fill="#E8EFF8" stroke="#BFD2EC" stroke-width="1.8"/>
+        <text class="ft-out" x="604" y="70" text-anchor="middle">h = ReLU(z)</text>
+        <text class="ft-num" x="604" y="92" text-anchor="middle">(0.35, 0.60)</text>
+        <rect x="758" y="44" width="168" height="60" rx="9" fill="#E8EFF8" stroke="#BFD2EC" stroke-width="1.8"/>
+        <text class="ft-out" x="842" y="70" text-anchor="middle">o = W₂·h + b₂</text>
+        <text class="ft-num" x="842" y="92" text-anchor="middle">0.05</text>
+        <rect x="996" y="44" width="168" height="60" rx="9" fill="#0E3F8C"/>
+        <text class="ft-cw" x="1080" y="70" text-anchor="middle">L = ½(o − y)²</text>
+        <text class="ft-num" x="1080" y="92" text-anchor="middle" style="fill:#E9F0FA">0.45125</text>
+
+        <!-- 前向箭头（蓝，向右） -->
+        <line x1="216" y1="74" x2="279" y2="74" stroke="#3D7BD9" stroke-width="2" marker-end="url(#cg-fwd)"/>
+        <line x1="454" y1="74" x2="517" y2="74" stroke="#3D7BD9" stroke-width="2" marker-end="url(#cg-fwd)"/>
+        <line x1="692" y1="74" x2="755" y2="74" stroke="#3D7BD9" stroke-width="2" marker-end="url(#cg-fwd)"/>
+        <line x1="930" y1="74" x2="993" y2="74" stroke="#3D7BD9" stroke-width="2" marker-end="url(#cg-fwd)"/>
+
+        <!-- 反向箭头（红，向左） -->
+        <line x1="279" y1="126" x2="216" y2="126" stroke="#D9534F" stroke-width="2" marker-end="url(#cg-bwd)"/>
+        <line x1="517" y1="126" x2="454" y2="126" stroke="#D9534F" stroke-width="2" marker-end="url(#cg-bwd)"/>
+        <line x1="755" y1="126" x2="692" y2="126" stroke="#D9534F" stroke-width="2" marker-end="url(#cg-bwd)"/>
+        <line x1="993" y1="126" x2="930" y2="126" stroke="#D9534F" stroke-width="2" marker-end="url(#cg-bwd)"/>
+
+        <!-- 传到各处的梯度（与下方手算 ①②③ 对应） -->
+        <text class="ft-num" x="128" y="124" text-anchor="middle" style="font-size:11.5px;fill:#B03A36">∂L/∂x = (−0.38, 0.665)</text>
+        <text class="ft-num" x="366" y="124" text-anchor="middle" style="font-size:11.5px;fill:#B03A36">∂L/∂z = (−0.95, 0.475)</text>
+        <text class="ft-num" x="604" y="124" text-anchor="middle" style="font-size:11.5px;fill:#B03A36">ReLU′ = (1, 1) → 数值不变</text>
+        <text class="ft-num" x="842" y="124" text-anchor="middle" style="font-size:11.5px;fill:#B03A36">∂L/∂o = o − y = −0.95</text>
+        <text class="ft-num" x="1080" y="124" text-anchor="middle" style="font-size:11.5px;fill:#B03A36">反向从这里出发</text>
+
+        <!-- 两向说明 -->
+        <text class="ft-lab" x="600" y="154" text-anchor="middle" style="fill:#B03A36">反向：从 L 逆序回传——每个算子把上游梯度 × 自己的局部导数，继续往前传</text>
+        <text class="ft-note" x="600" y="178" text-anchor="middle">工程价值：算子只需定义局部导数即可接入反传（模块化）；前向的中间值要留着给反向用（用内存换计算）</text>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="code" style="margin-top:0;font-size:14px;line-height:1.45">
+<span class="c"># ① 输出层梯度</span>
+∂L/∂o = o - y = 0.05 - 1 = <b>-0.95</b>
+∂L/∂W2 = ∂L/∂o · h = (<b>-0.3325, -0.57</b>)
+∂L/∂b2 = <b>-0.95</b>
+
+<span class="c"># ② 传到隐藏层（ReLU 导数为 1）</span>
+∂L/∂h = W2 · ∂L/∂o = (<b>-0.95, 0.475</b>)
+∂L/∂z = ∂L/∂h = (<b>-0.95, 0.475</b>)
+
+<span class="c"># ③ 第一层参数梯度</span>
+∂L/∂W1 = ∂L/∂z ⊗ x
+       = [[<b>-0.95, -0.475</b>], [<b>0.475, 0.2375</b>]]
+∂L/∂b1 = (<b>-0.95, 0.475</b>)</div>
+      <div class="card small card-blue" style="flex:1">
+        <div class="h">④ 按 lr=0.1 更新并验证</div>
+        <ul>
+          <li>θ ← θ − η·∂L/∂θ（每个参数各走一小步）</li>
+          <li>W2' = (1.033, −0.443)，b2' = 0.095</li>
+          <li>W1' = [[0.595, −0.253], [0.153, 0.776]]，b1' = (0.095, −0.048)</li>
+          <li>重新前向：<b>L' ≈ 0.285 &lt; 0.45125</b> ✓ 损失真的降了</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">计算图把“长链”切成<span class="k">可复用的局部规则</span>；倒着走一遍，梯度就是每个参数的“责任”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 28 BP③ 易错点 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">反向传播③：五个高频坑与排错</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card card-warn small"><div class="h"><span class="no">1</span>忘记 zero_grad</div><p>梯度默认<b>累加</b>，不清零会叠加上一轮的值——训练曲线诡异时先查这里。</p></div>
+      <div class="card card-warn small"><div class="h"><span class="no">2</span>维度对不上</div><p>矩阵乘法顺序、转置与外积写错——shape 报错就是线索。</p></div>
+      <div class="card card-warn small"><div class="h"><span class="no">3</span>漏乘激活导数</div><p>链式里忘了 σ'——手算时最常见的错误。</p></div>
+      <div class="card card-warn small"><div class="h"><span class="no">4</span>就地操作破坏计算图</div><p>对 requires_grad 的张量做 in-place 修改，可能导致反传失败。</p></div>
+      <div class="card card-warn small"><div class="h"><span class="no">5</span>无意切断计算图</div><p>对中间张量用 .item()/.numpy() 会断图——需要时用 <code>.detach()</code> 并明确语义。</p></div>
+      <div class="card small card-blue"><div class="h">排错两把钥匙</div><p>看报错里的 <code>grad_fn</code>（图断没断）与 <code>shape</code>（维度对不对）。</p></div>
+    </div>
+    <div class="qbar">反传的报错大多不是“数学不会”，而是<span class="k">工程细节没对齐</span>——按清单逐条排查。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 自动微分 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自动微分：框架替你完成刚才的手算</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">三种求导方式</div>
+        <ul>
+          <li><b>数值微分</b>：差分近似——慢、精度差</li>
+          <li><b>符号微分</b>：推公式——表达式膨胀</li>
+          <li><b>自动微分</b>：计算图 + 链式法则机械执行——精确高效</li>
+        </ul>
+      </div>
+      <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.5">
+import torch
+W1 = torch.tensor([[0.5,-0.3],[0.2,0.8]], requires_grad=True)
+W2 = torch.tensor([1.0,-0.5], requires_grad=True)
+x  = torch.tensor([1.0, 0.5]); y = torch.tensor(1.0)
+h = torch.relu(W1 @ x)
+o = W2 @ h
+L = 0.5 * (o - y) ** 2
+<b>L.backward()</b>
+print(W2.grad)   <span class="c"># tensor([-0.3325, -0.5700]) —— 与手算一致</span></div>
+    </div>
+    <div class="qbar">反向模式 = 一次算出所有参数梯度，正合“<span class="k">多参数、单标量损失</span>”的深度学习场景。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 梯度下降与学习率 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">梯度下降：蒙眼下山</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:292px;margin-top:0">
+      <svg viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="梯度下降示意图：左图画出一条损失曲线，标出当前点 θ₀、切线方向、负梯度下坡箭头与一步步逼近谷底的迭代点；右图对比学习率太小、合适、太大三种情形">
+        <defs>
+          <marker id="gd-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#D9534F"/></marker>
+          <marker id="gd-axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8B97A8"/></marker>
+        </defs>
+        <rect x="8" y="6" width="1184" height="288" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+
+        <!-- 左：一步怎么走 -->
+        <rect x="22" y="18" width="700" height="264" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="42" y="46">① 一步 = 沿负梯度方向走 η 一小步</text>
+        <line x1="80" y1="254" x2="80" y2="70" stroke="#8B97A8" stroke-width="1.6" marker-end="url(#gd-axis)"/>
+        <line x1="80" y1="254" x2="694" y2="254" stroke="#8B97A8" stroke-width="1.6" marker-end="url(#gd-axis)"/>
+        <text class="ft-note" x="90" y="68">L（损失）</text>
+        <text class="ft-note" x="690" y="274" text-anchor="end">θ（参数）</text>
+
+        <!-- 损失曲线与切线 -->
+        <path d="M120,98 Q385,382 650,98" fill="none" stroke="#1E4FA8" stroke-width="2.6"/>
+        <line x1="634" y1="122" x2="526" y2="204" stroke="#B9C4D4" stroke-width="1.6" stroke-dasharray="6,5"/>
+        <text class="ft-lab" x="628" y="110" text-anchor="end" style="fill:#B03A36">−∇L：最陡下坡方向</text>
+        <line x1="580" y1="163" x2="538" y2="196" stroke="#D9534F" stroke-width="2.4" marker-end="url(#gd-red)"/>
+
+        <!-- 迭代点：一步步逼近谷底 -->
+        <circle cx="580" cy="163" r="7" fill="#1E4FA8" stroke="#FFFFFF" stroke-width="2"/>
+        <circle cx="502" cy="212" r="5.5" fill="#3D7BD9" stroke="#FFFFFF" stroke-width="1.6"/>
+        <circle cx="455" cy="230" r="5.5" fill="#3D7BD9" stroke="#FFFFFF" stroke-width="1.6"/>
+        <circle cx="427" cy="236" r="5.5" fill="#3D7BD9" stroke="#FFFFFF" stroke-width="1.6"/>
+        <circle cx="410" cy="239" r="5.5" fill="#3D7BD9" stroke="#FFFFFF" stroke-width="1.6"/>
+        <circle cx="400" cy="240" r="5.5" fill="#3D7BD9" stroke="#FFFFFF" stroke-width="1.6"/>
+        <text class="ft-lab" x="596" y="186">起点 θ₀（当前位置）</text>
+        <line x1="580" y1="163" x2="580" y2="254" stroke="#C9D2DF" stroke-width="1.2" stroke-dasharray="4,4"/>
+        <text class="ft-note" x="580" y="274" text-anchor="middle">θ₀</text>
+        <line x1="385" y1="240" x2="385" y2="254" stroke="#C9D2DF" stroke-width="1.2" stroke-dasharray="4,4"/>
+        <text class="ft-note" x="385" y="274" text-anchor="middle">谷底</text>
+        <line x1="352" y1="240" x2="418" y2="240" stroke="#B9C4D4" stroke-width="1.6"/>
+        <text class="ft-lab" x="385" y="222" text-anchor="middle">这里梯度 = 0，自然停下</text>
+
+        <!-- 右：三档学习率 -->
+        <rect x="734" y="18" width="444" height="264" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="754" y="46">② 同一座山谷，学习率决定命运</text>
+
+        <text class="ft-lab" x="754" y="96">η 太小</text>
+        <text class="ft-note" x="754" y="114">下降如蜗牛</text>
+        <path d="M915,78 Q1035,150 1155,78" fill="none" stroke="#AEBBCE" stroke-width="2.6"/>
+        <circle cx="1140" cy="86" r="4.5" fill="#7A8798"/><circle cx="1120" cy="96" r="4.5" fill="#7A8798"/>
+        <circle cx="1102" cy="103" r="4.5" fill="#7A8798"/><circle cx="1086" cy="108" r="4.5" fill="#7A8798"/>
+        <circle cx="1072" cy="111" r="4.5" fill="#7A8798"/><circle cx="1060" cy="112" r="4.5" fill="#7A8798"/>
+
+        <text class="ft-lab" x="754" y="166" style="fill:#1E4FA8">η 合适</text>
+        <text class="ft-note" x="754" y="184">几步就收敛</text>
+        <path d="M915,148 Q1035,220 1155,148" fill="none" stroke="#1E4FA8" stroke-width="2.6"/>
+        <circle cx="1140" cy="156" r="4.5" fill="#1E4FA8"/><circle cx="1090" cy="177" r="4.5" fill="#1E4FA8"/>
+        <circle cx="1045" cy="184" r="4.5" fill="#1E4FA8"/><circle cx="1037" cy="184" r="4.5" fill="#1E4FA8"/>
+
+        <text class="ft-lab" x="754" y="236" style="fill:#B03A36">η 太大</text>
+        <text class="ft-note" x="754" y="254">来回震荡 / NaN</text>
+        <path d="M915,218 Q1035,290 1155,218" fill="none" stroke="#DDA49C" stroke-width="2.6"/>
+        <path d="M1140,226 L950,236 L1120,236 L920,221 L1150,221" fill="none" stroke="#D9534F" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <circle cx="1140" cy="226" r="4.5" fill="#D9534F"/><circle cx="950" cy="236" r="4.5" fill="#D9534F"/>
+        <circle cx="1120" cy="236" r="4.5" fill="#D9534F"/><circle cx="920" cy="221" r="4.5" fill="#D9534F"/>
+        <circle cx="1150" cy="221" r="4.5" fill="#D9534F"/>
+      </svg>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card small">
+        <div class="h">核心公式与隐喻</div>
+        <ul>
+          <li>θ ← θ − η·∇L——沿最陡下坡方向走一小步</li>
+          <li>只有局部视野：每次看脚下坡度，逐步逼近低谷</li>
+          <li>步长 = 学习率 η；坡度估计用多少数据 = 批量大小</li>
+        </ul>
+      </div>
+      <div class="card small card-warn">
+        <div class="h">学习率的三个区间</div>
+        <ul>
+          <li>太小：损失下降如蜗牛，时间白白燃烧</li>
+          <li>太大：震荡、反弹，甚至发散成 <b>NaN</b></li>
+          <li>实操：Adam 试 1e-3、SGD 试 1e-2；NaN 先查学习率与梯度裁剪</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">调参第一条军规：<span class="k">先调学习率</span>，其他超参都排在它后面。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 31 批量策略 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">用多少数据估计坡度：三种批量策略</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:22%">策略</th><th style="width:22%">每步样本数</th><th style="width:28%">优点</th><th style="width:28%">缺点</th></tr>
+      <tr><td><b>批量 BGD</b></td><td>全部训练集</td><td>梯度最准、方向最稳</td><td>每步太贵，大数据不可行</td></tr>
+      <tr><td><b>随机 SGD</b></td><td>1 个</td><td>极快、可在线学习</td><td>噪声大，loss 剧烈抖动</td></tr>
+      <tr><td><b>小批量</b>（默认）</td><td>32 / 64 / 128 / 256</td><td>向量化吃满硬件 + 梯度足够稳</td><td>批量大小成为要调的超参</td></tr>
+    </table>
+    <div class="qbar">mini-batch 不是折中，是<span class="k">双赢</span>：向量化提速 × 噪声平滑——第一批要调的超参。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 SGD 三毛病与 Momentum ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">SGD 的三个毛病 → Momentum</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">先立靶：SGD 三毛病</div>
+        <ul>
+          <li><b>峡谷震荡</b>：狭长山谷里来回弹跳，前进极慢</li>
+          <li><b>学习率一刀切</b>：所有参数共用一个 η</li>
+          <li><b>鞍点停滞</b>：梯度≈0 的区域原地踏步</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">补丁一：Momentum（惯性）</div>
+        <ul>
+          <li><b>v ← βv − η∇L</b>，<b>θ ← θ + v</b>（β 常取 0.9）</li>
+          <li>方向 = 历史方向的九成 + 当前梯度</li>
+          <li>治震荡（垂直分量抵消）与鞍点（惯性滑行）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">Momentum = 给参数更新装上<span class="k">惯性</span>——方向一致的走快点，来回抖的互相抵消。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 33 AdaGrad 与 RMSProp ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">补丁二：AdaGrad 与 RMSProp——每个参数自己的学习率</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">AdaGrad：累积历史梯度平方</div>
+        <ul>
+          <li><b>G ← G + g²</b>；θ ← θ − η/√(G+ε)·g</li>
+          <li>更新越多步长越小；稀疏特征自动获得大步长</li>
+          <li>致命伤：G 只增不减 → 学习率<b>衰减到 0</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">RMSProp：只记近期，不记远古</div>
+        <ul>
+          <li><b>v ← ρv + (1−ρ)g²</b>（ρ 常取 0.99）</li>
+          <li>θ ← θ − η/√(v+ε)·g——滑动平均，学习率不归零</li>
+          <li>Hinton 2012 课堂讲义提出；Adam 的一半</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">AdaGrad 首创<span class="k">自适应学习率</span>，但“记仇记一辈子”导致早衰——RMSProp 一个滑动平均治好它。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">33</span></div>
+</section>
+
+<!-- ================= 34 Adam ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">补丁三：Adam 与 AdamW——今天的默认优化器</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:0 0 auto">
+      <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+m ← β₁m + (1-β₁)·g        <span class="c"># 一阶动量（惯性）</span>
+v ← β₂v + (1-β₂)·g²       <span class="c"># 二阶动量（自适应）</span>
+m̂ = m / (1-β₁ᵗ)           <span class="c"># 偏差修正</span>
+v̂ = v / (1-β₂ᵗ)
+θ ← θ - η · m̂ / (√v̂ + ε)   <span class="c"># Adam 的更新</span></div>
+      <div class="card small card-blue">
+        <div class="h">默认值与工程实践</div>
+        <ul>
+          <li>β₁=0.9、β₂=0.999、ε=1e-8、η=1e-3</li>
+          <li>“不知道用什么就用 Adam”——收敛快、对学习率不敏感</li>
+          <li><b>AdamW</b>：把权重衰减从梯度里拆出来，泛化通常更好（见下图）</li>
+          <li>一行代码：<code>torch.optim.AdamW(..., weight_decay=0.01)</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="figwrap" style="flex:1;margin-top:14px">
+      <svg viewBox="0 0 1200 290" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Adam 与 AdamW 对比示意图：Adam 把 L2 衰减加进梯度，衰减会被自适应的根号 v̂ 缩放；AdamW 把权重衰减解耦成单独一步直接作用在参数上，并与工程默认配置对照">
+        <defs>
+          <marker id="aw-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#3D7BD9"/></marker>
+        </defs>
+        <rect x="8" y="6" width="1184" height="278" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+
+        <!-- Adam：衰减混在梯度里 -->
+        <rect x="22" y="20" width="568" height="170" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="42" y="48">Adam：L2 混在梯度里</text>
+        <rect x="42" y="72" width="160" height="56" rx="8" fill="#FDF6F4" stroke="#F0CFC9"/>
+        <text class="ft-num" x="122" y="98" text-anchor="middle">g = ∇L + λθ</text>
+        <text class="ft-note" x="122" y="117" text-anchor="middle">衰减混进梯度</text>
+        <line x1="206" y1="100" x2="222" y2="100" stroke="#3D7BD9" stroke-width="2" marker-end="url(#aw-arr)"/>
+        <rect x="226" y="72" width="160" height="56" rx="8" fill="#FDF6F4" stroke="#F0CFC9"/>
+        <text class="ft-num" x="306" y="98" text-anchor="middle">Δ = m̂/(√v̂ + ε)</text>
+        <text class="ft-note" x="306" y="117" text-anchor="middle">衰减也过这一层</text>
+        <line x1="390" y1="100" x2="406" y2="100" stroke="#3D7BD9" stroke-width="2" marker-end="url(#aw-arr)"/>
+        <rect x="410" y="72" width="164" height="56" rx="8" fill="#FDF6F4" stroke="#F0CFC9"/>
+        <text class="ft-num" x="492" y="98" text-anchor="middle">θ ← θ − η·Δ</text>
+        <text class="ft-note" x="492" y="117" text-anchor="middle">衰减强度不可控</text>
+        <text class="ft-lab" x="42" y="160" style="fill:#B03A36">衰减被 √v̂ 除了一遍：梯度越小的参数被罚得越狠，λ 与 η 纠缠在一起</text>
+        <text class="ft-lab" x="42" y="180" style="fill:#B03A36">（weight_decay = 0 时，Adam 与 AdamW 完全等价）</text>
+
+        <!-- AdamW：把衰减拆出来 -->
+        <rect x="610" y="20" width="568" height="170" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="630" y="48">AdamW：衰减解耦（推荐）</text>
+        <rect x="630" y="72" width="160" height="56" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="710" y="98" text-anchor="middle">g = ∇L</text>
+        <text class="ft-note" x="710" y="117" text-anchor="middle">梯度保持干净</text>
+        <line x1="794" y1="100" x2="810" y2="100" stroke="#3D7BD9" stroke-width="2" marker-end="url(#aw-arr)"/>
+        <rect x="814" y="72" width="160" height="56" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="894" y="98" text-anchor="middle">Δ = m̂/(√v̂ + ε)</text>
+        <text class="ft-note" x="894" y="117" text-anchor="middle">只管梯度方向</text>
+        <line x1="978" y1="100" x2="994" y2="100" stroke="#3D7BD9" stroke-width="2" marker-end="url(#aw-arr)"/>
+        <rect x="998" y="72" width="160" height="56" rx="8" fill="#E8EFF8" stroke="#BFD2EC"/>
+        <text class="ft-num" x="1078" y="98" text-anchor="middle">θ ← θ − η·(Δ + λθ)</text>
+        <text class="ft-note" x="1078" y="117" text-anchor="middle">衰减单独一步</text>
+        <text class="ft-lab" x="630" y="160" style="fill:#1E4FA8">衰减直接作用在参数上：θ ← θ − η·λ·θ，收缩均匀、与梯度大小无关</text>
+        <text class="ft-lab" x="630" y="180" style="fill:#1E4FA8">λ 与 η 可以分别调，是微调大模型的默认选择</text>
+
+        <!-- 工程默认 -->
+        <rect x="22" y="204" width="1156" height="64" rx="9" fill="#E8EFF8"/>
+        <text class="ft-num" x="44" y="230">工程默认：torch.optim.AdamW(params, lr=1e-3, weight_decay=0.01)；HuggingFace Trainer 默认就是 AdamW</text>
+        <text class="ft-lab" x="44" y="254">weight_decay 常取 0.01~0.1（大模型微调常用 0.1）；bias、LayerNorm 等参数通常不衰减——第 12/13 讲细讲</text>
+      </svg>
+    </div>
+    <div class="qbar">Adam = <span class="k">惯性 + 自适应 + 偏差修正</span>；AdamW 再把权重衰减解耦——今天大模型微调的默认答案。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 优化器收口与调度 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">优化器收口与学习率调度</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:18%">优化器</th><th style="width:30%">核心思想</th><th style="width:26%">治什么病</th><th style="width:26%">典型场景</th></tr>
+      <tr><td><b>SGD</b></td><td>裸梯度小步走</td><td>—（立靶者）</td><td>教学、简单问题</td></tr>
+      <tr><td><b>Momentum</b></td><td>方向惯性 β=0.9</td><td>震荡、鞍点停滞</td><td>CNN：SGD+Momentum</td></tr>
+      <tr><td><b>AdaGrad</b></td><td>累积梯度平方调步长</td><td>学习率一刀切</td><td>稀疏凸问题（会早衰）</td></tr>
+      <tr><td><b>RMSProp</b></td><td>梯度平方滑动平均</td><td>AdaGrad 早衰</td><td>RNN / 在线场景</td></tr>
+      <tr><td><b>Adam / AdamW</b></td><td>一阶 + 二阶动量 + 偏差修正</td><td>综合最优</td><td>默认首选；微调用 AdamW</td></tr>
+    </table>
+    <div class="qbar">调度三件套：<span class="k">阶梯衰减 · 余弦退火 · Warmup</span>——Warmup 是 Transformer 训练的关键技巧（第 11/13 讲回响）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 36 过拟合诊断 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">诊断：欠拟合、泛化与过拟合</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="figwrap" style="flex:0 0 auto;height:290px;margin-top:0">
+      <svg viewBox="0 0 1200 290" preserveAspectRatio="xMidYMid meet" role="img" aria-label="训练与验证 loss 曲线三态示意图：左图欠拟合，两条曲线都停在高位；中图泛化良好，两条曲线一起下降并贴地收敛；右图过拟合，训练 loss 继续下降而验证 loss 先降后升，最低点标为早停点">
+        <defs>
+          <marker id="loss-axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#8B97A8"/></marker>
+        </defs>
+        <rect x="8" y="6" width="1184" height="278" rx="10" fill="#F7F9FC" stroke="#D6DCE5"/>
+
+        <!-- 图例 -->
+        <line x1="30" y1="26" x2="62" y2="26" stroke="#1E4FA8" stroke-width="2.6"/>
+        <text class="ft-lab" x="70" y="30">训练 loss</text>
+        <line x1="164" y1="26" x2="196" y2="26" stroke="#D9534F" stroke-width="2.4" stroke-dasharray="7,5"/>
+        <text class="ft-lab" x="204" y="30">验证 loss</text>
+        <text class="ft-note" x="1176" y="30" text-anchor="end">纵轴 loss（越小越好）· 横轴训练轮数</text>
+
+        <!-- ① 欠拟合 -->
+        <rect x="24" y="44" width="368" height="226" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="40" y="72">① 欠拟合</text>
+        <line x1="68" y1="236" x2="68" y2="96" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <line x1="68" y1="236" x2="356" y2="236" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <text class="ft-note" x="62" y="112" text-anchor="end">loss</text>
+        <path d="M80,104 C150,132 240,152 348,156" fill="none" stroke="#1E4FA8" stroke-width="2.6"/>
+        <path d="M80,114 C150,142 240,164 348,168" fill="none" stroke="#D9534F" stroke-width="2.4" stroke-dasharray="7,5"/>
+        <text class="ft-lab" x="208" y="258" text-anchor="middle">两条都卡在高位——容量不够或没训到位</text>
+
+        <!-- ② 泛化良好 -->
+        <rect x="416" y="44" width="368" height="226" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="432" y="72">② 泛化良好</text>
+        <line x1="460" y1="236" x2="460" y2="96" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <line x1="460" y1="236" x2="748" y2="236" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <text class="ft-note" x="454" y="112" text-anchor="end">loss</text>
+        <path d="M472,104 C560,178 630,204 740,210" fill="none" stroke="#1E4FA8" stroke-width="2.6"/>
+        <path d="M472,112 C560,190 640,214 740,218" fill="none" stroke="#D9534F" stroke-width="2.4" stroke-dasharray="7,5"/>
+        <text class="ft-lab" x="600" y="258" text-anchor="middle">两条一起降、最后都贴地——这就是我们要的</text>
+
+        <!-- ③ 过拟合 -->
+        <rect x="808" y="44" width="368" height="226" rx="9" fill="#FFFFFF" stroke="#E5E7EB"/>
+        <text class="ft-t" x="824" y="72">③ 过拟合</text>
+        <line x1="852" y1="236" x2="852" y2="96" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <line x1="852" y1="236" x2="1140" y2="236" stroke="#8B97A8" stroke-width="1.4" marker-end="url(#loss-axis)"/>
+        <text class="ft-note" x="846" y="112" text-anchor="end">loss</text>
+        <path d="M864,104 C960,158 1030,190 1132,200" fill="none" stroke="#1E4FA8" stroke-width="2.6"/>
+        <path d="M864,112 C930,162 985,200 1020,205 C1055,210 1095,193 1132,164" fill="none" stroke="#D9534F" stroke-width="2.4" stroke-dasharray="7,5"/>
+        <line x1="1020" y1="205" x2="1020" y2="236" stroke="#C9D2DF" stroke-width="1.4" stroke-dasharray="4,4"/>
+        <circle cx="1020" cy="205" r="4.5" fill="#D9534F"/>
+        <text class="ft-lab" x="1020" y="258" text-anchor="middle">早停点（保存这里的最佳模型）</text>
+        <text class="ft-lab" x="1128" y="150" text-anchor="end" style="fill:#B03A36">验证 loss 回升 = 开始背题</text>
+      </svg>
+    </div>
+    <div class="grid g3" style="flex:1;align-content:stretch;margin-top:12px">
+      <div class="card"><div class="h"><span class="no">1</span>欠拟合</div><p>训练/验证 loss <b>都降不下去</b>——容量不够或没训到位。<br>类比：没复习的考生。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">2</span>泛化良好</div><p>训练 loss ↓、验证 loss <b>也 ↓</b>——学到的是规律。<br>类比：真正学会的学生。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>过拟合</div><p>训练 loss ↓、验证 loss <b>回升</b>——开始背题。<br>类比：换道题就懵的学霸。</p></div>
+    </div>
+    <div class="qbar">永远画训练/验证<span class="k">两条曲线</span>——这是深度学习实验的“心电图”，作业报告必备。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">36</span></div>
+</section>
+
+<!-- ================= 37 L1/L2 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则化①：L2 与 L1——给权重装上约束</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">L2：弹簧式收缩（weight decay）</div>
+        <ul>
+          <li>L′ = L + (λ/2)·||w||²；更新多一项 <b>−λ·w</b></li>
+          <li>每步把权重往 0 拉一点——函数更平滑、不押注个别特征</li>
+          <li>λ 常从 <b>1e-4</b> 起步；AdamW 把衰减解耦（大模型微调默认）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">L1：清场式稀疏</div>
+        <ul>
+          <li>L′ = L + λ·||w||₁——不重要的权重直接压到 <b>0</b></li>
+          <li>等于自动特征选择，适合可解释性与压缩场景</li>
+          <li>深度学习主流仍是 L2 / AdamW</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">L1 产<span class="k">稀疏</span>，L2 产<span class="k">平滑</span>——同一思想，两种性格。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 Dropout ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则化②：Dropout——随机“关神经元”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col"><div class="node">h₁</div><div class="node" style="opacity:.35">h₂ ✂</div><div class="node">h₃</div><div class="node" style="opacity:.35">h₄ ✂</div><div class="lbl">训练时：随机置 0</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">测试时：全部启用</div><div class="lbl">并按 (1−p) 缩放</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card small"><div class="h">两个直觉</div><p>① 不许依赖“明星神经元”；② 每步训练不同子网络 ≈ 集成海量模型。</p></div>
+      <div class="card small card-warn"><div class="h">高频坑</div><p>忘写 <code>model.train() / model.eval()</code>——评估结果会离谱，写进 checklist。</p></div>
+    </div>
+    <div class="qbar">Dropout = <span class="k">穷人版 ensemble</span>——用随机性换泛化。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">38</span></div>
+</section>
+
+<!-- ================= 39 早停与增强 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">正则化③：早停、数据增强与标签平滑</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>早停</div><p>验证 loss 连续 k 轮不改善就停；保存<b>验证最优</b>的 checkpoint，而非最后一轮。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>数据增强</div><p>同义词替换、随机插删换（EDA）、回译；铁律：<b>增强必须保持标签不变</b>。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>标签平滑</div><p>硬标签 1/0 → 0.9/0.1，缓解过度自信、改善概率校准。</p></div>
+    </div>
+    <table class="ac" style="margin-top:12px">
+      <tr><th>方法</th><th>一句话原理</th><th>关键超参</th><th>何时优先用</th></tr>
+      <tr><td><b>数据增强</b></td><td>人造更多训练样本</td><td>增强方式/比例</td><td>数据少时第一优先</td></tr>
+      <tr><td><b>Dropout</b></td><td>随机关神经元，强制冗余</td><td>p（0.1–0.5）</td><td>深层网络默认配置</td></tr>
+      <tr><td><b>L2</b></td><td>权重回零弹簧，偏好平滑</td><td>λ（1e-4 起步）</td><td>几乎总是开着</td></tr>
+      <tr><td><b>早停</b></td><td>验证不改善就刹车</td><td>patience 轮数</td><td>永远兜底</td></tr>
+    </table>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">39</span></div>
+</section>
+
+<!-- ================= 40 初始化与归一化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">初始化与归一化：让深层网络“稳得住”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:0 0 auto">
+      <div class="card small">
+        <div class="h">初始化：开局就要稳</div>
+        <ul>
+          <li>坏初始化 → 连乘后梯度爆炸/消失，训练一开始就崩</li>
+          <li><b>Xavier/Glorot</b>：配 tanh/sigmoid，方差按输入输出维度匹配</li>
+          <li><b>He/Kaiming</b>：配 ReLU，考虑半区间置零（公式见下）</li>
+        </ul>
+      </div>
+      <div class="card small card-blue">
+        <div class="h">归一化：全程都要稳</div>
+        <ul>
+          <li><b>BatchNorm</b>：按 mini-batch 标准化——CNN 标配</li>
+          <li><b>LayerNorm</b>：按特征维标准化——Transformer 标配（第 11 讲）</li>
+          <li>都可学习缩放 γ 与平移 β，稳定每层输入分布</li>
+        </ul>
+      </div>
+    </div>
+    <div class="code" style="margin-top:12px;font-size:15.5px;line-height:1.45">n_in / n_out = 本层的输入 / 输出维度（fan_in / fan_out）；目标：让每一层的输出方差保持不变
+
+<b>Xavier / Glorot</b>　配 tanh、sigmoid（前向与反向折中）
+  Var(w) = 2 / (n_in + n_out)
+  w ~ U(−√(6/(n_in+n_out)), +√(6/(n_in+n_out)))      <span class="c"># 均匀版：xavier_uniform_（默认）</span>
+  w ~ N(0, 2/(n_in + n_out))                         <span class="c"># 正态版：xavier_normal_</span>
+
+<b>He / Kaiming</b>　配 ReLU（一半输出被置零 → 方差 ×2 补回来）
+  Var(w) = 2 / n_in
+  w ~ N(0, 2/n_in)                                   <span class="c"># 正态版：kaiming_normal_（默认）</span>
+  w ~ U(−√(6/n_in), +√(6/n_in))                      <span class="c"># 均匀版：kaiming_uniform_</span>
+一行代码：nn.init.xavier_uniform_(m.weight)　｜　nn.init.kaiming_normal_(m.weight, nonlinearity='relu')</div>
+    <div class="qbar">初始化负责<span class="k">“开局稳”</span>，归一化负责<span class="k">“全程稳”</span>——两者配合，深网才训得动。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">40</span></div>
+</section>
+
+<!-- ================= 41 Embedding 层 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Embedding 层：词向量进网络的门</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+embed = nn.Embedding(<b>num_embeddings=15000</b>,   <span class="c"># 词表大小 V</span>
+                     <b>embedding_dim=100</b>,      <span class="c"># 向量维度 d</span>
+                     padding_idx=0)             <span class="c"># 补齐符恒为 0</span>
+ids = torch.tensor([12, 45, 7])              <span class="c"># 词 ID</span>
+vecs = embed(ids)                            <span class="c"># [3, 100]</span>
+<span class="c"># 加载预训练词向量：</span>
+embed.weight.data.copy_(pretrained)</div>
+      <div class="card card-blue">
+        <div class="h">三个要点</div>
+        <ul>
+          <li>本质是 <b>V×d 查找表</b>——按行取数，比 one-hot 乘矩阵高效</li>
+          <li>参数量 = V×d：15000×100 = <b>150 万</b></li>
+          <li>预训练加载后可冻结或微调——小数据常冻结，大数据微调</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">Embedding 是<span class="k">第 5 讲词向量与第 6 讲网络的接口</span>——一行代码把表示接进模型。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">41</span></div>
+</section>
+
+<!-- ================= 42 文本分类网络 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">最小文本分类网络（作业 3 骨架）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col"><div class="node">词 ID 序列</div><div class="lbl">[L]</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">Embedding</div><div class="lbl">[L, d]</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">平均池化</div><div class="lbl">[d] 句向量</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">Linear+ReLU</div><div class="lbl">[h]</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">Linear+softmax</div><div class="lbl">类别概率</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card small card-blue"><div class="h">为什么平均池化是强 baseline</div><p>简单、快、无需额外参数；很多时候已经够用——先跑通它，再谈优化。</p></div>
+      <div class="card small card-warn"><div class="h">它丢掉了词序</div><p>“猫追狗” = “狗追猫”——改进：加权平均（TF-IDF/SIF）或 RNN/注意力（第 8/10/11 讲）。</p></div>
+    </div>
+    <div class="qbar">前五讲在这里汇合：<span class="k">清洗 → 分词 → 词向量 → 网络 → 决策</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">42</span></div>
+</section>
+
+<!-- ================= 43 PyTorch 训练循环 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">PyTorch 最小训练循环：15 行</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+import torch, torch.nn as nn
+model = nn.Sequential(nn.Linear(100, 64), nn.ReLU(),
+                      nn.Linear(64, 3))          <span class="c"># 100→64→3</span>
+loss_fn = nn.CrossEntropyLoss()              <span class="c"># 内含 softmax</span>
+opt = torch.optim.Adam(model.parameters(), lr=1e-3)
+for epoch in range(100):
+    opt.<b>zero_grad()</b>                             <span class="c"># ① 清梯度（必须）</span>
+    logits = model(X)                        <span class="c"># ② 前向</span>
+    loss = loss_fn(logits, y)                <span class="c"># ③ 损失</span>
+    loss.<b>backward()</b>                            <span class="c"># ④ 反向（autograd）</span>
+    opt.<b>step()</b>                                <span class="c"># ⑤ 更新</span></div>
+    <div class="qbar">五件事对应本讲全部核心：<span class="k">清梯度 → 前向 → 损失 → 反向 → 更新</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">43</span></div>
+</section>
+
+<!-- ================= 44 训练九坑 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">训练九坑与调优 checklist</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn">
+        <div class="h">九坑分三类</div>
+        <ul>
+          <li><b>机制类</b>：忘 zero_grad、忘 train/eval、该 no_grad 没加</li>
+          <li><b>形状/类型类</b>：维度不匹配、标签 dtype 非 long、设备不一致</li>
+          <li><b>调参与方法学</b>：学习率过大 NaN、梯度爆炸、数据泄漏、测试集调参</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">五步调优 checklist</div>
+        <ul>
+          <li>① <b>先过拟合 100 条小数据</b>——压不到 0 说明 pipeline 有 bug</li>
+          <li>② 全量训练，画训练/验证双曲线</li>
+          <li>③ 按心电图诊断：欠拟合加容量、过拟合加正则</li>
+          <li>④ 随机搜索优于网格搜索；⑤ 测试集只用一次</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">先证明“<span class="k">能学</span>”，再谈“学得好”——把这条写进作业 3 的实验流程。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">44</span></div>
+</section>
+
+<!-- ================= 45 大团圆 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">大团圆：六次课拼成一条 NLP 流水线</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="nn">
+      <div class="col"><div class="node">原始文本</div><div class="lbl">第 1 讲</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">正则清洗</div><div class="lbl">第 2 讲</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">分词 / 子词</div><div class="lbl">第 4 讲</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">词向量</div><div class="lbl">第 5 讲</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node proj">池化 → MLP</div><div class="lbl">第 6 讲（今天）</div></div>
+      <div class="arr">→</div>
+      <div class="col"><div class="node out">类别概率</div><div class="lbl">决策</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:12px">
+      <div class="card small card-blue"><div class="h">你已经能做什么</div><p>独立搭出一个完整的文本分类系统——清洗、分词、向量化、训练、评估。</p></div>
+      <div class="card small card-warn"><div class="h">平均池化之后呢</div><p>它丢了词序；保顺序的编码器：RNN（第 8 讲）、注意力（第 10/11 讲）。</p></div>
+    </div>
+    <div class="qbar">大模型没有魔法——<span class="k">它只是把今天这些零件正确组装，再乘以规模</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">45</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">课后跑通训练循环并“杀死”神经元，课堂研讨三个机制问题。</div>
+    <ul>
+      <li>自学：MLP 二分类训练 + Dying ReLU 实验</li>
+      <li>研讨：XOR / 交叉熵 / loss 排错（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 47 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：跑通它，再“杀死”它</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch;grid-template-rows:1fr auto">
+      <div class="card card-blue"><div class="h"><span class="no">A</span>跑通最小训练循环</div>
+        <ul>
+          <li>两个高斯团二分类数据（各 100 条），CPU 即可</li>
+          <li>训练 100 轮，把 loss 从约 0.7 压到 <b>0.1 以下</b></li>
+          <li>观察 loss 曲线形状；尝试故意去掉 zero_grad 看会发生什么</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">B</span>亲手制造 Dying ReLU</div>
+        <ul>
+          <li>把学习率从 1e-3 调到 <b>0.5</b> 重跑</li>
+          <li>打印隐藏层活跃比例 <code>(h&gt;0).float().mean()</code></li>
+          <li>观察是否趋近 0；换 LeakyReLU 再试，对比结果</li>
+        </ul>
+      </div>
+      <div class="card card-blue" style="grid-column:1/-1">
+        <div class="h"><span class="no">C</span>进阶：手写 bold driver——用 loss 给 η 装油门与刹车</div>
+        <ul>
+          <li>规则：loss 下降 → η ← η×1.05（踩油门）；loss 上升 → <b>回退到上一步参数</b>，η ← η×0.5（刹车）</li>
+          <li>对比实验：同一个任务跑两遍（固定 η vs bold driver），把两条 loss 曲线画在一起——这就是进阶项的交付</li>
+          <li>想一想：它只看单个 batch 的 loss，噪声会把随机抖动误判成“上升”→ 一路刹车，这正是它没进主流框架的原因</li>
+          <li>再进一步：给“刹车”加耐心（连续 3 步变差才降 η），曲线更稳——这就是 <code>ReduceLROnPlateau</code> 的思路</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">验收：loss 压到 0.1 以下、活跃比例对比图、两条曲线截图——<span class="k">用实验说话</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">47</span></div>
+</section>
+
+<!-- ================= 48 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个机制问题（10 分钟）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h">Q1 结构</div><p>为什么单层感知机解决不了 XOR？多层网络为什么可以？请用几何语言解释。</p></div>
+      <div class="card card-blue"><div class="h">Q2 损失</div><p>分类任务为什么用交叉熵而不是 MSE？从梯度角度给出理由。</p></div>
+      <div class="card card-blue"><div class="h">Q3 排错</div><p>训练时 loss 不降甚至变成 NaN，你会按什么顺序排查？说出前三步。</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">48</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个零件、一套机制、一组护栏。</div>
+    <ul>
+      <li>结构：感知机 → MLP，非线性是深度的灵魂</li>
+      <li>学习：损失 → 反向传播 → 优化器（Adam 默认）</li>
+      <li>工程：正则防过拟合、先过拟合小数据再放大</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 51 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>结构</div><p>神经元 = 加权求和 + 非线性；感知机画一条线，MLP 把空间弯折后线性可分。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>学习</div><p>损失定义好坏，反向传播按链式法则分配责任，优化器执行更新——Adam 是默认答案。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>工程</div><p>正则防过拟合、调参先调学习率、<b>先过拟合小数据</b>再放大——这是实验纪律。</p></div>
+    </div>
+    <div class="qbar">大模型没有魔法：<span class="k">它只是正确组装了今天这些零件，再乘以规模</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">51</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">作业 3 启动；下讲回到统计语言模型：数数也能建模语言。</div>
+    <ul>
+      <li>作业 3：词向量 + MLP 文本分类（阶段一）</li>
+      <li>报告：调参记录 + 过拟合诊断 + AI 使用声明</li>
+      <li>下讲预告：第 7 讲 统计语言模型 N-gram</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 53 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>作业 3 启动：词向量 + MLP 文本分类</div>
+        <ul>
+          <li>复用今天流水线，替换成真实数据集（课程平台提供）</li>
+          <li>阶段一（第 7 讲后交）：pipeline 跑通 + <b>小数据过拟合验证</b> + 训练/验证双曲线</li>
+          <li>报告须含：调参记录表、过拟合诊断、AI 使用声明</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>下讲预告与思考题</div>
+        <ul>
+          <li>第 7 讲：统计语言模型 N-gram——不靠神经网络，数数怎么建模语言？</li>
+          <li>思考①：“我喜欢这部电影”与“这部电影喜欢我”，哪句更像人话？</li>
+          <li>思考②：从没见过的词，概率怎么算？——平滑的动机</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 7 讲 统计语言模型 N-gram</span>：回到 2012 年前统治 NLP 的方法——数数。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">53</span></div>
+</section>
+
+<!-- ================= 54 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:16.5px;line-height:1.9">
+      <b>教材与经典文献（原理层）</b><br>
+      Goodfellow 等《深度学习》第 6/8 章 · Rumelhart, Hinton &amp; Williams (1986) 反向传播<br>
+      Minsky &amp; Papert (1969)《Perceptrons》· Cybenko (1989) / Hornik (1991) 万能近似<br>
+      Kingma &amp; Ba (2014) Adam · Hendrycks &amp; Gimpel (2016) GELU · Srivastava et al. (2014) Dropout<br>
+      <b>课程与工具（实例层）</b><br>
+      Stanford CS231n 讲义（激活函数、优化器）· 《动手学深度学习》D2L 中文版（反向传播、正则化）<br>
+      PyTorch 官方教程（autograd、Optimizing Model Parameters）· 邱锡鹏《神经网络与深度学习》
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">MLP、反向传播与 Adam 为原理层、长期稳定；课程讲义与框架版本为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 53</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  /* 把 解析成结构化提示 */
+
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

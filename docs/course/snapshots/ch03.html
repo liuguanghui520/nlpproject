@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第3章 编辑距离与拼写纠错 | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  table.dp{border-collapse:collapse;margin-top:6px}
+  table.dp td{min-width:44px;height:38px;text-align:center;padding:0 5px;border:1px solid var(--line2);
+    font-size:18px;font-weight:600;color:var(--text)}
+  table.dp td.ax{background:var(--lb1);color:var(--navy);font-weight:700}
+  table.dp td.empty{color:#C2CCD9;font-weight:400}
+  table.dp td.nx{background:#F0F5FC;border:2px solid var(--mid);color:var(--navy)}
+  table.dp td.cur{background:#FFF5D9;border:2px solid #C9A227;color:#8A6D00;font-weight:800}
+  table.dp td.path{background:var(--mid);color:#fff;font-weight:800}
+  table.dp td.ans{background:var(--navy);color:#fff;font-weight:800;border:3px solid var(--navy)}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Minimum Edit Distance &amp; Spelling Correction</div>
+    <div class="cn">编辑距离与拼写纠错</div>
+    <div class="rule"></div>
+    <div class="sub">第三章 · 编辑距离与拼写纠错</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 3 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作（综合 QW / Doubao / WorkBuddy 素材）· 2026-09-10</div>
+  <div class="num">03</div>
+</section>
+
+<!-- ================= 1.5 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 2 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>正则五件套</div><p>字符类 · 量词 · 锚点 · 分组 · 速记符——描述一类字符串的小语言。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>Python re 六函数</div><p>search / match / findall / finditer / sub / split；写进 r'' 原始字符串。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>精确率与召回率</div><p>P = TP/(TP+FP)，R = TP/(TP+FN)；先想 FP/FN 的代价。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>清洗三件套</div><p>去标签 → 解实体 → 压空白；中文注意全半角与脱敏。</p></div>
+    </div>
+    <div class="qbar">上节课学会了“<span class="k">找字符串</span>”，今天学“<span class="k">比字符串</span>”——相似度 × 频率，正是纠错的两把尺子。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 2 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：纠错无处不在</div><div class="dd">四个场景、两个数字，以及一个“graffe”问题</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">最小编辑距离与动态规划</div><div class="dd">度量家族、六步填表演示、回溯对齐、代码与复杂度</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">拼写纠错的完整配方</div><div class="dd">噪声信道、候选生成与打分、real-word 与中文 CSC</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">神经 / LLM 纠错与选型</div><div class="dd">三种新方法与过度纠正、四代范式收口</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">上机与研讨</div><div class="dd">运行 MED + mini 词典挑战、“我门”三问</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">小结、作业与预告</div><div class="dd">作业 1 提交、med_align 加分、第 4 讲分词与子词</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 3 讲 · 编辑距离与拼写纠错</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>说出 MED 的操作与度量家族（Levenshtein/Damerau/LCS/Jaro-Winkler）</li>
+          <li>按六步完整复现 DP 填表：子问题→初始化→递推→填表→回溯→对齐</li>
+          <li>解释噪声信道 P(w|x) ∝ P(x|w)·P(w)，了解四代纠错范式</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能手算 DP 表并编程实现距离与回溯</li>
+          <li>能用 rapidfuzz / SymSpell 做模糊匹配与纠错</li>
+          <li>能读懂并改造 Norvig 式 toy 纠错器，为场景选对度量</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>体会“候选生成 + 概率打分”的可迁移工程范式</li>
+          <li>理解经典方法在大模型时代的底座价值</li>
+          <li>建立“相似度度量”与评估意识的通用工程视角</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>MED 六步 DP 演示（期中原型题）；噪声信道（候选生成 + 打分）的完整配方。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>从“指数级搜索”到“DP 填表”的思维跳跃；real-word 错误为何难纠。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">从“红色波浪线”说起：机器凭什么知道 graffe 应该是 giraffe？</div>
+    <ul>
+      <li>纠错无处不在的四个场景与两个关键数字</li>
+      <li>一个具体问题：graffe 该改成谁？</li>
+      <li>两条线索：相似度 × 频率（× 上下文）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 5 纠错无处不在 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">纠错无处不在</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">你今天大概率已被它“纠正”过很多次——问题是：机器凭什么知道正确答案？</div>
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">四个你熟悉的场景</div>
+        <ul>
+          <li>Word / 浏览器的<b>红色波浪线</b></li>
+          <li>搜索引擎的“您是不是要找：<b>did you mean</b>”</li>
+          <li>手机输入法的<b>自动纠错与联想</b></li>
+          <li>代码编辑器的拼写与符号提示</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">两个关键数字</div>
+        <ul>
+          <li>≈ <b>26%</b>：网络查询含拼写错误（Wang et al. 2003）</li>
+          <li>≈ <b>80%</b>：拼写错误在编辑距离 1 以内，几乎所有错误在距离 2 以内（Norvig 2007）</li>
+          <li>含义：纠错不是边缘功能；且“近邻候选”就能覆盖绝大多数情况</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>来源：</b>Wang et al. 2003（网页查询错误率）；Peter Norvig《How to Write a Spelling Corrector》2007（距离 1/2 覆盖率）。</div>
+    <div class="qbar">纠错的第一步，是先定义<span class="k">“两个字符串有多像”</span>——这就是编辑距离。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">05</span></div>
+</section>
+
+<!-- ================= 6 graffe 问题 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">导入之问：graffe 该改成谁？</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="lead">用户想打 <b>giraffe</b>，却打成 <b>graffe</b>——机器面对四个候选，凭什么选中正确的那一个？</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h">候选池</div><p>graf · graft · grail · giraffe——每个都“长得有点像”，但只有一个是对的。</p></div>
+      <div class="card card-blue"><div class="h">线索① 相似度</div><p>与错词差异最小的候选更可能：giraffe 与 graffe 只差两个字母（距离 2）。</p></div>
+      <div class="card card-blue"><div class="h">线索② 频率</div><p>常用词更可能被“想打”：giraffe 远比其他三个生僻词常见。</p></div>
+    </div>
+    <div class="qbar">纠错 = <span class="k">相似度 × 频率</span>（× 上下文，第 7 讲接棒）——本讲先造“相似度”这把尺子。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">从“像不像”到“怎么算”，再到“怎么用”与“怎么选”的完整链路。</div>
+    <ul>
+      <li>MED：定义、度量家族、六步 DP 演示、回溯、代码、复杂度</li>
+      <li>噪声信道：错误类型、候选生成、打分、real-word 与中文 CSC</li>
+      <li>演进收口：神经 / LLM 纠错、工具与四代范式对比</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 8 MED 定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">最小编辑距离：定义与来历</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">定义</div>
+        <p>把 X 变成 Y 所需的<b>最少字符编辑操作数</b>。三种操作各记代价 1：</p>
+        <ul>
+          <li><b>插入</b>（+1 字符）· <b>删除</b>（−1 字符）· <b>替换</b>（改 1 字符）</li>
+          <li>加上“相邻交换”就是 <b>Damerau-Levenshtein</b> 距离</li>
+          <li>关键词是“<b>最少</b>”——所有路径里代价最小的那条</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="h">来历与经典例子</div>
+        <ul>
+          <li>Levenshtein（1965）为纠错编码提出；Damerau（1964）补交换操作</li>
+          <li><b>kitten → sitting = 5</b>：k→s（2）、e→i（2）、末尾插 g（1）——六步演示的主角</li>
+          <li><b>intension → execution = 8</b>（替换代价 2，教材惯例）</li>
+        </ul>
+        <p style="margin-top:8px">代价是可调旋钮——替换代价 2 相当于把“替换”看成“删 + 插”两步。</p>
+      </div>
+    </div>
+    <div class="qbar">编辑距离 = 两个字符串之间的<span class="k">“最短路径”</span>：路径上每一步就是一次编辑操作。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">08</span></div>
+</section>
+
+<!-- ================= 9 度量家族 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">字符串度量家族</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">度量</th><th style="width:38%">允许操作 / 定义</th><th style="width:42%">典型用途</th></tr>
+      <tr><td><b>Hamming</b></td><td>仅“替换”，要求等长</td><td>定长编码、等长 DNA、校验位</td></tr>
+      <tr><td><b>Levenshtein</b></td><td>插入 / 删除 / 替换</td><td>通用拼写纠错、模糊匹配</td></tr>
+      <tr><td><b>Damerau-Levenshtein</b></td><td>+ 相邻字符转置（ab→ba）</td><td>打字错误更贴合现实</td></tr>
+      <tr><td><b>LCS 距离</b></td><td>仅插入/删除；= n+m−2·LCS</td><td>差异比对、版本 diff</td></tr>
+      <tr><td><b>Jaro-Winkler</b></td><td>前缀加权的相似度（0–1，越大越像）</td><td>短姓名、记录去重、实体匹配</td></tr>
+    </table>
+    <div class="src"><b>来源：</b>Damerau (1964)、Levenshtein (1966)、Jaro (1989) / Winkler (1990)；rapidfuzz / python-Levenshtein 均内置以上度量。</div>
+    <div class="qbar">选度量 = 选“<span class="k">你认为什么样的差异更重要</span>”：打字错误重转置，姓名匹配重前缀。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 口算练习 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">趁热打铁：编辑距离口算</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">先遮住答案自己算，再对照（<b>替换代价按 Levenshtein 惯例计 2</b>）：</div>
+    <table class="ac" style="flex:1">
+      <tr><th style="width:26%">字符串对</th><th style="width:10%">距离</th><th style="width:28%">操作序列</th><th style="width:36%">备注</th></tr>
+      <tr><td>cat / cats</td><td><b>1</b></td><td>插入 s</td><td>最简情形</td></tr>
+      <tr><td>flower / flow</td><td><b>2</b></td><td>删除 e、r</td><td>连续删除</td></tr>
+      <tr><td>book / back</td><td><b>4</b></td><td>o→a、o→c</td><td>两个替换，各计 2</td></tr>
+      <tr><td>sun / sunday</td><td><b>3</b></td><td>插入 d、a、y</td><td>包含关系 ≠ 距离 0</td></tr>
+      <tr><td>北京大学 / 北大</td><td><b>2</b></td><td>删除 京、学</td><td>中文按“字”计</td></tr>
+      <tr><td>我门 / 我们</td><td><b>2</b></td><td>门→们（替换）</td><td>为 real-word 错误埋伏笔</td></tr>
+    </table>
+    <div class="qbar">中文与英文<span class="k">完全同构</span>——只是把“字母”换成“字”；同一个算法，横跨两种语言。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 暴力→DP ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">怎么算：从暴力到动态规划</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn"><div class="h">暴力枚举：指数级爆炸</div>
+        <ul>
+          <li>每个位置有“删 / 插 / 替 / 不动”多种选择</li>
+          <li>长度仅 10 的两个词，操作序列组合就达数万条以上</li>
+          <li>但大量路径会到达<b>同一个中间状态</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h">动态规划的两个前提</div>
+        <ul>
+          <li><b>最优子结构</b>：最优路径经过中间态 x，则到 x 的那段必为最优</li>
+          <li><b>重叠子问题</b>：子问题被反复求解——算一次、存起来、反复用</li>
+          <li>子问题：<b>D[i][j]</b> = X 前 i 个字符变 Y 前 j 个字符的最小距离</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">把“枚举所有改法”变成“填一张 n×m 的表”——每格只看<span class="k">左、上、左上</span>三个邻居。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 11b 递归与备忘录 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">另一种写法：递归 + 备忘录</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.5">
+from functools import lru_cache
+
+@lru_cache(maxsize=None)
+def dist(x, y, i, j):
+    if i == 0: return j          <span class="c"># 边界：全插入</span>
+    if j == 0: return i          <span class="c"># 边界：全删除</span>
+    return min(
+        dist(x, y, i-1, j) + 1,
+        dist(x, y, i, j-1) + 1,
+        dist(x, y, i-1, j-1) + (0 if x[i-1] == y[j-1] else 2))
+
+dist("kitten", "sitting", 6, 7)  <span class="c"># → 5</span></div>
+      <div class="card card-blue">
+        <div class="h">与表格版的关系</div>
+        <ul>
+          <li>两个写法答案一致，只是方向相反：表格<b>自底向上</b>、递归<b>自顶向下</b></li>
+          <li>记忆化把指数级递归压回 <b>O(mn)</b></li>
+          <li>口诀：动态规划 = <b>递归 + 缓存</b>；面试常考两种等价写法</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">同一递推式，两种方向——<span class="k">表格自底向上，递归自顶向下</span>，记忆化让后者同样 O(mn)。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 12 DP 步骤1：子问题与初始化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示①：子问题与初始化</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">行 = 源串 <b>kitten</b>，列 = 目标串 <b>sitting</b>；<b>D[i][j]</b> = kitten 前 i 字符变 sitting 前 j 字符的最小距离。</div>
+    <div class="grid g2" style="flex:1">
+      <div>
+        <div class="code" style="margin-top:0">D[i][0] = i   <span class="c"># 目标为空：逐个删，全删 i 次</span>
+D[0][j] = j   <span class="c"># 源为空：逐个插，全插 j 次</span></div>
+        <div class="qbar" style="margin-top:14px">边界就是“<span class="k">空串 vs 非空串</span>”——只能全删或全插。</div>
+      </div>
+      <table class="dp" style="align-self:center">
+        <tr><td class="ax"></td><td class="ax">ε</td><td class="ax">s</td><td class="ax">i</td><td class="ax">t</td><td class="ax">t</td><td class="ax">i</td><td class="ax">n</td><td class="ax">g</td></tr>
+        <tr><td class="ax">ε</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+        <tr><td class="ax">k</td><td>1</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">i</td><td>2</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">t</td><td>3</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">t</td><td>4</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">e</td><td>5</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">n</td><td>6</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 DP 步骤2：递推与第一格 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示②：递推式与第一个格子</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div>
+        <div class="code" style="margin-top:0">D[i][j] = min(
+  <b>D[i-1][j] + 1</b>,        <span class="c"># 上方：删除 x[i]</span>
+  <b>D[i][j-1] + 1</b>,        <span class="c"># 左方：插入 y[j]</span>
+  <b>D[i-1][j-1] + (0|2)</b>   <span class="c"># 左上：相同 +0 / 替换 +2</span>
+)</div>
+        <div class="qbar" style="margin-top:14px">算 D[1][1]（k vs s）：删 1+1=2、插 1+1=2、替 0+2=<span class="k">2</span> → 填 <span class="k">2</span>。</div>
+      </div>
+      <table class="dp" style="align-self:center">
+        <tr><td class="ax"></td><td class="ax">ε</td><td class="ax">s</td><td class="ax">i</td><td class="ax">t</td><td class="ax">t</td><td class="ax">i</td><td class="ax">n</td><td class="ax">g</td></tr>
+        <tr><td class="ax">ε</td><td class="nx">0</td><td class="nx">1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+        <tr><td class="ax">k</td><td class="nx">1</td><td class="cur">2</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">i</td><td>2</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">t</td><td>3</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">t</td><td>4</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">e</td><td>5</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+        <tr><td class="ax">n</td><td>6</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+      </table>
+    </div>
+    <div class="qbar">每格只看<span class="k">上、左、左上</span>三个邻居——与整张表多大无关，这就是 DP 的局部性。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 DP 步骤3：逐行填表① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示③：逐行填表（1/2）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">按行、从左到右逐格推进——先填完 <b>k、i、t、t</b> 四行：</div>
+    <table class="dp" style="align-self:center;flex:1">
+      <tr><td class="ax"></td><td class="ax">ε</td><td class="ax">s</td><td class="ax">i</td><td class="ax">t</td><td class="ax">t</td><td class="ax">i</td><td class="ax">n</td><td class="ax">g</td></tr>
+      <tr><td class="ax">ε</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">k</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+      <tr><td class="ax">i</td><td>2</td><td>3</td><td class="nx">2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">t</td><td>3</td><td>4</td><td>3</td><td class="nx">2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+      <tr><td class="ax">t</td><td>4</td><td>5</td><td>4</td><td>3</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+      <tr><td class="ax">e</td><td>5</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+      <tr><td class="ax">n</td><td>6</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td><td class="empty">·</td></tr>
+    </table>
+    <div class="qbar">字符相同 → 走<span class="k">左上 +0</span>（匹配）；字符不同 → 左上 <span class="k">+2</span>（替换）——高亮格都是“匹配继承”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 DP 步骤4：逐行填表② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示④：逐行填表（2/2）</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">填完最后两行 <b>e、n</b>，全表完成——答案在右下角：</div>
+    <table class="dp" style="align-self:center;flex:1">
+      <tr><td class="ax"></td><td class="ax">ε</td><td class="ax">s</td><td class="ax">i</td><td class="ax">t</td><td class="ax">t</td><td class="ax">i</td><td class="ax">n</td><td class="ax">g</td></tr>
+      <tr><td class="ax">ε</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">k</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+      <tr><td class="ax">i</td><td>2</td><td>3</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">t</td><td>3</td><td>4</td><td>3</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+      <tr><td class="ax">t</td><td>4</td><td>5</td><td>4</td><td>3</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+      <tr><td class="ax">e</td><td>5</td><td>6</td><td>5</td><td>4</td><td>3</td><td class="nx">4</td><td>5</td><td>6</td></tr>
+      <tr><td class="ax">n</td><td>6</td><td>7</td><td>6</td><td>5</td><td>4</td><td>5</td><td class="nx">4</td><td class="ans">5</td></tr>
+    </table>
+    <div class="qbar">一张表填完，距离自然浮现——<span class="k">D[6][7] = 5</span>，无需枚举任何一条编辑路径。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 DP 步骤5：回溯路径 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示⑤：回溯路径</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">填表时每格记<b>来源指针</b>（↖ 匹配/替换、↑ 删除、← 插入），从右下角沿指针走回左上角：</div>
+    <table class="dp" style="align-self:center;flex:1">
+      <tr><td class="ax"></td><td class="ax">ε</td><td class="ax">s</td><td class="ax">i</td><td class="ax">t</td><td class="ax">t</td><td class="ax">i</td><td class="ax">n</td><td class="ax">g</td></tr>
+      <tr><td class="ax">ε</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">k</td><td>1</td><td class="path">2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+      <tr><td class="ax">i</td><td>2</td><td>3</td><td class="path">2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr>
+      <tr><td class="ax">t</td><td>3</td><td>4</td><td>3</td><td class="path">2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+      <tr><td class="ax">t</td><td>4</td><td>5</td><td>4</td><td>3</td><td class="path">2</td><td>3</td><td>4</td><td>5</td></tr>
+      <tr><td class="ax">e</td><td>5</td><td>6</td><td>5</td><td>4</td><td>3</td><td class="path">4</td><td>5</td><td>6</td></tr>
+      <tr><td class="ax">n</td><td>6</td><td>7</td><td>6</td><td>5</td><td>4</td><td>5</td><td class="path">4</td><td class="ans">5</td></tr>
+    </table>
+    <div class="qbar">高亮路径 = 6 个 <span class="k">↖</span>（5 次匹配 + 1 次替换）+ 1 个 <span class="k">←</span>（插入）——从答案一路走回起点。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 DP 步骤6：读出对齐 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">DP 演示⑥：读出对齐与操作序列</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">对齐（_ 表示空位 gap）</div>
+        <div class="code" style="margin-top:10px">k  i  t  t  e  n  _
+s  i  t  t  i  n  g</div>
+        <p style="margin-top:10px">① k→s <b>替换</b>（代价 2）　② i 匹配　③ t 匹配　④ t 匹配　⑤ e→i <b>替换</b>（代价 2）　⑥ n 匹配　⑦ <b>插入</b> g（代价 1）</p>
+      </div>
+      <div class="card">
+        <div class="h">六步回顾</div>
+        <ul>
+          <li>① 定义子问题 D[i][j]</li>
+          <li>② 初始化第一行、第一列</li>
+          <li>③ 递推：三邻居取最小</li>
+          <li>④ 逐行填表，右下角得距离</li>
+          <li>⑤ 记指针，回溯找路径</li>
+          <li>⑥ 读出对齐与操作序列</li>
+        </ul>
+        <p style="margin-top:8px">距离 = 2×2 + 1×1 = <b>5</b>。</p>
+      </div>
+    </div>
+    <div class="qbar">距离回答“有多像”，对齐回答“<span class="k">哪里不像、怎么改</span>”——六步走完，任何字符串对都能复现。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 代码 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">代码实现与复杂度</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="code" style="margin-top:0">
+def edit_distance(x, y):
+    m, n = len(x), len(y)
+    d = [[0] * (n + 1) for _ in range(m + 1)]
+    <b>for i in range(m + 1): d[i][0] = i</b>
+    <b>for j in range(n + 1): d[0][j] = j</b>
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            d[i][j] = min(
+                d[i-1][j] + 1,
+                d[i][j-1] + 1,
+                d[i-1][j-1] + (0 if x[i-1] == y[j-1] else 2))
+    <b>return d[m][n]</b></div>
+      <div class="card"><div class="h">复杂度与验证</div>
+        <ul>
+          <li>时间 <b>O(mn)</b>、空间 <b>O(mn)</b>，二重循环</li>
+          <li>验证：kitten→sitting = 5；play→plan = 2（y→n 替换）；flaw→lawn = 2</li>
+          <li>带回溯：每格加方向指针，从右下走回左上（med_align 原型）</li>
+        </ul>
+        <p style="margin-top:8px">注意：<code>x[i-1]==y[j-1]</code> 的索引偏移是新手最常写错的一处。</p>
+      </div>
+    </div>
+    <div class="qbar">一个二重循环的表格——<span class="k">用空间换时间</span>的教科书案例。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 18b 相似度与归一化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">从距离到相似度：归一化</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">为什么需要归一化</div>
+        <ul>
+          <li>三个词的差距 2 与三十个词的差距 2<b>不是一个量级</b></li>
+          <li>公式：<b>sim = 1 − dist ÷ max(len(x), len(y))</b></li>
+          <li>输出 0–1、越大越像；difflib 的 ratio() 正是此思路</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">用在哪</div>
+        <ul>
+          <li>记录去重：sim ≥ 0.85 判为同一实体</li>
+          <li>匹配与聚类：相似度可比、可排序</li>
+          <li>阈值的选择——又是第 2 讲的 P/R 权衡</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">距离回答“差多少”，相似度回答“<span class="k">像多少</span>”——跨长度比较，请用归一化相似度。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 19 复杂度与工程优化 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">百万词表时怎么办：工程优化</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">算法的优化</div>
+        <ul>
+          <li>只求距离：<b>滚动数组</b>，空间 O(min(m,n))</li>
+          <li>要回溯：<b>Hirschberg</b> 分治，仍 O(mn) 时间、O(min(m,n)) 空间</li>
+          <li>带状剪枝：只关心距离 ≤k → 只算对角线附近 2k+1 宽的带子</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">工程的优化：减少要比对的词</div>
+        <ul>
+          <li><b>BK-tree</b>（1973）：用三角不等式建索引，整棵子树直接剪掉</li>
+          <li><b>SymSpell</b>：预处理词表“删除变体”索引，查询端只删不换，百万词表毫秒级候选</li>
+          <li>思路：把“逐词算 DP”变成“索引查找”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">算法课教你 O(mn)，工程课教你“<span class="k">大多数格子根本不用算</span>”——约束条件就是性能来源。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 19b Smith-Waterman ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">局部比对：Smith-Waterman</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">全局 vs 局部</div>
+        <ul>
+          <li>全局（Needleman-Wunsch）：整段对整段，必须从头到尾</li>
+          <li>局部（Smith-Waterman, 1981）：任意位置开始与结束，找<b>最相似子段</b></li>
+          <li>递推区别：<b>D[i][j] = max(0, 三邻居)</b>——允许从 0 重启</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">应用</div>
+        <ul>
+          <li>长文本里找相似片段（抄袭检测的局部雷同）</li>
+          <li>基因序列里找保守区域</li>
+          <li>同一张 DP 表，改一处就换一种语义——算法家族又一佐证</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">要“整段像”用全局，要“<span class="k">片段像</span>”用局部——一个 max(0, …) 的差别。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 20 加权与混淆矩阵 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">加权编辑距离与混淆矩阵</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>为什么加权</div><p>键盘邻键更易打错（a↔s 多于 a↔q）；OCR 易把 0 认成 O；统一代价 1 太粗糙，应让代价反映真实分布。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>混淆矩阵</div><p>四类计数：<code>del / ins / sub / trans</code>——把“人们怎么犯错”统计成表；把递推式里的常数 1 换成对应代价即可。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>三步估计</div><p>收集（错误串, 正确串）对 → 用回溯逐对归类计数 → 按正确字符出现次数归一化得操作概率。</p></div>
+    </div>
+    <div class="src"><b>来源：</b>Kernighan, Church &amp; Gale,《A Spelling Correction Program Based on a Noisy Channel Model》, 1990（IBM）。</div>
+    <div class="qbar">加权的意义：纠错从“谁<span class="k">最近</span>”升级为“谁<span class="k">最可能</span>”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 20b 键盘距离 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">键盘距离：加权的直观例子</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">QWERTY 直觉</div>
+        <ul>
+          <li>相邻键更易误击：<b>a↔s 便宜、a↔p 贵</b></li>
+          <li>经典错例：teh→the（相邻换位）、recieve→receive（ie/ei）</li>
+          <li>权重不必精确，只要反映“哪种错更常见”的排序</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">工程做法</div>
+        <ul>
+          <li>用键盘坐标算两键距离，映射成替换代价</li>
+          <li>工业实现常直接内置键盘混淆矩阵</li>
+          <li>与第 20 页混淆矩阵互为表里——权重来源之二</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">把“手滑的规律”写进代价——<span class="k">纠错排序立刻更懂人</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 21 错误类型 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">拼写纠错：任务与错误类型</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-warn"><div class="h">非词错误（Non-word）</div>
+        <ul>
+          <li><b>graffe</b> 不在词典里，一眼可查</li>
+          <li>检测 = 查词典；校正 = 生成近邻候选再选优</li>
+          <li><b>本讲主战场</b>：纯“形状”问题，不用懂语义</li>
+        </ul>
+      </div>
+      <div class="card card-warn"><div class="h">真实词错误（Real-word）</div>
+        <ul>
+          <li><b>three → there</b> 都是合法词，词典查不出</li>
+          <li>打字错误（their→there）与认知/同音（piece→peace）</li>
+          <li>必须看上下文——语言模型甚至语义理解</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>数据：</b>real-word 错误约占拼写错误的 25–40%（Jurafsky &amp; Martin, SLP3 Ch.2）。</div>
+    <div class="qbar">通用纠错三步：<span class="k">检测 → 候选生成 → 选择最优</span>；真正的难题是“拼对但用错”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 噪声信道 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">噪声信道模型</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">把打字想成“有噪声的信道”：用户想打 <b>w</b>，信道把它变成了 <b>x</b>，纠错 = 反推最可能的 w。</div>
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h">贝叶斯配方</div>
+        <div class="code" style="margin-top:8px">ŵ = argmax P(w | x)
+  = argmax <b>P(x | w) · P(w)</b></div>
+        <p style="margin-top:8px">P(x|w)：信道模型——想打 w 错成 x 的概率（混淆矩阵）<br>P(w)：语言模型——w 本身有多常见（第 7 讲展开）</p>
+      </div>
+      <div class="card"><div class="h">来历与直觉</div>
+        <ul>
+          <li>Shannon（1948）噪声信道思想；KCG（1990）首次用于纠错</li>
+          <li>acress→actress 与 acress→across 距离同为 1：信道打平，<b>词频决胜</b></li>
+          <li>人话：找“又像又常用”的词，两把尺子缺一不可</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">纠错 = <span class="k">“又像又常见”</span>——相似度与频率第一次握手。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 候选生成 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">候选生成：acress 的邻居</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="lead">对错词 <b>acress</b> 枚举编辑距离 1 的全部邻居，四种操作各有一例：</div>
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>删除</div><p>删掉 a → <b>cress</b>（水芹）</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>换位</div><p>a/c 互换 → <b>caress</b>（抚摸）</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>替换</div><p>r 换成 c → <b>access</b>（访问）</p></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="h">插入与规模</div><p>插一个 t → <b>actress</b>（女演员）。edits1 规模 ≈ 词长 × 字母表，edits2 平方级增长；与词典求交后才是真实候选。SymSpell 只生成“删除变体”建索引，把这一步变成毫秒级查找。</p></div>
+    <div class="qbar"><span class="k">生成管召回、排序管精确</span>——第 2 讲的 P/R 权衡在此再次出现。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 打分 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">打分：两把尺子相乘</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:18%">候选 w</th><th style="width:28%">信道 P(x|w)</th><th style="width:22%">先验 P(w)</th><th style="width:32%">直觉解读</th></tr>
+      <tr><td><b>caress</b></td><td>高（a/c 换位是常见打字错误）</td><td>中</td><td>“又像又常见”，教材例子通常胜出</td></tr>
+      <tr><td><b>access</b></td><td>中（r→c 替换不算罕见）</td><td>中高</td><td>有力竞争者，乘积紧随其后</td></tr>
+      <tr><td><b>actress</b></td><td>低（多插一个 t 较罕见）</td><td>高</td><td>先验强但信道弱，乘积被拉低</td></tr>
+      <tr><td><b>cress</b></td><td>中（删字母常见）</td><td>低</td><td>像但太冷门，先验一票否决</td></tr>
+    </table>
+    <div class="src"><b>说明：</b>acress 为 Jurafsky &amp; Martin 教材经典例；具体数值依赖语料与混淆矩阵，此处给定性对比。</div>
+    <div class="qbar">信道管“错得<k>像不像</k>”，先验管“词<k>常不常用</k>”——乘积最大者胜出。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 real-word 与中文 CSC ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">real-word 与中文拼写纠错</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">英文 real-word：靠上下文</div>
+        <ul>
+          <li>经典例：fifteen <b>minuets</b> → minutes；two off <b>thew</b> → two of the</li>
+          <li>做法：对可疑词生成候选，用 n-gram / 神经 LM 给整句打分</li>
+          <li>代价：候选 × 上下文，计算量陡增</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">中文 CSC：天生是上下文问题</div>
+        <ul>
+          <li>无空格，错误多为<b>同音字</b>（公式/公事）与<b>形近字</b>（己/已/巳）</li>
+          <li>词典检测天然失效，检测与纠正都靠语言模型</li>
+          <li>基准：SIGHAN 系列；主流：拼音感知的 Soft-Masked BERT</li>
+        </ul>
+      </div>
+    </div>
+    <div class="src"><b>来源：</b>Jurafsky &amp; Martin, SLP3 Ch.2；Norvig 2007（thew 示例）；SIGHAN Chinese Spelling Check Bakeoff；Soft-Masked BERT（EMNLP 2020）。</div>
+    <div class="qbar">英文纠错“先检测再纠正”，中文纠错<span class="k">“检测本身就要理解上下文”</span>——这正是神经与 LLM 方法在中文成为主流的根本原因。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 25b 中文纠错实例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">中文纠错实例：同音字与形近字</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">两类高频错误</div>
+        <ul>
+          <li><b>同音字</b>（拼音输入）：事实/世事、账号/帐号、公式/公事——全是合法词</li>
+          <li><b>形近字</b>（OCR/手写）：己/已/巳、未/末、拨/拔——混淆矩阵高度结构化</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">工作流与分工</div>
+        <ul>
+          <li>检测：逐字判可疑 → 候选：同音/形近/距离 1 邻居</li>
+          <li>裁决：<b>语言模型给整句打分</b>选最优</li>
+          <li>经典 MED 管候选生成，语言模型管裁决</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">中文纠错几乎全靠上下文——<span class="k">MED 出候选，语言模型做裁决</span>，第 9 讲 BMES 与第 14 讲提示工程的伏笔。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 26 神经/LLM 与工具选型 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">神经 / LLM 纠错与工具选型</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card"><div class="h">三种新方法 + LLM 的坑</div>
+        <ul>
+          <li>Seq2Seq（GEC）：错句进、对句出，适合语法纠错</li>
+          <li>BERT 式 CSC：[MASK] 改字，中文同音字主力（Soft-Masked BERT）</li>
+          <li>LLM：上下文改写，能解 real-word；<b>过度纠正</b>会改掉专名与风格</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h">工具与选型（实例层）</div>
+        <ul>
+          <li>工具：rapidfuzz · SymSpell · python-Levenshtein · NLTK</li>
+          <li>表单/搜索 → 经典；中文错别字 → 神经；语法润色 → LLM</li>
+          <li>金融医疗高风险 → LLM + 规则兜底 + 人工抽检</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">选型先看“改错的代价”：<span class="k">经典做召回粗筛，LLM 做精修</span>，高风险必须可审计。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 收口对比 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口：四代纠错范式对比</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">范式</th><th style="width:30%">核心思想</th><th style="width:26%">优点</th><th style="width:24%">局限</th></tr>
+      <tr><td><b>① 词典 + MED</b></td><td>不在词典即错，找距离最近的词</td><td>简单、快、可解释</td><td>只纠 non-word，无上下文</td></tr>
+      <tr><td><b>② 统计噪声信道</b></td><td>argmax P(x|w)·P(w)，候选生成 + 打分</td><td>有概率依据，候选可排序</td><td>依赖语料，real-word 难</td></tr>
+      <tr><td><b>③ 神经检测 + 纠错</b></td><td>双向上下文表示，端到端纠正</td><td>上下文强，中文 CSC 主流</td><td>需训练数据，多为等长替换</td></tr>
+      <tr><td><b>④ LLM 生成式</b></td><td>直接理解并改写文本</td><td>可变长、改语法、解 real-word</td><td><span class="tag r" style="margin-left:0">过度纠正</span>贵、不确定、需评估</td></tr>
+    </table>
+    <div class="qbar">越往下越“聪明”，也越贵越不可控——<span class="k">经典方法没有过时，而是变成了大模型系统里的“零件”</span>（召回、评测、校验）。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 26 Norvig 纠错器 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Norvig 式完整纠错器：20 行</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.45;padding:10px 16px;flex:1">
+def edits1(w):                    <span class="c"># 距离 1 的四个邻居</span>
+    splits = [(w[:i], w[i:]) for i in range(len(w)+1)]
+    deletes = [a + b[1:] for a, b in splits if b]
+    trans   = [a + b[1] + b[0] + b[2:] for a, b in splits if len(b) &gt; 1]
+    repls   = [a + c + b[1:] for a, b in splits for c in letters if b]
+    inserts = [a + c + b for a, b in splits for c in letters]
+    return set(deletes + trans + repls + inserts)
+
+def known(words): return set(w for w in words if w in WORD_FREQ)
+
+def correct(w):
+    cands = known([w]) or known(edits1(w)) or known(edits2(w)) or [w]
+    return <b>max(cands, key=WORD_FREQ.get)</b>   <span class="c"># 词频决胜</span></div>
+    <div class="qbar">先找距离近的、再挑常用的——<span class="k">把本讲的 MED 与 P(w) 装进一个能跑的纠错器</span>；它输给大模型的地方只有“上下文”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 26b 纠错器评估 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">纠错器的评估：检测与纠正分开</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">两个 F1，分开报</div>
+        <ul>
+          <li><b>检测 F1</b>：该发现的错误发现了吗？</li>
+          <li><b>纠正 F1</b>：被纠正的词改对了吗？改错比不改更糟</li>
+          <li>例：10 个错词，检出 8、改对 7，还误改 1 个对的——检测 P=8/9、纠正 P=7/8</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">为什么分开</div>
+        <ul>
+          <li>合在一起看不清问题出在“<b>没发现</b>”还是“<b>改错了</b>”</li>
+          <li>LLM 纠错要额外统计<b>过度纠正率</b>（本没错却被改）</li>
+          <li>这是第 2 讲 P/R 在纠错任务上的具体化</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">检测管“发现”，纠正管“改对”——<span class="k">分开报 F1，才能定位病灶</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 27 WER 算例 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">WER 词错误率：完整算例</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">对齐与计算</div>
+        <div class="code" style="margin-top:8px">ref: the  cat  sat  _
+hyp: a    cat  sat  on
+         <b>S</b>     <b>D=0</b>  <b>I</b></div>
+        <p style="margin-top:10px">替换 S=1（the→a），插入 I=1（on），删除 D=0，参考词数 N=3。</p>
+        <p style="margin-top:6px"><b>WER = (S+I+D) ÷ N = 2 ÷ 3 ≈ 66.7%</b></p>
+      </div>
+      <div class="card card-blue">
+        <div class="h">三个要点</div>
+        <ul>
+          <li>对齐本身就是<b>编辑距离的回溯</b>——第 12–17 页的六步演示直接复用</li>
+          <li>WER 可以<b>超过 100%</b>（插入过多时）</li>
+          <li>它是第 10 讲机器翻译评测 BLEU 的兄弟指标，期中考点</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">评测与纠错共用同一把尺子：<span class="k">对齐 + 计数</span>——编辑距离从来不只是“改错字”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 difflib 工程 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">模糊匹配工程：difflib 与阈值</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">一行代码的模糊匹配</div>
+        <div class="code" style="margin-top:8px">from difflib import get_close_matches
+get_close_matches('graffe',
+  ['graf','graft','grail','giraffe'])
+<span class="c"># → ['giraffe', ...]  内部即相似度打分</span></div>
+        <ul style="margin-top:8px">
+          <li>git 命令建议、拼写建议、记录去重都在用它</li>
+          <li>rapidfuzz 是其高性能工业替代</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">阈值的选择：又是 P/R</div>
+        <ul>
+          <li>阈值太低 → 误报多，风马牛不相及也匹配上</li>
+          <li>阈值太高 → 漏报多，真实近似被拒之门外</li>
+          <li>课堂手写 DP 为了懂原理，生产用内置 / 专业库</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">不要重造轮子：<span class="k">手写 DP 是理解，difflib / rapidfuzz 是交付</span>——但阈值永远要按任务调。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">上机任务为线下自学，课堂保留研讨环节。</div>
+    <ul>
+      <li>任务一：运行 MED + mini 词典挑战（线下自学）</li>
+      <li>研讨：“我门一起去了天安门”三问 + 灵魂之问（课堂 10′）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 28b 模糊搜索机制 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">模糊搜索是怎么做到毫秒级的</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">两步流水线</div>
+        <ul>
+          <li>① <b>粗筛</b>：n-gram / BK-tree / SymSpell 索引，用三角不等式整片剪枝</li>
+          <li>② <b>精算</b>：对幸存候选做带权编辑距离并排序</li>
+          <li>不是对每个候选算一遍距离——先把空间砍到极小</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">共同骨架</div>
+        <ul>
+          <li>IDE 命令建议、搜索引擎 did-you-mean、输入法候选栏</li>
+          <li>第 19 页“大多数格子根本不用算”的工程落地</li>
+          <li>索引 + 剪枝 + 少量精算 = 毫秒级响应</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">毫秒级 = <span class="k">索引 + 剪枝 + 少量精算</span>——fzf、agrep、did-you-mean 的共同骨架。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 29 上机任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：运行 MED + mini 词典挑战</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-blue"><div class="h"><span class="no">①</span>跑通 med()</div><p>把第 18 页代码敲入并运行，先让 kitten→sitting 得到 5。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">②</span>验证三对</div><p>kitten/sitting = <b>5</b>；play/plan = <b>2</b>；南京/南京大学 = <b>2</b>。</p></div>
+      <div class="card card-blue"><div class="h"><span class="no">③</span>挑战：候选生成</div><p>词典 <code>[actress, across, acres, cares, cress]</code>，找与 <b>acress</b> 距离 ≤1 的全部候选并排序。</p></div>
+    </div>
+    <div class="qbar">本页为<span class="k">线下自学</span>内容：挑战题是噪声信道“候选生成”的最小原型，并入 med_align 加分作业。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 30 研讨 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：“我门”三问 + 灵魂之问（10′）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h">题干：我门一起去了天安门</div>
+        <ul>
+          <li><b>①</b> 为什么查词典发现不了这个错误？</li>
+          <li><b>②</b> 噪声信道模型卡在哪一步？</li>
+          <li><b>③</b> 大模型靠什么把它改对？</li>
+        </ul>
+      </div>
+      <div class="card card-blue"><div class="h">第二问：灵魂之问</div><p>大模型随口就能把 graffe 改成 giraffe，为什么还要会手写 MED？给出一个“必须用 MED、大模型替代不了”的场景。</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">30</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个度量、一套六步算法、一个系统配方、一条演进。</div>
+    <ul>
+      <li>建模：三种操作，最少代价</li>
+      <li>算法：六步 DP——定义·初始化·递推·填表·回溯·对齐</li>
+      <li>系统：候选生成 × P(x|w)·P(w)，四代范式分工</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 32 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>建模</div><p>编辑距离把“像不像”变成可计算的数：三种操作、最少代价、度量家族可选。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>算法</div><p>六步 DP：定义 → 初始化 → 递推 → 填表 → 回溯 → 对齐，O(mn) 一张表搞定。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>系统</div><p>噪声信道 = 候选生成（管召回）× P(x|w)·P(w)（管精确）；LLM 时代四代范式分工而非替代。</p></div>
+    </div>
+    <div class="qbar">一句话带走：<span class="k">先算得像，再猜得对</span>——编辑距离负责前者，语言模型负责后者。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">提交作业 1；选做 med_align 加分；下讲进入词与子词的切分。</div>
+    <ul>
+      <li>作业 1：正则提取与文本清洗（今日截止）</li>
+      <li>选做加分：med_align（距离 + 回溯，期中原型题）</li>
+      <li>下讲预告：分词与子词表示（BPE）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 34 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>作业 1：今日截止</div>
+        <ul>
+          <li>交付：一个 <code>.py</code> + 一页 README（设计思路 + 误报/漏报分析）</li>
+          <li>评分三看：功能正确 40% + P/R 分析 40% + 流水线合理性 20%</li>
+          <li>AI 辅助须声明；抽查须能现场解释代码</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>选做加分：med_align</div>
+        <ul>
+          <li>实现带回溯的 <code>med_align()</code>（每格记方向指针，右下走回左上）</li>
+          <li>打印 kitten→sitting 的对齐与操作序列（对照第 16/17 页）</li>
+          <li>这是期中测验“DP 填表与回溯方向”的原型题</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 4 讲 分词与子词表示</span>：思考题——中文没有空格，为什么 LLM 不怕？伏笔回收：今天的 P(w) 即语言模型，第 7 讲彻底讲透。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">34</span></div>
+</section>
+
+<!-- ================= 35 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:16.5px;line-height:1.9">
+      <b>教材与经典文献（原理层）</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed., Ch.2) · Levenshtein (1965) · Damerau (1964)<br>
+      Shannon (1948)《通信的数学理论》· Kernighan, Church &amp; Gale (1990, IBM) · Norvig《How to Write a Spelling Corrector》(2007)<br>
+      <b>工程与开源资料（实例层）</b><br>
+      SymSpell（Wolf Garbe）· BK-tree（Burkhard &amp; Keller, 1973）· Myers (1986) diff · rapidfuzz · pycorrector（MacBERT4CSC，SIGHAN2015 F1≈0.83 为项目自报值 ⚠）<br>
+      <b>数据</b><br>
+      Wang et al. 2003（26% 网页查询错字）· SLP3（real-word 占比 25–40%）· SIGHAN 中文拼写检查基准
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">DP 六步演示、噪声信道与度量家族为原理层、长期稳定；工具版本与模型指标为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 46</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>

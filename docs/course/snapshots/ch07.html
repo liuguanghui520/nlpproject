@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script>var __mr='footer',__md='6ccfkuh9.qwenwork.host';document.addEventListener('DOMContentLoaded', function () {
+  var BAR_HEIGHT = 48;
+
+  // --- detect page theme ---
+  var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // fallback: sample body/html background color
+  if (!isDark) {
+    try {
+      var sample = getComputedStyle(document.body).backgroundColor;
+      if (sample === 'rgba(0, 0, 0, 0)' || sample === 'transparent') {
+        sample = getComputedStyle(document.documentElement).backgroundColor;
+      }
+      if (sample && sample !== 'rgba(0, 0, 0, 0)' && sample !== 'transparent') {
+        var m = sample.match(/\d+/g);
+        if (m) {
+          var brightness = (parseInt(m[0]) * 299 + parseInt(m[1]) * 587 + parseInt(m[2]) * 114) / 1000;
+          isDark = brightness < 128;
+        }
+      }
+    } catch (e) {}
+  }
+
+  // --- shared CSS (always injected into <head>) ---
+  var SHARED_CSS = '<style>' +
+    '@keyframes mulepage-svg-glow-dark{0%,100%{color:#ffffff}50%{color:#3b82f6}}' +
+    '@keyframes mulepage-svg-glow-light{0%,100%{color:#000000}50%{color:#3b82f6}}' +
+    '.mulepage-anim-dark{animation:mulepage-svg-glow-dark 2.5s ease-in-out infinite}' +
+    '.mulepage-anim-light{animation:mulepage-svg-glow-light 2.5s ease-in-out infinite}' +
+    '.mulepage-close-dark{color:rgba(255,255,255,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-dark:hover{color:#ffffff}' +
+    '.mulepage-close-light{color:rgba(0,0,0,0.3);transition:color 0.2s ease}' +
+    '.mulepage-close-light:hover{color:#000000}' +
+    '#mulepage-footer-link{display:inline-flex;align-items:center;line-height:0;outline:none}' +
+    '.mulepage-footer-brand{display:inline-flex;align-items:center;box-sizing:border-box;height:32px;max-width:104px;overflow:hidden;padding:6px 12px;border-radius:999px;background:' + (isDark ? 'rgba(26,26,26,0.85)' : 'rgba(255,255,255,0.85)') + ';backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 0 0 0.5px ' + (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)') + ',0 8px 24px -4px ' + (isDark ? 'rgba(0,0,0,0.28)' : 'rgba(0,0,0,0.07)') + ';transition:max-width 260ms cubic-bezier(0.22,1,0.36,1);will-change:max-width;white-space:nowrap}' +
+    '.mulepage-footer-brand-hint{display:inline-block;max-width:0;margin-left:0;overflow:hidden;opacity:0;color:' + (isDark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.64)') + ';font-size:14px;font-weight:400;line-height:20px;transition:max-width 260ms cubic-bezier(0.22,1,0.36,1),margin-left 260ms cubic-bezier(0.22,1,0.36,1),opacity 180ms ease-out;will-change:max-width,opacity}' +
+    '#mulepage-footer:hover .mulepage-footer-brand,#mulepage-footer:focus-within .mulepage-footer-brand{max-width:246px}' +
+    '#mulepage-footer:hover .mulepage-footer-brand-hint,#mulepage-footer:focus-within .mulepage-footer-brand-hint{max-width:126px;margin-left:8px;opacity:1}' +
+    '.mulepage-float-close{display:inline-flex;align-items:center;justify-content:center;max-width:0;margin-left:0;overflow:hidden;opacity:0;transition:max-width 0.2s ease,margin-left 0.2s ease,opacity 0.15s ease;padding:0;border:none;background:none;cursor:pointer;font-size:16px;line-height:1;font-weight:300;height:16px;will-change:max-width,opacity}' +
+    '.mulepage-float:hover .mulepage-float-close{max-width:14px;margin-left:4px;opacity:1}' +
+    '</style>';
+
+  // always inject shared CSS into <head> so it survives banner removal
+  document.head.insertAdjacentHTML('beforeend', SHARED_CSS);
+
+  // --- SVG icon (shared, rx=0 for sharp corners) ---
+  var ICON16 = '<svg width="16" height="16" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="36" height="36" rx="0" fill="#FBF9F6"/><g clip-path="url(#c_top)">' +
+    '<path d="M6.387 21.732v8.895H18.762V28.5h2.32v1.16h8.121V28.5h1.16v-7.928h-1.16v-1.16h-4.64v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h-1.16v-1.16h3.287v-1.934h3.48V9.357H16.442v3.48h-2.128V6.07h-2.32v2.127H9.674v3.48H7.547v10.055H6.387Z" fill="#000"/>' +
+    '<path d="M13.154 21.732v-4.447h1.16v-1.16h4.448v4.447h-1.16v1.16h-4.448Z" fill="#fff"/>' +
+    '<rect x="15.281" y="18.252" width="2.32" height="2.32" fill="#000"/>' +
+    '<path d="M21.082 27.34v-5.608h1.16v-1.16h5.801v1.16h1.16v5.608h-1.16V28.5h-5.801v-1.16h-1.16Z" fill="#fff"/>' +
+    '<path d="M26.883 21.732h-2.32v1.16h1.16v1.16h1.16v-2.32Z" fill="#000"/>' +
+    '<path d="M22.242 24.053v2.32h1.16v1.16h3.48v-1.16h-2.32v-1.16h-1.16v-1.16h-1.16Z" fill="#000"/>' +
+    '</g><defs><clipPath id="c_top"><rect width="24.75" height="24.75" fill="#fff" transform="translate(6 6)"/></clipPath></defs></svg>';
+
+  var ICON16_FOOT = ICON16.replace(/c_top/g, 'c_foot');
+
+  // --- 品牌标志：浅色主题使用原始深色 SVG，深色主题反相为白色。 ---
+  var brandAssetFilter = isDark ? 'filter:invert(1);' : '';
+  var BRAND_MARK = '<span style="display:inline-flex;align-items:center;gap:4px;line-height:0;">' +
+    '<img src="https://gw.alicdn.com/imgextra/i3/O1CN01KjiMsP20F9vea7rMy_!!6000000006819-55-tps-20-20.svg" alt="" width="20" height="20" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '<img src="https://gw.alicdn.com/imgextra/i2/O1CN01Hn0m411NLmdtyiXpF_!!6000000001554-55-tps-56-14.svg" alt="千问办公" width="56" height="14" style="display:block;user-select:none;' + brandAssetFilter + '" />' +
+    '</span>';
+  // 20 + 4 + 56 + 24 = 104px，与设计稿的 104 × 32 品牌胶囊一致。
+  var TOP_BRAND_LOGO = '<span style="display:inline-flex;align-items:center;justify-content:center;width:104px;height:32px;padding:6px 12px;box-sizing:border-box;border-radius:999px;' +
+    'background:' + (isDark ? 'rgba(255,255,255,0.12)' : '#f5f5f5') + ';">' + BRAND_MARK + '</span>';
+  // 右下角入口默认只展示品牌；悬浮或键盘聚焦时在同一胶囊中平滑展开提示语。
+  var FOOTER_BRAND_LOGO = '<span class="mulepage-footer-brand">' + BRAND_MARK +
+    '<span class="mulepage-footer-brand-hint">AI 生成，请注意核实</span></span>';
+
+  // --- banner (adapts to page theme) ---
+  var bannerBg = isDark ? '#050505' : '#ffffff';
+  var bannerBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+  var bannerColor = isDark ? '#fff' : '#000';
+  var bannerDividerColor = isDark ? 'rgba(255,255,255,0.24)' : 'rgba(0,0,0,0.16)';
+  var bannerCloseClass = isDark ? 'mulepage-close-dark' : 'mulepage-close-light';
+
+  var BANNER = '<div id="mulepage-bar" dir="ltr" style="position:fixed;top:0;left:0;width:100%;height:' + BAR_HEIGHT + 'px;' +
+    'background:' + bannerBg + ';border-bottom:1px solid ' + bannerBorder + ';color:' + bannerColor + ';' +
+    'box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:8px;' +
+    'font-family:\'PingFang SC\',Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;' +
+    'font-size:14px;font-weight:500;line-height:20px;z-index:2147483647;">' +
+    '<span aria-hidden="true" style="flex:1 1 0;height:32px;"></span>' +
+    '<div style="display:flex;align-items:center;gap:8px;white-space:nowrap;">' +
+    '<span>由</span>' +
+    '<span id="mulepage-bar-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;cursor:pointer;line-height:0;">' +
+    TOP_BRAND_LOGO + '</span>' +
+    '<span>创建</span>' +
+    '<span aria-hidden="true" style="width:1px;height:16px;margin:0 4px;background:' + bannerDividerColor + ';"></span>' +
+    '<span id="mulepage-bar-cta" role="link" tabindex="0" aria-label="用千问办公创建网站" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;cursor:pointer;">' +
+    '<span>一句话创建你的网站</span><span aria-hidden="true" style="font-size:16px;line-height:16px;">\u2192</span></span>' +
+    '</div>' +
+    '<span style="flex:1 1 0;display:flex;justify-content:flex-end;align-items:center;">' +
+    '<button id="mulepage-bar-close" class="' + bannerCloseClass + '" aria-label="关闭千问办公品牌栏" style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:8px;background:none;border:none;border-radius:999px;' +
+    'font-size:18px;cursor:pointer;line-height:16px;font-weight:300;">\u00d7</button></span>' +
+    '</div>';
+
+  // --- 右下角品牌入口 ---
+  var floatCloseColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.3)';
+  var floatCloseHover = isDark ? '#ffffff' : '#000000';
+  var byColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
+
+  var FOOTER = '<div id="mulepage-footer" dir="ltr" class="mulepage-float" style="position:fixed !important;bottom:16px !important;right:16px !important;z-index:2147483646;' +
+    'display:inline-flex;align-items:center;padding:0;cursor:pointer;background:transparent;border:0;box-shadow:none;' +
+    'font-family:Inter,-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'Helvetica Neue\',sans-serif;">' +
+    '<span id="mulepage-footer-link" role="link" tabindex="0" aria-label="打开千问办公" style="display:inline-flex;align-items:center;line-height:0;">' +
+    FOOTER_BRAND_LOGO +
+    '</span>' +
+    '</div>';
+
+  // --- insert banner (only when mode is "all") ---
+  if (__mr === 'all') {
+    document.body.insertAdjacentHTML('afterbegin', BANNER);
+
+    // 顶栏品牌标志和行动文案均跳转至千问办公。
+    var openQwenWork = function () {
+      window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=top_bar', '_blank', 'noopener');
+    };
+    var topBrandLink = document.getElementById('mulepage-bar-link');
+    var topBrandCta = document.getElementById('mulepage-bar-cta');
+    topBrandLink.addEventListener('click', openQwenWork);
+    topBrandCta.addEventListener('click', openQwenWork);
+    topBrandLink.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+    topBrandCta.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openQwenWork();
+      }
+    });
+
+    // Use the QwenWork favicon only as a fallback. Preserve favicons generated
+    // by the page itself so published sites can keep their own branding.
+    var existingIcon = document.querySelector('link[rel="icon"],link[rel="shortcut icon"]');
+    if (!existingIcon) {
+      var fi = document.createElement('link');
+      fi.rel = 'icon';
+      fi.type = 'image/svg+xml';
+      fi.href = 'https://qwenwork.cn/app/favicon.svg';
+      document.head.appendChild(fi);
+    }
+
+    // push down normal-flow content (accumulate on existing padding-top)
+    var origPT = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+    document.body.style.paddingTop = (origPT + BAR_HEIGHT) + 'px';
+
+    // push down all existing position:fixed elements
+    var all = document.querySelectorAll('*');
+    var shifted = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.id && el.id.indexOf('mulepage') === 0) continue;
+      var cs = getComputedStyle(el);
+      if (cs.position === 'fixed') {
+        var t = parseFloat(cs.top);
+        if (isNaN(t)) t = 0;
+        el.style.top = (t + BAR_HEIGHT) + 'px';
+        shifted.push({ el: el, orig: t });
+      }
+    }
+
+    // close handler: restore everything
+    document.getElementById('mulepage-bar-close').addEventListener('click', function () {
+      document.getElementById('mulepage-bar').remove();
+      document.body.style.paddingTop = origPT + 'px';
+      for (var j = 0; j < shifted.length; j++) {
+        shifted[j].el.style.top = shifted[j].orig + 'px';
+      }
+    });
+  }
+
+  // --- insert floating widget (only when __mr is set) ---
+  if (__mr) {
+    document.body.insertAdjacentHTML('beforeend', FOOTER);
+
+    // 底部品牌标志点击后打开官网
+    var footerLink = document.getElementById('mulepage-footer-link');
+    if (footerLink) {
+      footerLink.addEventListener('click', function () {
+        window.open('https://qwenwork.cn?utm_source=pages&utm_medium=banner&utm_campaign=pages_branding&utm_content=bottom_bar', '_blank', 'noopener');
+      });
+      footerLink.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          footerLink.click();
+        }
+      });
+    }
+
+    // paid users (footer-only mode): add close button on hover
+    if (__mr === 'footer') {
+      var floatEl = document.getElementById('mulepage-footer');
+      if (floatEl) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'mulepage-float-close';
+        closeBtn.style.color = floatCloseColor;
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('mouseenter', function () { closeBtn.style.color = floatCloseHover; });
+        closeBtn.addEventListener('mouseleave', function () { closeBtn.style.color = floatCloseColor; });
+        closeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          floatEl.remove();
+        });
+        floatEl.appendChild(closeBtn);
+      }
+    }
+  }
+
+  // --- inject canonical link (all users) ---
+  var canon = document.createElement('link');
+  canon.rel = 'canonical';
+  canon.href = 'https://' + location.hostname + '/';
+  document.head.appendChild(canon);
+
+  // --- inject og meta tags (all users) ---
+  var ogDomain = __md;
+  var ogTitle = document.title || ogDomain;
+  var ogTags = [
+    ['og:title', ogTitle],
+    ['og:url', 'https://' + location.hostname + '/'],
+    ['og:type', 'website'],
+    ['og:image', 'https://mule.page/og/' + ogDomain + '.webp']
+  ];
+  for (var n = 0; n < ogTags.length; n++) {
+    var existing = document.querySelector('meta[property="' + ogTags[n][0] + '"]');
+    if (existing) existing.remove();
+    var meta = document.createElement('meta');
+    meta.setAttribute('property', ogTags[n][0]);
+    meta.setAttribute('content', ogTags[n][1]);
+    document.head.appendChild(meta);
+  }
+});
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第7章 统计语言模型 N-gram | 自然语言处理</title>
+<style>
+  :root{
+    --blue:#1E4FA8; --navy:#0E3F8C; --mid:#3D7BD9;
+    --lb1:#E8EFF8; --lb2:#F0F5FC; --lbox:#F7F9FC;
+    --text:#1A2230; --sub:#4A5568; --mut:#8B97A8;
+    --line:#D6DCE5; --line2:#E5E7EB;
+    --red:#D9534F; --yellow:#FFC107;
+    --serif:"Source Han Serif SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+    --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0B1220}
+  body{font-family:var(--sans);color:var(--text)}
+  #viewport{position:fixed;inset:0}
+  #stage{position:absolute;left:0;top:0;width:1280px;height:720px;background:#fff;
+    transform-origin:0 0;box-shadow:0 12px 60px rgba(0,0,0,.55)}
+  .slide{position:absolute;inset:0;display:none;background:#fff;overflow:hidden}
+  .slide.active{display:block}
+  .hdr{position:absolute;top:0;left:0;right:0;height:76px;background:var(--blue);
+    display:flex;align-items:center;justify-content:space-between;padding:0 40px;color:#fff}
+  .hdr .t{font-size:33px;font-weight:700;letter-spacing:.5px}
+  .hdr .sec{font-size:17px;color:#C9DAF2;text-align:right;line-height:1.35}
+  .hdr::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--navy)}
+  .ftr{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--lbox);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+    padding:0 40px;color:var(--mut);font-size:15px}
+  .ftr .pg{color:var(--blue);font-weight:700;font-size:17px}
+  .ftr .src{color:var(--mut);font-size:13px;max-width:76%;text-align:right}
+  .content{position:absolute;top:92px;bottom:64px;left:40px;right:40px;display:flex;flex-direction:column}
+  .lead{font-size:22px;color:var(--sub);line-height:1.55;margin-bottom:14px}
+  .lead b{color:var(--navy)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+  .g23{grid-template-columns:1.25fr 1fr}
+  .card{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+  .card .h{font-size:23px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .card .h .no{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;
+    font-size:16px;padding:2px 9px;margin-right:9px;vertical-align:2px}
+  .card p{font-size:20px;line-height:1.5;color:var(--text)}
+  .card p+p{margin-top:7px}
+  .card ul{list-style:none;margin-top:6px}
+  .card li{font-size:20px;line-height:1.48;color:var(--text);padding-left:18px;position:relative;margin-top:5px}
+  .card li::before{content:"";position:absolute;left:2px;top:10px;width:7px;height:7px;
+    border-radius:50%;background:var(--mid)}
+  .card-blue{background:var(--lb1);border-color:#BFD2EC}
+  .card-deep{background:var(--navy);color:#fff;border:none}
+  .card-deep .h{color:#fff}
+  .card-deep p,.card-deep li{color:#E9F0FA}
+  .card-warn{background:#FDF6F4;border-color:#F0CFC9}
+  .card-warn .h{color:#B03A36}
+  .card.small{padding:14px 18px}
+  .card.small .h{font-size:21px;margin-bottom:6px}
+  .card.small li{font-size:18px;line-height:1.42;margin-top:4px}
+  .tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;margin-right:8px}
+  .tag.b{background:var(--lb1);color:var(--navy)}
+  .tag.r{background:#FBEAE8;color:var(--red)}
+  .tag.y{background:#FFF5D9;color:#8A6D00}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;align-content:stretch}
+  .kpi{background:var(--lbox);border:1px solid var(--line);border-radius:10px;
+    display:flex;flex-direction:column;justify-content:center;padding:16px 20px}
+  .kpi .n{font-size:46px;font-weight:800;color:var(--blue);line-height:1.05}
+  .kpi .n small{font-size:19px;font-weight:600}
+  .kpi .l{font-size:20px;color:var(--text);font-weight:600;margin-top:7px}
+  .kpi .d{font-size:15px;color:var(--mut);margin-top:5px;line-height:1.4}
+  table.ac{width:100%;border-collapse:collapse;font-size:18px}
+  table.ac th{background:var(--blue);color:#fff;font-weight:700;padding:9px 12px;text-align:left;font-size:19px}
+  table.ac td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.4}
+  table.ac tr:nth-child(even) td{background:var(--lbox)}
+  table.ac td b{color:var(--navy)}
+  table.ac code{font-family:Consolas,"Courier New",monospace;color:#16315F;font-size:17px}
+  .code{background:#F3F6FB;border:1px solid var(--line);border-radius:8px;
+    padding:12px 16px;font-family:Consolas,"Courier New",monospace;font-size:17.5px;
+    line-height:1.58;color:#16315F;white-space:pre-wrap;margin-top:10px}
+  .code b{color:var(--blue);font-weight:700}
+  .code .c{color:var(--mut);font-weight:400}
+  .nn{display:flex;align-items:center;justify-content:center;gap:18px;
+    background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-top:10px}
+  .nn .col{display:flex;flex-direction:column;gap:7px;align-items:center}
+  .nn .node{min-width:96px;text-align:center;background:var(--lb1);border:1.5px solid var(--mid);
+    border-radius:8px;padding:6px 12px;font-size:16px;font-weight:600;color:var(--navy);line-height:1.3}
+  .nn .node.out{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .nn .node.proj{background:#FBFCFE;border:1.5px dashed var(--mid);color:var(--sub)}
+  .nn .arr{font-size:24px;color:var(--mid);white-space:nowrap}
+  .nn .lbl{font-size:14px;color:var(--mut);text-align:center}
+  .qbar{margin-top:16px;background:var(--lb1);border-left:7px solid var(--blue);
+    border-radius:0 8px 8px 0;padding:14px 22px;font-size:21px;color:var(--navy);font-weight:600;line-height:1.45}
+  .qbar .k{color:var(--red);font-weight:800}
+  .src{margin-top:12px;font-size:13.5px;color:var(--mut);line-height:1.5}
+  .src b{color:var(--sub)}
+  .cover .badge{position:absolute;left:64px;top:56px;color:var(--navy);font-weight:700;font-size:19px;line-height:1.45}
+  .cover .badge small{display:block;color:var(--mut);font-weight:400;font-size:14px;letter-spacing:1px}
+  .cover .num{position:absolute;right:36px;bottom:40px;font-size:300px;font-weight:800;color:var(--lb1);line-height:.8;user-select:none;z-index:0}
+  .cover .mid{position:absolute;left:64px;top:178px;right:120px;z-index:1}
+  .cover .en{font-family:var(--serif);font-size:40px;color:var(--navy);letter-spacing:1px}
+  .cover .cn{font-size:72px;font-weight:800;color:var(--text);margin-top:8px;letter-spacing:2px}
+  .cover .rule{width:104px;height:7px;background:var(--blue);margin:22px 0 20px}
+  .cover .sub{font-size:30px;font-weight:700;color:var(--sub)}
+  .cover .meta{font-size:19px;color:var(--sub);margin-top:34px;line-height:2}
+  .cover .meta b{color:var(--navy)}
+  .cover .foot{position:absolute;left:64px;bottom:52px;font-size:17px;color:var(--mut)}
+  .toc .main{font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .toc .row{display:flex;align-items:center;gap:16px;padding:9px 20px;border-bottom:1px solid var(--line2)}
+  .toc .idx{width:46px;height:46px;border-radius:9px;background:var(--blue);color:#fff;
+    font-size:23px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+  .toc .tt{font-size:22px;font-weight:700;color:var(--text)}
+  .toc .dd{font-size:15.5px;color:var(--mut);margin-top:1px}
+  .div{background:#fff}
+  .div .bn{position:absolute;left:64px;top:100px;font-size:190px;font-weight:800;color:var(--lb1);line-height:.8}
+  .div .bd{position:absolute;left:64px;top:330px;right:100px}
+  .div .bd .nm{font-size:40px;font-weight:800;color:var(--navy)}
+  .div .bd .ds{font-size:22px;color:var(--sub);margin-top:10px}
+  .div .bd ul{list-style:none;margin-top:26px}
+  .div .bd li{font-size:21px;color:var(--text);line-height:2;padding-left:26px;position:relative}
+  .div .bd li::before{content:"";position:absolute;left:2px;top:18px;width:9px;height:9px;border-radius:2px;background:var(--blue)}
+  .div .accent{position:absolute;left:0;top:0;bottom:0;width:18px;background:var(--blue)}
+  #ctrl{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;
+    gap:10px;background:rgba(10,18,32,.82);border-radius:999px;padding:8px 14px;backdrop-filter:blur(6px)}
+  #ctrl button{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:40px;height:40px;font-size:18px;cursor:pointer;line-height:1}
+  #ctrl button:hover{background:var(--blue)}
+  #ctrl .cnt{color:#DCE7F5;font-size:15px;min-width:76px;display:flex;align-items:center;gap:4px;justify-content:center}
+  #ctrl .cnt input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.3);color:#fff;
+    width:38px;height:26px;text-align:center;font-size:15px;border-radius:6px;font-variant-numeric:tabular-nums}
+  #ctrl .cnt input:focus{outline:none;border-color:#6FA1E8;background:rgba(30,79,168,.55)}
+  #ctrl .sep{width:1px;height:22px;background:rgba(255,255,255,.25)}
+  #bar{position:fixed;top:0;left:0;height:4px;background:var(--mid);z-index:50;transition:width .2s ease}
+  #hint{position:fixed;left:16px;bottom:16px;color:#7E8CA3;font-size:12.5px;z-index:40;line-height:1.7}
+  @media print{.slide{display:none}.slide.active{display:block;position:relative;page-break-after:always}}
+
+  table.ac.sm{font-size:16px}
+  table.ac.sm th{padding:5px 10px;font-size:16.5px}
+  table.ac.sm td{padding:4px 10px;line-height:1.32}
+  .code.sm{font-size:15.5px;line-height:1.5;padding:10px 14px;margin-top:8px}
+  .code.xs{font-size:14.5px;line-height:1.46;padding:9px 13px;margin-top:8px}
+  .card.tight{padding:12px 16px}
+  .card.tight .h{font-size:21px;margin-bottom:5px}
+  .card.tight p{font-size:18px;line-height:1.42}
+  .card.tight li{font-size:18px;line-height:1.4;margin-top:4px}
+  .grid.tight{gap:12px}
+  .grid.tight2{gap:10px}
+  .qbar.sm{font-size:19px;padding:11px 18px;margin-top:11px}
+  .lead.sm{font-size:20px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<!-- ================= 1 封面 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid">
+    <div class="en">Statistical Language Models: N-grams &amp; Evaluation</div>
+    <div class="cn">统计语言模型</div>
+    <div class="rule"></div>
+    <div class="sub">第七章 · N-gram 与评估</div>
+    <div class="meta">
+      授课对象：<b>软件工程专业三年级本科生</b><br>
+      主讲：<b>郭贵冰</b>　·　第 7 讲 / 共 16 讲　·　90 分钟（讲授 75′ + 研讨 10′ + 小结 5′）<br>
+      学院方向：<b>特色化示范性软件学院 · 金融科技 · 智慧健康</b>
+    </div>
+  </div>
+  <div class="foot">2026–2027 秋季学期 ｜ 课件由 Codex 辅助制作 · 2026-09-11</div>
+  <div class="num">07</div>
+</section>
+
+<!-- ================= 2 回顾上节课 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">回顾：第 6 讲要点</span><span class="sec">温故知新 · 计入讲授</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>零件与结构</div><p>神经元 = 加权求和 + 非线性；MLP 加一层解决 XOR。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>学习机制</div><p>训练四步：前向 → 损失 → 反向传播 → 更新；Adam 是默认优化器。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>工程护栏</div><p>L2/Dropout/早停防过拟合；先过拟合小数据再放大。</p></div>
+      <div class="card"><div class="h"><span class="no">4</span>文本分类流水线</div><p>Embedding → 池化 → MLP → softmax——作业 3 骨架。</p></div>
+    </div>
+    <div class="qbar">今天换一条路线：<span class="k">不靠神经网络，用“数数”给语言建模</span>——语言模型的第一性原理。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">02</span></div>
+</section>
+
+<!-- ================= 3 目录 ================= -->
+<section class="slide toc">
+  <div class="content" style="padding:14px 6px 0">
+    <div class="main">本讲路线 · Roadmap</div>
+    <div class="row"><div class="idx">1</div><div><div class="tt">导入：无处不在的“猜下一个词”</div><div class="dd">输入法、搜索、语音；Shannon 1951 的猜词游戏</div></div></div>
+    <div class="row"><div class="idx">2</div><div><div class="tt">语言模型与链式法则</div><div class="dd">整句概率、下一词概率；精确但组合爆炸的公式</div></div></div>
+    <div class="row"><div class="idx">3</div><div><div class="tt">马尔可夫假设与 N-gram</div><div class="dd">Unigram/Bigram/Trigram；MLE 就是数数</div></div></div>
+    <div class="row"><div class="idx">4</div><div><div class="tt">稀疏、平滑与 OOV</div><div class="dd">零概率灾难；Add-k、回退、插值、Good-Turing、Kneser-Ney</div></div></div>
+    <div class="row"><div class="idx">5</div><div><div class="tt">评估与生成</div><div class="dd">困惑度 PPL、交叉熵、采样生成、工具与语料</div></div></div>
+    <div class="row"><div class="idx">6</div><div><div class="tt">局限与走向神经 LM</div><div class="dd">三死穴 → 第 8 讲 RNN；自学任务与研讨</div></div></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">03</span></div>
+</section>
+
+<!-- ================= 4 教学目标 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">教学目标与重难点</span><span class="sec">第 7 讲 · 统计语言模型 N-gram</span></div>
+  <div class="content">
+    <div class="lead">学完本讲，你将能够：<span class="tag b">讲授 75′</span><span class="tag b">研讨 10′</span><span class="tag b">小结 5′</span></div>
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">K</span>知识目标</div>
+        <ul>
+          <li>写出链式法则、马尔可夫假设与 N-gram 估计式</li>
+          <li>解释困惑度（平均分支因子）与交叉熵的关系</li>
+          <li>说出五种平滑方法的思路与取舍</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程知识</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">S</span>能力目标</div>
+        <ul>
+          <li>能手算 bigram 概率、整句概率与困惑度</li>
+          <li>能写 20 行代码建 bigram 并算 PPL</li>
+          <li>能读写 N-gram 语料与工具（nltk / KenLM）</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：使用现代工具</p>
+      </div>
+      <div class="card card-blue"><div class="h"><span class="no">A</span>素养目标</div>
+        <ul>
+          <li>体会“可估”与“精确”之间的工程取舍</li>
+          <li>建立“评估先行”的实验习惯（PPL/双曲线）</li>
+          <li>理解经典方法的时代价值与边界</li>
+        </ul>
+        <p style="margin-top:auto;font-size:15px;color:#8B97A8">对应毕业要求：工程与社会 · 职业规范</p>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><div class="h">本讲重点</div><p>链式法则与马尔可夫假设；bigram 手算；困惑度；平滑家族。</p></div>
+      <div class="card card-warn"><div class="h">本讲难点</div><p>组合爆炸为何让精确公式不可估；零概率灾难与 Kneser-Ney 的延续性直觉。</p></div>
+    </div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">04</span></div>
+</section>
+
+<!-- ================= 环节一 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">01</div>
+  <div class="bd">
+    <div class="nm">课程导入 · 10 分钟</div>
+    <div class="ds">从输入法到 GPT——所有“接得上话”的机器，都在做同一件事：猜下一个词。</div>
+    <ul>
+      <li>无处不在的“猜下一个词”</li>
+      <li>Shannon 1951：用猜词游戏度量语言</li>
+      <li>核心问题：如何给“像人话”一个概率？</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 6 导入① ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">无处不在的“猜下一个词”</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">四个日常场景</div>
+        <ul>
+          <li><b>输入法联想</b>：打完“今天天气”，候选出“不错/很好”</li>
+          <li><b>搜索补全</b>：输入“自然语言处理”，下拉给出高频 query</li>
+          <li><b>语音识别</b>：声学候选靠语言模型挑出更像人话的句子</li>
+          <li><b>大模型生成</b>：GPT 逐 token 预测，本质是超大规模语言模型</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">共同底座</div>
+        <ul>
+          <li>它们共享同一个数学对象：<b>词序列的概率分布</b></li>
+          <li>语言模型比计算机还老——Shannon 1948/1951 就在研究它</li>
+          <li>变的只是引擎：计数 → 神经网络 → 预训练大模型</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">所有“接得上话”的机器，都在做同一件事：<span class="k">给下一个词算概率</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">06</span></div>
+</section>
+
+<!-- ================= 7 导入② ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Shannon 1951：猜词游戏与语言模型</span><span class="sec">环节一 · 导入</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">现场猜一猜</div>
+        <ul>
+          <li>“the water of Walden Pond is so beautifully <b>___</b>”</li>
+          <li>blue / green / clear → 合理，概率高</li>
+          <li>refrigerator / this → 荒谬，概率极低</li>
+          <li>语言模型要做的，就是把“合理”<b>量化成一个数</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">Shannon 的猜词实验</div>
+        <ul>
+          <li>让人根据前文逐字母猜下一个字母，用猜中次数估计<b>语言的熵</b></li>
+          <li>“猜下一个”这个任务，70 多年前就已定义</li>
+          <li>今天的 GPT 做的仍是同一件事——只是规模与引擎换了</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">核心问题：<span class="k">如何给一句话、给下一个词，赋一个概率？</span></div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">07</span></div>
+</section>
+
+<!-- ================= 环节二 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">02</div>
+  <div class="bd">
+    <div class="nm">知识点讲解 · 65 分钟</div>
+    <div class="ds">一个目标（给语言打分）、一套估计（数数）、一个评测（困惑度）。</div>
+    <ul>
+      <li>语言模型与链式法则：精确公式为何不可估</li>
+      <li>马尔可夫假设与 N-gram：MLE = 数数 + 手算</li>
+      <li>稀疏与平滑：零概率灾难 → Add-k / 回退 / 插值 / GT / KN</li>
+      <li>评估与生成：困惑度、采样、工具，走向神经语言模型</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9 语言模型定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">语言模型：给语言一个概率分布</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">两种等价表述</div>
+        <ul>
+          <li>整句概率：<b>P(w₁, w₂, …, w_N)</b></li>
+          <li>下一词分布：<b>P(wₜ | w₁…wₜ₋₁)</b></li>
+          <li>句界标记 <b>&lt;s&gt;</b> / <b>&lt;/s&gt;</b>：让“开始/结束”也参与计算</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">能干什么</div>
+        <ul>
+          <li><b>打分</b>：判断句子合理性、给候选重排（语音/翻译/纠错）</li>
+          <li><b>预测</b>：生成文本、输入法联想、搜索补全</li>
+          <li>它不判断对错，只回答：这串词有多像真实语言</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">语言模型 = 把<span class="k">“像人话”</span>变成一个可以比较的数。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">09</span></div>
+</section>
+
+<!-- ================= 10 链式法则：精确但没法估 + 工程细节（原 10、11 合并） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">链式法则：精确，但没法估</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:17px;line-height:1.6">
+P(w₁, w₂, ..., w_N) = P(w₁) · P(w₂|w₁) · P(w₃|w₁,w₂) · ... · <b>P(w_N | w₁...w_{N-1})</b>
+= Π<sub>t=1..N</sub> P(w_t | w₁ ... w_{t-1})</div>
+    <div class="grid g2" style="flex:0 0 139px;margin-top:12px">
+      <div class="card" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">数学上：完全精确</div>
+        <p style="font-size:19px;line-height:1.45">概率乘法公式的直接应用，没引入任何近似——理论上毫无问题。</p>
+      </div>
+      <div class="card card-warn" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">工程上：组合爆炸</div>
+        <ul>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">长度 t 的历史有 <b>Vᵗ</b> 种可能，语料里绝大多数没出现</li>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">MLE 遇到未见历史只能给出 <b>0/0</b>；精确公式 + 有限语料 = 不可用</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">连乘下溢</div>
+        <ul>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">30 个词、每词概率 0.1 → 整句 ≈ <b>1e-30</b></li>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">浮点数很快下溢为 0——概率再也比不出大小</li>
+        </ul>
+      </div>
+      <div class="card card-blue" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">对数空间</div>
+        <div class="code" style="margin-top:0;font-size:14.5px;line-height:1.42;padding:8px 12px;background:#fff">log P(w₁...w_N) = <b>Σ</b> log P(w_t | history)
+<span class="c"># 乘法 → 加法；单调递增，比较结果不变</span>
+<span class="c"># log(0) = -∞：零概率连对数都取不了</span></div>
+      </div>
+    </div>
+    <div class="qbar">连乘下溢 → 取对数；精确但不可估 → <span class="k">引入近似（马尔可夫假设）</span>——两条路都指向同一句工程常识。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">10</span></div>
+</section>
+
+<!-- ================= 11 马尔可夫假设 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">马尔可夫假设：主动“健忘”的智慧</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:16.5px;line-height:1.6">P(w_t | w₁ ... w_{t-1})  ≈  <b>P(w_t | w_{t-n+1} ... w_{t-1})</b></div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card">
+        <div class="h">近似换来了什么</div>
+        <ul>
+          <li>只看最近 n−1 个词——历史数从 Vᵗ 降到 Vⁿ⁻¹</li>
+          <li>n=2（bigram）：看前 1 个词；n=3（trigram）：看前 2 个</li>
+          <li>参数可数、概率可估——终于能算了</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">代价：长程依赖失明</div>
+        <ul>
+          <li>窗口之外的信息全部丢弃</li>
+          <li>“我上周在图书馆借的那本书……”结尾的主语一致性，bigram 看不见</li>
+          <li>这是结构性问题——第 8 讲 RNN 的动机</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">用一个<span class="k">可估的近似</span>，换取可计算性——这是统计 NLP 的第一笔交易。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">11</span></div>
+</section>
+
+<!-- ================= 12 Unigram 与 Bigram（原 12、13 合并） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">Unigram → Bigram：从词袋到“数数”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:15.5px;line-height:1.5;padding:11px 16px">Unigram：P(w₁…w_N) ≈ Π P(wᵢ)　→　Bigram：P(w_t | w_{t-1}) = <b>Count(w_{t-1}, w_t) / Count(w_{t-1})</b>
+<span class="c"># 词袋：完全忽略顺序　　# 数数：分子 = 相邻词对次数；分母 = 前缀（历史）次数</span></div>
+    <div class="grid g2" style="flex:0 0 139px;margin-top:12px">
+      <div class="card" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">Unigram：词袋</div>
+        <ul>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">参数最少（<b>V</b> 个），估计最稳——最弱但最快的语言模型</li>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">代价：<b>语序信息全丢</b></li>
+        </ul>
+      </div>
+      <div class="card card-warn" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">现场对照</div>
+        <ul>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">“我喜欢吃苹果” vs “苹果吃我喜欢”</li>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">Unigram 给两句<b>相同概率</b>，语感却天差地别——它看不见语序</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">为什么分母是前缀计数</div>
+        <ul>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">保证同一历史下所有下一个词的概率之和为 1（<b>归一化</b>）</li>
+          <li style="font-size:19px;line-height:1.4;margin-top:4px">直觉：P(Sam|am) = “am Sam”次数 ÷ “am”次数</li>
+        </ul>
+      </div>
+      <div class="card card-blue" style="padding:14px 18px">
+        <div class="h" style="font-size:21px;margin-bottom:5px">模型长什么样</div>
+        <p style="font-size:19px;line-height:1.45">一张 <b>V×V</b> 的条件概率表：行 = 历史词，列 = 下一个词，格子 = 概率——又大又稀疏。</p>
+      </div>
+    </div>
+    <div class="qbar">从词袋到条件概率：MLE 在 N-gram 上就是<span class="k">数数</span>——这是统计 NLP 的核心操作。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">12</span></div>
+</section>
+
+<!-- ================= 13 手算语料 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">手算①：从计数到 bigram 概率</span><span class="sec">环节二 · 知识点（期中考点）</span></div>
+  <div class="content">
+    <div class="lead">迷你语料：『&lt;s&gt; I am Sam &lt;/s&gt;』×2　『&lt;s&gt; Sam I am &lt;/s&gt;』　『&lt;s&gt; I am happy &lt;/s&gt;』</div>
+    <table class="ac" style="flex:1">
+      <tr><th style="width:34%">Bigram 计数</th><th style="width:14%">次数</th><th style="width:34%">Bigram 概率</th><th style="width:18%">结果</th></tr>
+      <tr><td>&lt;s&gt; → I</td><td>3</td><td>P(I | &lt;s&gt;) = 3/4</td><td><b>0.75</b></td></tr>
+      <tr><td>I → am</td><td>3</td><td>P(am | I) = 3/3</td><td><b>1.00</b></td></tr>
+      <tr><td>am → Sam</td><td>2</td><td>P(Sam | am) = 2/3</td><td><b>0.67</b></td></tr>
+      <tr><td>Sam → &lt;/s&gt;</td><td>3</td><td>P(&lt;/s&gt; | Sam) = 3/3</td><td><b>1.00</b></td></tr>
+    </table>
+    <div class="qbar">整句打分：P(&lt;s&gt; I am Sam &lt;/s&gt;) = 0.75 × 1 × 0.67 × 1 = <span class="k">0.5</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">13</span></div>
+</section>
+
+<!-- ================= 14 N-gram 一般式与参数爆炸 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">N-gram 家族：公式与 Vⁿ 参数爆炸</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:16.5px;line-height:1.55">P(w_t | w_{t-n+1} ... w_{t-1}) = Count(w_{t-n+1} ... w_t) / Count(w_{t-n+1} ... w_{t-1})</div>
+    <table class="ac" style="flex:1;margin-top:12px">
+      <tr><th style="width:22%">模型</th><th style="width:26%">看多长的历史</th><th style="width:26%">参数量（V=5 万）</th><th style="width:26%">特点</th></tr>
+      <tr><td><b>Unigram</b></td><td>0 个词（词袋）</td><td>5 万</td><td>最稳但丢语序</td></tr>
+      <tr><td><b>Bigram</b></td><td>前 1 个词</td><td>25 亿</td><td>常用、稀疏</td></tr>
+      <tr><td><b>Trigram</b></td><td>前 2 个词</td><td>12.5 万亿</td><td>效果好但极稀疏</td></tr>
+      <tr><td><b>4/5-gram</b></td><td>前 3–4 个词</td><td>天文数字</td><td>需大语料 + 强平滑</td></tr>
+    </table>
+    <div class="qbar">n 越大越准，但参数按 <span class="k">Vⁿ</span> 爆炸——工程上常见 bigram/trigram + 平滑。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">14</span></div>
+</section>
+
+<!-- ================= 15 困惑度定义 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">困惑度 PPL：语言模型的“体温计”</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:16.5px;line-height:1.6">PPL(W) = P(w₁ ... w_N)<sup>-1/N</sup>
+       = exp( -(1/N) · Σ log P(w_t | history) )
+<span class="c"># N = 被预测的 token 数：不含句首 &lt;s&gt;，含句尾 &lt;/s&gt;</span></div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card card-blue">
+        <div class="h">直觉：平均分支因子</div>
+        <ul>
+          <li>PPL = 100：每步像在 100 个等可能词里猜</li>
+          <li>PPL = 10：只在 10 个里猜——更有把握</li>
+          <li>越小越好；只在同词表/同分词下可比</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="h">两个极点</div>
+        <ul>
+          <li><b>PPL = 1</b>：完全确定——不可能，语言有内在熵</li>
+          <li><b>PPL = V</b>：词表里均匀瞎猜——模型的地板</li>
+          <li>模型的努力：从 V 向 1 逼近，但永远到不了 1</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">困惑度 = <span class="k">平均在几个词之间犹豫</span>——犹豫越少，模型越好。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">15</span></div>
+</section>
+
+<!-- ================= 16 PPL 手算 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">PPL 手算：从概率到“体温”</span><span class="sec">环节二 · 知识点（期中考点）</span></div>
+  <div class="content">
+    <div class="lead" style="font-size:19px;line-height:1.45;margin-bottom:10px">同一句话、两个模型：P 不同是正常的——<b>P 描述的是“模型有多相信这句话”，不是句子的固有属性</b>。</div>
+    <table class="ac sm" style="flex:1">
+      <tr><th style="width:21%">测试句</th><th style="width:25%">模型（训练语料）</th><th style="width:14%">整句概率 P</th><th style="width:11%">预测词数 N</th><th style="width:29%">困惑度 PPL</th></tr>
+      <tr><td>&lt;s&gt; I am Sam &lt;/s&gt;</td><td>课程迷你语料（第 15 页）</td><td>0.5</td><td>4</td><td>0.5<sup>−1/4</sup> = 2<sup>1/4</sup> ≈ <b>1.19</b></td></tr>
+      <tr><td>&lt;s&gt; I am Sam &lt;/s&gt;　<b>↳ 同一句话</b></td><td>教材迷你语料（SLP3 §3.1）</td><td>1/9</td><td>4</td><td>9<sup>1/4</sup> = √3 ≈ <b>1.73</b></td></tr>
+      <tr><td>&lt;s&gt; Sam I am &lt;/s&gt;</td><td>教材迷你语料（SLP3 §3.1）</td><td>1/18</td><td>4</td><td>18<sup>1/4</sup> ≈ <b>2.06</b></td></tr>
+      <tr><td>&lt;s&gt; I am green &lt;/s&gt;</td><td>课程迷你语料（第 15 页）</td><td><b>0</b></td><td>4</td><td><b>∞</b>（灾难）</td></tr>
+    </table>
+    <div class="qbar">同一句话换模型，P 就变：<span class="k">PPL 只在同一模型/词表/口径下比较</span>；零概率句 PPL=∞，平滑是必修。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">16</span></div>
+</section>
+
+<!-- ================= 17 PPL 与交叉熵 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">PPL = 2^H：与交叉熵是一枚硬币</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue">
+        <div class="h">等价关系</div>
+        <ul>
+          <li>交叉熵 H（比特/词）= −(1/N)Σ log₂ P(wᵢ|history)</li>
+          <li><b>PPL = 2^H</b>——困惑度是交叉熵的指数</li>
+          <li>H 越小越好；PPL 把 H 换算成“平均候选数”</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="h">优缺点</div>
+        <ul>
+          <li>优点：单个数、易比较、与语言内在结构相关</li>
+          <li>缺点：依赖词表与分词；不反映语义与下游任务表现</li>
+          <li>选型仍以外在任务为准——第 5 讲评估观回响</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">内在评估（PPL）管“快”，外在评估管“<span class="k">准</span>”——两者配合使用。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">17</span></div>
+</section>
+
+<!-- ================= 18 稀疏与 Zipf（原 15，移至此位） ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">零概率灾难与 Zipf 律</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1;grid-template-columns:0.85fr 1.15fr">
+      <div class="card card-warn">
+        <div class="h">零概率的连锁灾难</div>
+        <ul>
+          <li>测试句有一个未见 bigram → 整句概率 <b>= 0</b></li>
+          <li>对数空间 → <b>−∞</b>；困惑度 → <b>∞</b></li>
+          <li>一个没见过的搭配，就能让整个评估崩溃</li>
+        </ul>
+        <div class="code sm" style="margin-top:12px;background:#fff;border-color:#E9C4BE;font-size:15px">
+<span class="c"># 例：语料里从未出现过「深度学习 很香」</span>
+Count(深度学习, 很香) = 0
+P(很香 | 深度学习) = 0 / Count(深度学习) = <b>0</b>
+P(整句) = … × <b>0</b> × … = <b>0</b>   →   PPL = <b>∞</b>
+        </div>
+        <p style="margin-top:12px;font-size:18px;line-height:1.45">MLE 只会“数数”：计数为 0，概率就是 0——它没有“也许”这个选项。</p>
+      </div>
+      <div class="card">
+        <div class="h">根源：Zipf 律</div>
+        <div class="code sm" style="margin-top:0;text-align:center;font-size:17px;line-height:1.5">
+f(r) ∝ 1 / r<sup>α</sup>（自然语言 α ≈ 1）　→　<b>排名 r × 频率 f ≈ 常数</b>
+        </div>
+        <table class="ac sm" style="margin-top:8px">
+          <tr><th style="width:34%">词频排名 r</th><th>1</th><th>2</th><th>3</th><th>10</th><th>100</th></tr>
+          <tr><td>相对频率 f(r)</td><td>1</td><td>1/2</td><td>1/3</td><td>1/10</td><td>1/100</td></tr>
+          <tr><td>若第 1 名 = 1000 次</td><td>1000</td><td>500</td><td>333</td><td>100</td><td>10</td></tr>
+        </table>
+        <ul>
+          <li>少数高频词吃掉大部分词次：英语中 <b>the</b> 约占 6–7%，前 100 个高频词合计约覆盖<b>一半</b>词次</li>
+          <li>长尾极长：许多语料里<b>约一半词型只出现 1 次</b>——绝大多数词是“稀有词”</li>
+          <li>语料扩大也甩不掉长尾：新词、新搭配不断冒出 → 未见 n-gram 是<b>结构性</b>的；n 越大，未见比例越高</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">语言分布天生“长尾”：<span class="k">没见过 ≠ 不可能</span>——MLE 却判它 0 概率，平滑因此是必修。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">18</span></div>
+</section>
+
+<!-- ================= 19 平滑总览 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑家族：给没见过的事件分一点概率</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:24%">思路</th><th style="width:40%">做法一句话</th><th style="width:36%">代表方法</th></tr>
+      <tr><td><b>① 加常数</b></td><td>把每个计数都加一个常数 k</td><td>Add-1（Laplace）、Add-k</td></tr>
+      <tr><td><b>② 回退</b></td><td>高阶没见过就降级用低阶</td><td>Katz Backoff、stupid backoff</td></tr>
+      <tr><td><b>③ 插值</b></td><td>高低阶概率加权混合，永远都听</td><td>线性插值、Witten-Bell</td></tr>
+      <tr><td><b>④ 折扣</b></td><td>按统计规律给高频打折、补给低频</td><td>Good-Turing、Kneser-Ney</td></tr>
+    </table>
+    <div class="qbar">三个要件：<span class="k">分概率给未见 · 给见过打折 · 保证归一化</span>——任何平滑方法都要满足。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">19</span></div>
+</section>
+
+<!-- ================= 20 Add-k ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑①：Add-1 / Add-k——最简单的补丁</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="code" style="margin-top:0;font-size:16.5px;line-height:1.6">P(w_t | w_{t-1}) = ( Count(w_{t-1}, w_t) + <b>k</b> ) / ( Count(w_{t-1}) + <b>k·V</b> )</div>
+    <div class="grid g2" style="flex:1;margin-top:12px">
+      <div class="card">
+        <div class="h">优点</div>
+        <ul>
+          <li>简单、保证无零概率</li>
+          <li>k=1 即 Laplace 平滑——最好的教学基线</li>
+          <li>文本分类等任务仍实用</li>
+        </ul>
+      </div>
+      <div class="card card-warn">
+        <div class="h">问题：过于激进</div>
+        <ul>
+          <li>V 很大时，大量概率被分给从未出现的组合</li>
+          <li>高频词被严重打压——教材实测语言建模表现差</li>
+          <li>Add-k（k≈0.01–0.1）稍好；语言建模仍要回退/插值/KN</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">Add-k 是<span class="k">最好的入门基线</span>，但不是最终答案——“一刀切”的折扣不够聪明。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">20</span></div>
+</section>
+
+<!-- ================= 21 回退与插值 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑②③：回退 vs 线性插值</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">回退 Backoff：逐级请示</div>
+        <ul>
+          <li>高阶计数足够 → 用高阶；不够 → 降级用低阶</li>
+          <li>Katz：折扣省下的概率质量按低阶分布分配</li>
+          <li>stupid backoff：简化版，工程常用（不保证归一化）</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">插值 Interpolation：三人投票</div>
+        <ul>
+          <li><b>P = λ₃·P₃ + λ₂·P₂ + λ₁·P₁</b>，Σλ = 1</li>
+          <li>每一阶都参与，永远不浪费低阶信息</li>
+          <li>λ 可在验证集上用 EM 学习——语言建模最常用</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">回退是<span class="k">逐级请示</span>，插值是<span class="k">三人投票</span>——插值通常更稳。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">21</span></div>
+</section>
+
+<!-- ================= 22 Good-Turing ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑④：Good-Turing——让数据自己说打几折</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">核心公式与思想</div>
+        <ul>
+          <li>N_c = 恰好出现 c 次的 n-gram <b>种数</b>（计数的计数）</li>
+          <li>折扣计数：<b>c* = (c+1)·N_{c+1} / N_c</b></li>
+          <li>未见事件的总概率 ≈ <b>N₁ / N</b></li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">出身与地位</div>
+        <ul>
+          <li>1953 年发表，源自图灵二战破译密码的统计工作</li>
+          <li>“只见过一次”的事物，是“还没见过”的代言人</li>
+          <li>现代用 Kneser-Ney，但 GT 的思想影响至今</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">GT 的美：不拍脑袋定折扣，<span class="k">让数据自己说该打几折</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">22</span></div>
+</section>
+
+<!-- ================= 23 Kneser-Ney ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑⑤：Kneser-Ney——统计平滑的集大成者</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">两个核心机制</div>
+        <ul>
+          <li><b>绝对折扣</b>：所有非零计数统一减去常数 d，省下的概率给未见事件</li>
+          <li><b>延续性</b>：低阶概率用“前面接过多少个不同的词”估计——P_cont(w) ∝ |{v : Count(v,w)&gt;0}|</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">经典例子与地位</div>
+        <ul>
+          <li>Francisco 出现多，但前面几乎只接过 San——延续性计数低，符合直觉</li>
+          <li>modified KN（三档折扣+插值）= 世纪之交的<b>标准基线</b></li>
+          <li>Chen &amp; Goodman 实证比较的结论</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">绝对折扣管“<span class="k">分钱给未见</span>”，延续性管“<span class="k">谁更有资格接手</span>”。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">23</span></div>
+</section>
+
+<!-- ================= 24 平滑横评 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">平滑方法横评：怎么选</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:22%">方法</th><th style="width:30%">一句话评价</th><th style="width:24%">适用</th><th style="width:24%">实现难度</th></tr>
+      <tr><td><b>Laplace / Add-1</b></td><td>概念最好懂，语言建模效果差</td><td>教学、文本分类</td><td>★</td></tr>
+      <tr><td><b>Add-k</b></td><td>把 1 换成可调旋钮，依然是基线</td><td>快速实验</td><td>★</td></tr>
+      <tr><td><b>Katz / stupid backoff</b></td><td>逐级降级，工程实现多</td><td>传统工业系统</td><td>★★</td></tr>
+      <tr><td><b>线性插值</b></td><td>最常用、最稳；λ 可学习</td><td>主流首选</td><td>★★</td></tr>
+      <tr><td><b>Good-Turing</b></td><td>理论优雅，实现有坑</td><td>概念与教学</td><td>★★★</td></tr>
+      <tr><td><b>Kneser-Ney</b></td><td>效果最好，实现复杂</td><td>追求指标</td><td>★★★★</td></tr>
+    </table>
+    <div class="qbar">没有“最好”的平滑，只有与<span class="k">语料规模、n 大小、实现成本</span>匹配的取舍。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">24</span></div>
+</section>
+
+<!-- ================= 25 OOV ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">OOV 与 &lt;UNK&gt;：给陌生词一个身份</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card">
+        <div class="h">做法：闭词表 + 垃圾桶</div>
+        <ul>
+          <li>出现次数 &lt; 5（或其它阈值）的词 → 统一映射为 <b>&lt;UNK&gt;</b></li>
+          <li>&lt;UNK&gt; 同样参与计数与概率估计，保证归一化</li>
+          <li>未知词概率 = 所有低频词合计概率，而非单次计数</li>
+        </ul>
+      </div>
+      <div class="card card-blue">
+        <div class="h">词表大小 L 的取舍</div>
+        <ul>
+          <li>L 越大：覆盖率越高，但参数越多、越稀疏</li>
+          <li>L 越小：参数少、统计稳，但 OOV 比例高</li>
+          <li>中文要先分词再映射（第 4 讲伏笔）</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">OOV 处理 = 在<span class="k">覆盖率与稀疏度</span>之间找一个平衡点。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">25</span></div>
+</section>
+
+<!-- ================= 26 采样生成 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">反向使用：让 N-gram 造句子</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:0 0 292px">
+      <div class="code" style="margin-top:0;font-size:15px;line-height:1.55">
+import random
+def generate(model, gram, max_len=20):
+    hist = ("&lt;s&gt;",) * (gram - 1)      <span class="c"># 初始上下文</span>
+    out = []
+    for _ in range(max_len):
+        cands = model.get(hist)          <span class="c"># 条件分布</span>
+        if not cands: break
+        w = random.choices(*zip(*cands)) <span class="c"># 按概率采样</span>
+        if w == "&lt;/s&gt;": break
+        out.append(w); hist = (hist + (w,))[-(gram-1):]
+    return " ".join(out)</div>
+      <div class="card card-warn">
+        <div class="h">典型现象</div>
+        <ul>
+          <li><b>局部像样</b>：相邻搭配正确（学到了局部统计）</li>
+          <li><b>全局胡说</b>：越长越跑偏（长程依赖丢失）</li>
+          <li>这正是语言模型生成能力的雏形——GPT 的逐 token 生成与它同构</li>
+        </ul>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;margin-top:10px;background:var(--lbox);border:1px solid var(--line);border-radius:10px;padding:9px 14px;display:flex;flex-direction:column">
+      <div style="font-size:17.5px;font-weight:700;color:var(--navy);margin-bottom:5px">不同 n-gram 的生成效果（逐词采样；样例为示意）</div>
+      <table class="ac sm" style="flex:1">
+        <tr><th style="width:13%">模型</th><th style="width:16%">条件概率</th><th style="width:44%">生成样例（逐词采样）</th><th style="width:27%">效果</th></tr>
+        <tr><td><b>Unigram</b></td><td>P(wᵢ)</td><td style="font-family:Consolas,'Courier New',monospace;font-size:15.5px">happy Sam I Sam am I</td><td>语序全乱</td></tr>
+        <tr><td><b>Bigram</b></td><td>P(wᵢ | wᵢ₋₁)</td><td style="font-family:Consolas,'Courier New',monospace;font-size:15.5px">I am Sam I am happy to see the man is the</td><td>局部像样、越长越散</td></tr>
+        <tr><td><b>Trigram</b></td><td>P(wᵢ | wᵢ₋₂, wᵢ₋₁)</td><td style="font-size:15.5px">局部更像样，但未见三元组太多（稀疏）——<b>生成不出连贯的长句</b></td><td>稀疏、难连贯</td></tr>
+      </table>
+    </div>
+    <div class="qbar">N-gram 证明了一件事：<span class="k">只要会算概率，就能生成文本</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">26</span></div>
+</section>
+
+<!-- ================= 27 三死穴与神经 LM ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">N-gram 的三个死穴 → 神经 LM</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">1</span>长程依赖失明</div><p>只看最近 n−1 个词，窗口外信息全丢。<br><b>神经 LM：</b>隐状态/注意力携带长程信息。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">2</span>稀疏与泛化差</div><p>没见过的组合就是零，平滑只是缓解。<br><b>神经 LM：</b>词向量让相似上下文互相泛化。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>参数爆炸</div><p>Vⁿ 表格无法随语料扩展。<br><b>神经 LM：</b>参数共享、低维稠密、规模可控。</p></div>
+    </div>
+    <div class="qbar">N-gram 给了任务与评估坐标系（PPL）——<span class="k">第 8 讲只换引擎，不换问题</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">27</span></div>
+</section>
+
+<!-- ================= 28 收口对比表 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">收口：N-gram vs 神经语言模型</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <table class="ac" style="flex:1">
+      <tr><th style="width:20%">维度</th><th style="width:40%">N-gram（计数）</th><th style="width:40%">神经 LM（预告第 8 讲）</th></tr>
+      <tr><td><b>参数形式</b></td><td>计数表（稀疏）</td><td>网络权重（稠密）</td></tr>
+      <tr><td><b>长程依赖</b></td><td>只看 n−1 个词</td><td>隐状态 / 注意力携带</td></tr>
+      <tr><td><b>泛化</b></td><td>没见过 = 零（靠平滑补救）</td><td>相似上下文自动泛化</td></tr>
+      <tr><td><b>训练成本</b></td><td>秒级、CPU 即可</td><td>GPU、较慢</td></tr>
+      <tr><td><b>可解释性</b></td><td>高——能查到具体计数</td><td>低——分布式表示</td></tr>
+      <tr><td><b>今天在哪</b></td><td>输入法/语音/纠错/低资源</td><td>主线：GPT 家族的起点</td></tr>
+    </table>
+    <div class="qbar">从<span class="k">“数出来的概率”</span>到<span class="k">“学出来的概率”</span>——引擎换了，问题没变。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">28</span></div>
+</section>
+
+<!-- ================= 29 三个误区 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">三个常见误区</span><span class="sec">环节二 · 知识点</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card card-warn"><div class="h"><span class="no">1</span>PPL 越小任务一定越好</div><p>PPL 依赖词表与分词，是内在指标——最终以<b>外在任务</b>为准。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">2</span>平滑就是“加 1”</div><p>Add-1 只是最粗糙的一种；主流是<b>插值 / Kneser-Ney</b>，目标是合理分配未见概率。</p></div>
+      <div class="card card-warn"><div class="h"><span class="no">3</span>N-gram 已经过时</div><p>输入法、语音、纠错、低资源场景仍在用——它也是理解神经 LM 的<b>对照系</b>。</p></div>
+    </div>
+    <div class="qbar">经典方法的价值：<span class="k">提供任务定义与评估坐标系</span>——引擎可以换代，坐标系长期有效。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">29</span></div>
+</section>
+
+<!-- ================= 环节三 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">03</div>
+  <div class="bd">
+    <div class="nm">实践自学 + 研讨 · 10 分钟</div>
+    <div class="ds">课后跑通 bigram + PPL，课堂研讨三个机制问题。</div>
+    <ul>
+      <li>自学：20 行 bigram 代码 + 调 k 观察 PPL</li>
+      <li>研讨：马尔可夫假设 / PPL 爆炸 / 平滑（答案课堂揭示）</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 31 自学任务 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">自学任务：20 行建一个会“算命”的模型</span><span class="sec">环节三 · 线下自学</span></div>
+  <div class="content">
+    <div class="grid" style="flex:1;grid-template-columns:1.2fr 1fr;gap:14px">
+      <div class="code" style="margin-top:0;font-size:18px;line-height:1.5;white-space:pre;overflow:hidden">
+import math, collections
+def train(corpus, k=0.1):
+    uni, bi = collections.Counter(), collections.Counter()
+    for s in corpus:
+        toks = ["&lt;s&gt;"] + s.split() + ["&lt;/s&gt;"]
+        for a, b in zip(toks, toks[1:]):
+            uni[a] += 1; bi[(a, b)] += 1
+    V = len(uni) + 1                     <span class="c"># +1 给 &lt;UNK&gt;</span>
+    P = lambda a, b: (bi[(a,b)] + k) / (uni[a] + k * V)
+    return P, V
+def ppl(sent, P, V):
+    toks = ["&lt;s&gt;"] + sent.split() + ["&lt;/s&gt;"]
+    lp = [math.log(P(a, b)) for a, b in zip(toks, toks[1:])]
+    return math.exp(-sum(lp) / len(lp))
+<span class="c"># P, V = train(corpus); ppl("i am sam", P, V)</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-height:0">
+        <div class="card card-blue" style="flex:1;padding:14px 18px">
+          <div class="h" style="font-size:21px;margin-bottom:5px"><span class="no">①</span>训练与统计</div>
+          <ul>
+            <li style="font-size:18px;line-height:1.4;margin-top:4px">在课程语料上训练 bigram，输出词表大小与 bigram 数</li>
+            <li style="font-size:18px;line-height:1.4;margin-top:4px">对三个测试句计算 PPL（含 OOV 句）——先映射 &lt;UNK&gt; 再看差异</li>
+          </ul>
+        </div>
+        <div class="card card-blue" style="flex:1;padding:14px 18px">
+          <div class="h" style="font-size:21px;margin-bottom:5px"><span class="no">②</span>调参与挑战</div>
+          <ul>
+            <li style="font-size:18px;line-height:1.4;margin-top:4px">把 k 从 0 → 0.1 → 1.0，记录 PPL 变化并解释趋势</li>
+            <li style="font-size:18px;line-height:1.4;margin-top:4px">挑战：把 bigram 换成 trigram（zip 窗口改一行）</li>
+            <li style="font-size:18px;line-height:1.4;margin-top:4px">验收：三组 PPL 数值 + 一段解释</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="qbar">CPU 即可、纯标准库——<span class="k">亲手看到 PPL 随平滑参数变化</span>，胜过十页公式。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">31</span></div>
+</section>
+
+<!-- ================= 32 研讨题目 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">研讨：三个机制问题（10 分钟）</span><span class="sec">环节三 · 例题/互动</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1">
+      <div class="card card-blue"><div class="h">Q1 近似</div><p>链式法则本身是精确的，为什么还要引入马尔可夫假设？近似换来了什么、又失去了什么？</p></div>
+      <div class="card card-blue"><div class="h">Q2 评估</div><p>困惑度在什么情况下会变成无穷大？这说明评估与建模之间是什么关系？</p></div>
+      <div class="card card-blue"><div class="h">Q3 平滑</div><p>为什么必须平滑？Add-1、插值与 Kneser-Ney 各自在解决什么问题？</p></div>
+    </div>
+    <div class="qbar">规则：讨论 5′ → 两组分享 3′ → 点评 2′；<span class="k">答案由教师课堂揭示</span>——先别翻页，把答案说给同桌。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">32</span></div>
+</section>
+
+<!-- ================= 环节四 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">04</div>
+  <div class="bd">
+    <div class="nm">本讲小结 · 5 分钟</div>
+    <div class="ds">一个目标、一套估计、一个评测、一组补丁。</div>
+    <ul>
+      <li>目标：给整句与下一个词赋概率</li>
+      <li>估计：马尔可夫假设 + MLE = 数数</li>
+      <li>评测与补丁：困惑度 + 平滑家族</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 35 小结 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">本讲小结</span><span class="sec">环节四 · 小结</span></div>
+  <div class="content">
+    <div class="grid g3" style="flex:1;align-content:stretch">
+      <div class="card"><div class="h"><span class="no">1</span>目标与近似</div><p>语言模型给语言打分；马尔可夫假设用『只看最近 n−1 个词』换取可估。</p></div>
+      <div class="card"><div class="h"><span class="no">2</span>估计与评测</div><p>MLE 就是数数；困惑度是平均分支因子，<b>PPL = 2^H</b>，越小越好。</p></div>
+      <div class="card"><div class="h"><span class="no">3</span>补丁与边界</div><p>零概率必须平滑；三大死穴（长程/稀疏/参数爆炸）正是第 8 讲神经 LM 的动机。</p></div>
+    </div>
+    <div class="qbar">统计语言模型的价值，更在于它定义了<span class="k">“语言模型”这个任务与评估坐标系</span>。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">35</span></div>
+</section>
+
+<!-- ================= 环节五 扉页 ================= -->
+<section class="slide div">
+  <div class="accent"></div>
+  <div class="bn">05</div>
+  <div class="bd">
+    <div class="nm">作业与预告</div>
+    <div class="ds">作业 3 阶段一提交；下讲换引擎——神经语言模型。</div>
+    <ul>
+      <li>作业 3 阶段一：流水线 + 过拟合验证 + 双曲线</li>
+      <li>新增：bigram PPL 对照基线（一页纸）</li>
+      <li>下讲预告：第 8 讲 神经语言模型 RNN/LSTM/GRU</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 37 作业 ================= -->
+<section class="slide">
+  <div class="hdr"><span class="t">课后作业与下讲预告</span><span class="sec">环节五 · 作业</span></div>
+  <div class="content">
+    <div class="grid g2" style="flex:1">
+      <div class="card card-blue"><div class="h"><span class="no">1</span>作业 3 阶段一（本讲后提交）</div>
+        <ul>
+          <li>文本分类流水线跑通 + 小数据过拟合验证 + 训练/验证双曲线</li>
+          <li><b>新增</b>：用 bigram 代码算测试文本 PPL，作为统计基线写进报告</li>
+          <li>报告含调参记录、过拟合诊断、AI 使用声明</li>
+        </ul>
+      </div>
+      <div class="card"><div class="h"><span class="no">2</span>下讲预告与思考题</div>
+        <ul>
+          <li>第 8 讲：神经语言模型——FFNN-LM、RNN、LSTM/GRU</li>
+          <li>思考①：为什么 RNN 能记住更长的历史？</li>
+          <li>思考②：隐状态里到底存了什么？</li>
+        </ul>
+      </div>
+    </div>
+    <div class="qbar">下讲预告 · <span class="k">第 8 讲 神经语言模型</span>：从“数出来”到“学出来”——RNN 与它的门控兄弟。</div>
+  </div>
+  <div class="ftr"><span>东北大学软件学院 · 自然语言处理</span><span class="pg">37</span></div>
+</section>
+
+<!-- ================= 38 参考资料 ================= -->
+<section class="slide cover">
+  <div class="badge">东北大学软件学院<small>SOFTWARE COLLEGE, NEU</small></div>
+  <div class="mid" style="top:120px">
+    <div class="cn" style="font-size:44px">参考资料与致谢</div>
+    <div class="rule" style="margin:20px 0 22px"></div>
+    <div class="meta" style="font-size:16.5px;line-height:1.9">
+      <b>教材与经典文献（原理层）</b><br>
+      Jurafsky &amp; Martin《Speech and Language Processing》(3rd ed., Ch.3 N-gram) · Shannon (1948/1951) 熵与预测<br>
+      Good (1953) Good-Turing · Kneser &amp; Ney (1995) · Chen &amp; Goodman (1999) 平滑实证 · Zipf (1949)<br>
+      <b>课程与工具（实例层）</b><br>
+      NLTK 教材（语言模型章节）· KenLM / SRILM 文档 · Google Web 1T 5-gram 语料<br>
+      《动手学深度学习》D2L 中文版（语言模型与数据集）· Lena Voita NLP Course（Language Modeling）
+    </div>
+    <div class="foot" style="position:static;margin-top:30px">马尔可夫假设、MLE、困惑度与平滑为原理层、长期稳定；工具与语料为实例层，开课前核实更新。课件由 Codex 辅助制作。</div>
+  </div>
+  <div class="num" style="font-size:220px">FIN</div>
+</section>
+
+</div></div>
+
+<div id="bar"></div>
+<div id="ctrl">
+  <button id="first" title="首页（Home）">«</button>
+  <button id="prev" title="上一页（←）">‹</button>
+  <span class="cnt"><input id="pgIn" type="text" inputmode="numeric" value="1"><span id="cnt">/ 37</span></span>
+  <button id="next" title="下一页（→）">›</button>
+  <button id="last" title="尾页（End）">»</button>
+  <span class="sep"></span>
+  <button id="fsBtn" title="全屏（F）">⛶</button>
+</div>
+<div id="hint">←/→ 或空格翻页 · Home/End 首尾 · 输入页码回车跳转 · F 全屏</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var cur = 0, total = slides.length;
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var cnt = document.getElementById('cnt');
+  var pgIn = document.getElementById('pgIn');
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.left = ((window.innerWidth - 1280 * s) / 2) + 'px';
+    stage.style.top = ((window.innerHeight - 720 * s) / 2) + 'px';
+  }
+  /* 把 解析成结构化提示 */
+
+  function go(n){
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides.forEach(function(s, i){ s.classList.toggle('active', i === cur); });
+    cnt.textContent = '/ ' + total;
+    pgIn.value = (cur + 1);
+    var pgEl = slides[cur].querySelector('.ftr .pg');
+    if(pgEl){ pgEl.textContent = String(cur + 1).padStart(2, '0'); }
+    bar.style.width = ((cur + 1) / total * 100) + '%';
+  }
+  document.getElementById('prev').onclick = function(){ go(cur - 1); };
+  document.getElementById('next').onclick = function(){ go(cur + 1); };
+  document.getElementById('first').onclick = function(){ go(0); };
+  document.getElementById('last').onclick = function(){ go(total - 1); };
+  pgIn.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){
+      var v = parseInt(pgIn.value, 10);
+      if(!isNaN(v)){ go(v - 1); } else { pgIn.value = cur + 1; }
+    }
+  });
+  pgIn.addEventListener('blur', function(){ pgIn.value = cur + 1; });
+  document.getElementById('fsBtn').onclick = function(){
+    if(document.fullscreenElement){ document.exitFullscreen(); }
+    else{ document.documentElement.requestFullscreen(); }
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ e.preventDefault(); go(cur + 1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'Home'){ go(0); }
+    else if(e.key === 'End'){ go(total - 1); }
+    else if(e.key === 'f' || e.key === 'F'){ document.getElementById('fsBtn').click(); }
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){
+    var m = location.hash.match(/^#(\d+)$/);
+    if(m){ go(parseInt(m[1], 10) - 1); }
+  });
+  fit();
+  var m0 = location.hash.match(/^#(\d+)$/);
+  go(m0 ? parseInt(m0[1], 10) - 1 : 0);
+</script>
+</body>
+</html>
