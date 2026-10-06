@@ -1,0 +1,68 @@
+# 初始开发配置，不代表已实现的运行能力或正式性能阈值。
+schema_version = "0.1"
+
+[app]
+host = "127.0.0.1"
+port = 8000
+workers = 1
+language = "zh"
+requested_capabilities = ["trace", "posthoc"]
+
+[storage]
+output_dir = "outputs"
+database_path = "outputs/agent.sqlite3"
+foreign_keys = true
+journal_mode = "WAL"
+synchronous = "FULL"
+busy_timeout_ms = 5000
+
+[retrieval]
+mode = "local"
+corpus_dir = "data/reference"
+allowed_extensions = [".txt", ".md"]
+tokenizer = "jieba"
+ranking = "bm25_okapi"
+bm25_k1 = 1.5
+bm25_b = 0.75
+bm25_epsilon = 0.25
+candidate_count = 5
+# 人工标签、选片和预测目录不能进入运行资料库。
+excluded_dirs = ["data/evaluation", "reports", "outputs"]
+max_file_bytes = 5242880
+max_corpus_bytes = 52428800
+max_documents = 500
+max_paragraphs = 20000
+
+[limits]
+max_question_codepoints = 4000
+max_answer_codepoints = 12000
+max_trace_bytes = 5242880
+max_trace_events = 1000
+max_item_codepoints = 64000
+max_reference_depth = 32
+max_claims = 40
+max_rounds_per_claim = 3
+max_search_calls = 80
+max_model_calls = 120
+max_estimated_tokens = 100000
+deadline_seconds = 600
+max_retries = 1
+
+[model]
+protocol = "openai_compatible_chat_completions"
+# 地址、模型、密钥与实际窗口从本地.env读取，不能写入报告配置快照。
+temperature = 0.0
+request_deadline_seconds = 60
+connect_timeout_seconds = 10
+read_timeout_seconds = 60
+write_timeout_seconds = 30
+pool_timeout_seconds = 10
+
+[billing]
+# 未配置价格时无法严格预控金额，不能将未知费用显示为0。
+price_known = false
+strict_cost_limit_enabled = false
+
+[export]
+redact_by_default = true
+formats = ["json", "markdown"]

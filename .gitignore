@@ -16,6 +16,9 @@ build/
 # 运行产物默认不提交。
 /outputs/*
 !/outputs/.gitkeep
+# 私有参考资料留在本机；公开样本需另行选择式登记。
+/data/reference/*
+!/data/reference/.gitkeep
 .DS_Store
 Thumbs.db
 ~$*
